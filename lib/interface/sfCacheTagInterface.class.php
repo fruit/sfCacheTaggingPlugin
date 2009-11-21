@@ -13,9 +13,9 @@ interface sfCacheTagInterface
 
   public function set($key, $data, $lifetime = null, array $tags = array());
 
-  public function setTag ($key, $value, $lifetime);
+  public function setTag ($key, $value, $lifetime = null);
 
-  public function setTags($key, $tags, $lifetime);
+  public function setTags($key, $tags, $lifetime = null);
 
   public function getTags($key);
 

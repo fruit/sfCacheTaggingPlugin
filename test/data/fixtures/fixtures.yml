@@ -1,0 +1,12 @@
+BlogPost:
+  a: { title: Hello A }
+  b: { title: Bye B }
+  c: { title: Me away C }
+
+BlogPostComment:
+  ac0: { author: fruit, message: 'Hi!', BlogPost: a }
+  ac1: { author: david, message: 'Ha-ya!', BlogPost: a }
+  ac2: { author: fruit, message: 'hru?', BlogPost: a }
+  bc0: { author: fruit, message: 'Ata!', BlogPost: b }
+  bc1: { author: david, message: 'Bye-Bye!', BlogPost: b }
+  bc2: { author: david, message: 'Have a nice day!', BlogPost: b }

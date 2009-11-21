@@ -65,23 +65,4 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
       $cache->setTag($object->getTagName(), $versionAsTimestamp, 86400);
     }
   }
-
-  public function getTagName (Doctrine_Event $event)
-  {
-    $object = $event->getInvoker();
-
-    $uniqueName = $this->_options['uniqueName'];
-    $callable = new sfCallable(array($object, sprintf('get', sfInflector::tableize($uniqueName))));
-
-    try
-    {
-      $index = $callable->call();
-    }
-    catch (Exception $e)
-    {
-      
-    }
-
-    return sprintf('%s_%s', sfInflector::tableize(get_class($object)), $index);
-  }
 }
