@@ -48,7 +48,7 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
    */
   public function setTableDefinition ()
   {
-    $this->hasColumn('object_version', 'string', 17, array('notnull' => true));
+    $this->hasColumn('object_version', 'string', 17, array('notnull' => false));
 
     $this->addListener(new Doctrine_Template_Listener_Cachetaggable($this->_options));
   }
@@ -67,22 +67,6 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
       throw new LogicException('To call ->getTagName() you should save it before');
     }
     
-    /*$uniqueName = $this->_options['uniqueColumn'];
-    
-    $methodName = sprintf('get%s', sfInflector::tableize($uniqueName));
-    $callable = new sfCallable(array($object, $methodName));
-
-    try
-    {
-      $index = $callable->call();
-    }
-    catch (Exception $e)
-    {
-      throw new sfConfigurationException(
-        sprintf('Object has not method ->%s', $methodName)
-      );
-    }*/
-
     return sprintf(
       '%s_%s',
       sfInflector::tableize(get_class($object)),

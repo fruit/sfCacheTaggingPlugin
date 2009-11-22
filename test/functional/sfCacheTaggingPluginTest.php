@@ -20,39 +20,94 @@ require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
 $t = new lime_test();
 
-sfConfig::set('sf_cache', 0);
-Doctrine::loadData(realpath(dirname(__FILE__) . '/../data/fixtures/fixtures.yml'));
-sfConfig::set('sf_cache', 1);
-
+//Doctrine::loadData(realpath(dirname(__FILE__) . '/../data/fixtures/fixtures.yml'));
 
 $posts = BlogPostTable::getTable()->getPostsQuery()->execute();
 
 $cache = sfContext::getInstance()->getViewCacheManager()->getCache();
-//$cache->getBackend()->flush();
 
-if ($cache->set('posts', $posts, null, $posts->getTags()))
+$cache->getBackend()->flush();
+
+//$m = $cache->getBackend();
+//
+//$t->diag('Testing a MemcacheLock ->lock() method');
+//
+//$t->info('setting a lock');
+//if ($m->add('lock-my', 1, false, 100))
+//{
+//  $t->pass('setted!');
+//
+//  $t->info('test is locked?');
+//
+//  if ($m->add('lock-my', 2, false, 10))
+//  {
+//    $t->fail('not locked');
+//  }
+//  else
+//  {
+//    $t->pass('Locked');
+//  }
+//
+//  $t->is($m->get('lock-my'), 1, 'lock value is = 1');
+//}
+//die;
+//$t->diag('Testing a MemcacheLock ->lock() method');
+//$t->info('setting a lock');
+//if ($m->add('unlock-my', 1, false, 100))
+//{
+//  $t->pass('setted!');
+//
+//  $t->info('test is locked?');
+//
+//  if ($m->add('unlock-my', 2, false, 10))
+//  {
+//    $t->fail('not locked');
+//  }
+//  else
+//  {
+//    $t->pass('Locked');
+//  }
+//
+//  $t->is($m->get('lock-my'), 1, 'lock value is = 1');
+//}
+
+if ($cache->get('posts'))
 {
-  sleep(1);
-  $post = $posts->getFirst();
-  $post->setTitle('My new title for row ' . $post->getId())->save();
+  $t->fail('Posts from cache after flushing mm');
+  die;
 }
+
+if (! $cache->set('posts', $posts, null, $posts->getTags()))
+{
+  $t->fail('Something goes wrong, $cache->set() is failed');
+  die;
+}
+
+$post = $posts->getFirst();
+$post->setTitle('Row id = ' . $post->getId())->save();
+
+if (! is_null($posts = $cache->get('posts')))
+{
+  $t->fail('cache is valid, but should be invalid');
+  die;
+}
+
+$t->pass('Posts should be updated - no valid cache is there');
+
+$posts = BlogPostTable::getTable()->getPostsQuery()->execute();
+
+if (! $cache->set('posts', $posts, null, $posts->getTags()))
+{
+  $t->fail('could not set new posts to mm');
+  die;
+}
+
+$t->pass('New posts setted to mm');
 
 if (is_null($posts = $cache->get('posts')))
 {
-  $t->pass('Posts should be updated - no valid cache is there');
-
-  $posts = BlogPostTable::getTable()->getPostsQuery()->execute();
-
-  if ($cache->set('posts', $posts, null, $posts->getTags()))
-  {
-    $t->pass('New posts setted to mm');
-  }
-  else
-  {
-    $t->fail('could not set new posts to mm');
-  }
+  $t->fail('Posts are expired');
+  die;
 }
-else
-{
-  $t->fail('cache is valid, but should be invalid');
-}
+
+$t->pass('Getting new posts from cache');

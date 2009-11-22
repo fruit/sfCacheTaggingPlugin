@@ -10,6 +10,12 @@ class MemcacheLock extends Memcache
   private
     $fileResource = null;
 
+  public function __construct()
+  {
+    $AZ = range('A', 'Z');
+    $this->id = $AZ[rand(0, count($AZ) - 1)];
+  }
+
   /**
    * @param string $statsFilename
    * @return MemcacheLock
@@ -18,36 +24,35 @@ class MemcacheLock extends Memcache
   {
     $this->tryToCloseStatsFileResource();
 
-    if (! file_exists($statsFilename) and
-        ! file_put_contents($statsFilename, "-------------------------------\n")
-    )
+    if (! file_exists($statsFilename))
     {
-      throw new sfInitializationException(sprintf(
-        'Could not create file "%s"', $statsFilename
-      ));
+      if (0 === file_put_contents($statsFilename, ''))
+      {
+        chmod($statsFilename, 0666);
+      }
+      else
+      {
+        throw new sfInitializationException(sprintf(
+          'Could not create file "%s"', $statsFilename
+        ));
+      }
     }
-    elseif (! is_readable($statsFilename) or ! is_writable($statsFilename))
+
+    if (! is_readable($statsFilename) or ! is_writable($statsFilename))
     {
       throw new sfInitializationException(sprintf(
         'File "%s" is not readable/writeable', $statsFilename
       ));
     }
-    else
+
+    $this->fileResource = fopen($statsFilename, 'a+');
+
+    if (! $this->fileResource)
     {
-      chmod($statsFilename, 0666);
-//      $fstat = fstat($this->fileResource);
-      $this->fileResource = fopen($statsFilename, 'a+');
-
-      if (! $this->fileResource)
-      {
-        throw new sfInitializationException(sprintf(
-          'Could not fopen file "%s" with append (a+) flag',
-          $statsFilename
-        ));
-      }
-
-      //
-//      ftruncate($this->fileResource, 0);
+      throw new sfInitializationException(sprintf(
+        'Could not fopen file "%s" with append (a+) flag',
+        $statsFilename
+      ));
     }
 
     return $this;
@@ -57,7 +62,7 @@ class MemcacheLock extends Memcache
   {
     if (! is_null($this->fileResource))
     {
-      @ fclose($this->fileResource);
+      fclose($this->fileResource);
     }
   }
 
@@ -72,37 +77,55 @@ class MemcacheLock extends Memcache
   {
     if (! is_null($key))
     {
-      fwrite($this->fileResource, sprintf("%s: %-35s | %s\n", $char, $key, microtime()));
+      fwrite($this->fileResource, sprintf("[%s] %s: %-35s | %s\n", $this->id, $char, $key, microtime()));
     }
 //    fwrite($this->fileResource, $char);
   }
 
-  public function lock ($key, $expire = 2)
+  public function lock ($key, $expire = 10)
   {
-    $result = $this->add(sprintf('[lock]-%s', $key), 1, false, $expire);
-    if ($result)
+    if (true === ($result = apc_add("lock_{$key}", 1, $expire)))
     {
-      $this->writeChar('L', $key);
+      $this->writeChar('L', "lock_{$key}");
     }
     else
     {
-      $this->writeChar('l', $key);
+      $this->writeChar('l', "lock_{$key}");
     }
+
+//    $result = $this->add("[lock]-{$key}", 1, false, $expire);
+//    if ($result)
+//    {
+//      $this->writeChar('L', $key);
+//    }
+//    else
+//    {
+//      $this->writeChar('l', $key);
+//    }
 
     return $result;
   }
 
   public function unlock ($key)
   {
-    $result = $this->delete(sprintf('[lock]-%s', $key));
-    if ($result)
+    if (true === ($result = apc_delete("lock_{$key}")))
     {
-      $this->writeChar('U', $key);
+      $this->writeChar('U', "lock_{$key}");
     }
     else
     {
-      $this->writeChar('u', $key);
+      $this->writeChar('u', "lock_{$key}");
     }
+
+//    $result = $this->delete(sprintf('[lock]-%s', $key));
+//    if ($result)
+//    {
+//      $this->writeChar('U', $key);
+//    }
+//    else
+//    {
+//      $this->writeChar('u', $key);
+//    }
 
     return $result;
   }
@@ -113,11 +136,11 @@ class MemcacheLock extends Memcache
 
     if ($result)
     {
-      $this->writeChar('S', $key);
+      $this->writeChar('W', $key);
     }
     else
     {
-      $this->writeChar('s', $key);
+      $this->writeChar('w', $key);
     }
 
     return $result;
@@ -139,21 +162,21 @@ class MemcacheLock extends Memcache
     return $result;
   }
 
-  public function delete ($key, $timeout = null)
-  {
-    $result = parent::delete($key, $timeout);
-
-    if ($result)
-    {
-      $this->writeChar('D', $key);
-    }
-    else
-    {
-      $this->writeChar('d', $key);
-    }
-
-    return $result;
-  }
+//  public function delete ($key, $timeout = null)
+//  {
+//    $result = parent::delete($key, $timeout);
+//
+//    if ($result)
+//    {
+//      $this->writeChar('D', $key);
+//    }
+//    else
+//    {
+//      $this->writeChar('d', $key);
+//    }
+//
+//    return $result;
+//  }
 
   public function replace ($key, $var, $flag = null, $expire = null)
   {

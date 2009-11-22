@@ -64,27 +64,29 @@ class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
 
   public function set ($key, $data, $lifetime = null, $tags = null)
   {
+    $lifetime = null === $lifetime ? $this->getOption('lifetime') : $lifetime;
+
+    $extendedData = ! is_null($tags)
+      ? array('data' => $data, 'tags' => $tags)
+      : $data;
+
     if ($this->getBackend()->lock($key))
     {
-      $extendedData = ! is_null($tags)
-        ? array('data' => $data, 'tags' => $tags)
-        : $data;
-
-      $lifetime = null === $lifetime ? $this->getOption('lifetime') : $lifetime;
-
       # write
       $result = $this->getBackend()->set($key, $extendedData, false, time() + $lifetime);
-
+      sleep(rand(1, 4));
       $this->getBackend()->unlock($key);
-      
+
+      if (isset($extendedData['tags']))
+      {
+        foreach ($extendedData['tags'] as $tagKey => $value)
+        {
+          $this->setTag($tagKey, $value);
+        }
+      }
+
       // save metadata
       $this->setMetadata($key, $lifetime);
-
-      # save tags
-//      if (0 < count($tags))
-//      {
-//        $this->setTags($key, $tags, $lifetime);
-//      }
 
       // save key for removePattern()
       if ($this->getOption('storeCacheInfo', false))
@@ -96,7 +98,7 @@ class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
     }
     else
     {
-      return $data;
+      return $extendedData;
     }
   }
 
@@ -151,7 +153,7 @@ class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
           array_key_exists('tags', $value) and
           array_key_exists('data', $value))
       {
-        list($data, $tags) = $value;
+        list($data, $tags) = array_values($value);
 
         foreach ($tags as $tagKey => $tagOldVersion)
         {
