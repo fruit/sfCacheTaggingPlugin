@@ -19,7 +19,7 @@ class Doctrine_Collection_Cachetaggable extends Doctrine_Collection
     {
       foreach ($collection as $object)
       {
-        $tags[$object->getTagName()] = $object->getDateTimeObject('updated_at')->format('U');
+        $tags[$object->getTagName()] = $object->getObjectVersion();
       }
     }
     

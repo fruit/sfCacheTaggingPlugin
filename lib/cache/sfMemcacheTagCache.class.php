@@ -2,7 +2,7 @@
 
 class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
 {
-  public function initialize($options = array())
+  public function initialize ($options = array())
   {
     if (! class_exists('Memcache'))
     {
@@ -62,26 +62,42 @@ class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
     $cache->setStatsFilename(sfConfig::get('sf_log_dir') . DIRECTORY_SEPARATOR . $basename);
   }
 
-  public function set($key, $data, $lifetime = null, array $tags = array())
+  public function set ($key, $data, $lifetime = null, $tags = null)
   {
-    $lifetime = null === $lifetime ? $this->getOption('lifetime') : $lifetime;
-
-    // save metadata
-    $this->setMetadata($key, $lifetime);
-
-    # save tags
-    if (0 < count($tags))
+    if ($this->getBackend()->lock($key))
     {
-      $this->setTags($key, $tags, $lifetime);
-    }
+      $extendedData = ! is_null($tags)
+        ? array('data' => $data, 'tags' => $tags)
+        : $data;
 
-    // save key for removePattern()
-    if ($this->getOption('storeCacheInfo', false))
+      $lifetime = null === $lifetime ? $this->getOption('lifetime') : $lifetime;
+
+      # write
+      $result = $this->getBackend()->set($key, $extendedData, false, time() + $lifetime);
+
+      $this->getBackend()->unlock($key);
+      
+      // save metadata
+      $this->setMetadata($key, $lifetime);
+
+      # save tags
+//      if (0 < count($tags))
+//      {
+//        $this->setTags($key, $tags, $lifetime);
+//      }
+
+      // save key for removePattern()
+      if ($this->getOption('storeCacheInfo', false))
+      {
+        $this->setCacheInfo($key);
+      }
+
+      return $result;
+    }
+    else
     {
-      $this->setCacheInfo($key);
+      return $data;
     }
-
-    return $this->getBackend()->set($key, $data, false, time() + $lifetime);
   }
 
   public function setTag ($key, $value, $lifetime = null)
@@ -90,7 +106,7 @@ class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
     $this->getBackend()->set($tagKey, $value, false, $lifetime);
   }
 
-  public function setTags($key, $tags, $lifetime = null)
+  public function setTags ($key, $tags, $lifetime = null)
   {
     foreach ($tags as $tag => $value)
     {
@@ -102,14 +118,14 @@ class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
     $this->getBackend()->set($tagKey, $tags, false, $lifetime);
   }
 
-  public function getTags($key)
+  public function getTags ($key)
   {
     return $this
       ->getBackend()
       ->get(sprintf(sfCacheTagInterface::TAGS_TEMPLATE, $key));
   }
 
-  public function getTag($key)
+  public function getTag ($key)
   {
     return $this
       ->getBackend()
@@ -123,7 +139,7 @@ class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
       ->delete(sprintf(sfCacheTagInterface::TAG_TEMPLATE, $key));
   }
 
-  public function get($key, $default = null)
+  public function get ($key, $default = null)
   {
     # reading data
     $value = $this->getBackend()->get($key);
@@ -131,11 +147,12 @@ class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
     # not expired
     if (false !== $value)
     {
-      # maybe key with tags? (tags are storing in another place)
-      $tags = $this->getTags($key);
-
-      if (is_array($tags))
+      if (is_array($value) and
+          array_key_exists('tags', $value) and
+          array_key_exists('data', $value))
       {
+        list($data, $tags) = $value;
+
         foreach ($tags as $tagKey => $tagOldVersion)
         {
           # reding tag version
@@ -147,13 +164,25 @@ class sfMemcacheTagCache extends sfMemcacheCache implements sfCacheTagInterface
             return $default;
           }
         }
-      }
 
-      return $value;
+        return $data;
+      }
+      else
+      {
+        return $value;
+      }
     }
     else
     {
       return $default;
     }
+  }
+
+  protected function setMetadata($key, $lifetime)
+  {
+    $this->getBackend()->set(
+      '[metadata]-' . $key,
+      array('lastModified' => time(), 'timeout' => time() + $lifetime), false, $lifetime
+    );
   }
 }

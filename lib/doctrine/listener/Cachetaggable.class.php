@@ -56,13 +56,29 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
     }
   }
 
+  /**
+   * @param string $Doctrine_Event
+   * @return void
+   */
+  public function preSave (Doctrine_Event $event)
+  {
+    # transform "0.20573100 1258907456" to "1258907456205731"
+    $version = substr(implode('', array_reverse(explode(' ', substr(microtime(), 2)))), -2);
+
+    $event->getInvoker()->setObjectVersion($version);
+  }
+
   public function postSave (Doctrine_Event $event)
   {
     if (! is_null($cache = $this->getCache()))
     {
       $object = $event->getInvoker();
-      $versionAsTimestamp = $object->getDateTimeObject('updated_at')->format('U');
-      $cache->setTag($object->getTagName(), $versionAsTimestamp, 86400);
+
+      $cache->setTag(
+        $object->getTagName(),
+        $object->getObjectVersion(),
+        sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
+      );
     }
   }
 }

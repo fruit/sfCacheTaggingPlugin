@@ -19,7 +19,7 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
    * @var string
    */
   protected $_options = array(
-    'uniqueColumn'   =>  'id'
+    'uniqueColumn'   =>  'id',
   );
 
   /**
@@ -33,13 +33,12 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
     $this->_options = Doctrine_Lib::arrayDeepMerge($this->_options, $options);
   }
 
-  public function setUp ()
-  {
-    parent::setUp();
-    
-    # add Timestamable behavior (required)
-    $this->actAs(new Doctrine_Template_Timestampable());
-  }
+//  public function setUp ()
+//  {
+//    parent::setUp();
+//
+//    $this->actAs(new Doctrine_Template_Timestampable());
+//  }
 
   /**
    * Set table definition for sortable behavior
@@ -49,6 +48,8 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
    */
   public function setTableDefinition ()
   {
+    $this->hasColumn('object_version', 'string', 17, array('notnull' => true));
+
     $this->addListener(new Doctrine_Template_Listener_Cachetaggable($this->_options));
   }
 
@@ -66,7 +67,8 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
       throw new LogicException('To call ->getTagName() you should save it before');
     }
     
-    $uniqueName = $this->_options['uniqueColumn'];
+    /*$uniqueName = $this->_options['uniqueColumn'];
+    
     $methodName = sprintf('get%s', sfInflector::tableize($uniqueName));
     $callable = new sfCallable(array($object, $methodName));
 
@@ -79,8 +81,12 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
       throw new sfConfigurationException(
         sprintf('Object has not method ->%s', $methodName)
       );
-    }
+    }*/
 
-    return sprintf('%s_%s', sfInflector::tableize(get_class($object)), $index);
+    return sprintf(
+      '%s_%s',
+      sfInflector::tableize(get_class($object)),
+      $object->{$this->_options['uniqueColumn']}
+    );
   }
 }

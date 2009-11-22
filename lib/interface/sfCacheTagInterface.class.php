@@ -11,7 +11,7 @@ interface sfCacheTagInterface
     TAGS_TEMPLATE = '[tags]-%s',
     TAG_TEMPLATE  = '[tag]-%s';
 
-  public function set($key, $data, $lifetime = null, array $tags = array());
+  public function set($key, $data, $lifetime = null, $tags = null);
 
   public function setTag ($key, $value, $lifetime = null);
 

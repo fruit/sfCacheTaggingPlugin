@@ -19,7 +19,7 @@ class MemcacheLock extends Memcache
     $this->tryToCloseStatsFileResource();
 
     if (! file_exists($statsFilename) and
-        ! file_put_contents($statsFilename, '!')
+        ! file_put_contents($statsFilename, "-------------------------------\n")
     )
     {
       throw new sfInitializationException(sprintf(
@@ -34,6 +34,8 @@ class MemcacheLock extends Memcache
     }
     else
     {
+      chmod($statsFilename, 0666);
+//      $fstat = fstat($this->fileResource);
       $this->fileResource = fopen($statsFilename, 'a+');
 
       if (! $this->fileResource)
@@ -43,6 +45,9 @@ class MemcacheLock extends Memcache
           $statsFilename
         ));
       }
+
+      //
+//      ftruncate($this->fileResource, 0);
     }
 
     return $this;
@@ -58,17 +63,23 @@ class MemcacheLock extends Memcache
 
   public function __destruct ()
   {
+    $this->writeChar("\n");
+    
     $this->tryToCloseStatsFileResource();
   }
 
-  private function writeChar ($char, $key)
+  private function writeChar ($char, $key = null)
   {
-    fwrite($this->fileResource, $a[0] . ": {$char} : {$key}\n");
+    if (! is_null($key))
+    {
+      fwrite($this->fileResource, sprintf("%s: %-35s | %s\n", $char, $key, microtime()));
+    }
+//    fwrite($this->fileResource, $char);
   }
 
   public function lock ($key, $expire = 2)
   {
-    $result = $memcache->add(sprintf('lock_%', $key), 1, false, $expire);
+    $result = $this->add(sprintf('[lock]-%s', $key), 1, false, $expire);
     if ($result)
     {
       $this->writeChar('L', $key);
@@ -83,7 +94,7 @@ class MemcacheLock extends Memcache
 
   public function unlock ($key)
   {
-    $result = $this->delete(sprintf('lock_%', $key));
+    $result = $this->delete(sprintf('[lock]-%s', $key));
     if ($result)
     {
       $this->writeChar('U', $key);

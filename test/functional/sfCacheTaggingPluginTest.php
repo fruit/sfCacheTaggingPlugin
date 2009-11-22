@@ -20,82 +20,39 @@ require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
 $t = new lime_test();
 
+sfConfig::set('sf_cache', 0);
 Doctrine::loadData(realpath(dirname(__FILE__) . '/../data/fixtures/fixtures.yml'));
+sfConfig::set('sf_cache', 1);
+
+
 $posts = BlogPostTable::getTable()->getPostsQuery()->execute();
 
-foreach ($posts as $post)
-{
-  print $post->getUpdatedAt() . "\n";
-//  die;
-//  print $post->getTagName() . "\n";
+$cache = sfContext::getInstance()->getViewCacheManager()->getCache();
+//$cache->getBackend()->flush();
 
-  die;
+if ($cache->set('posts', $posts, null, $posts->getTags()))
+{
+  sleep(1);
+  $post = $posts->getFirst();
+  $post->setTitle('My new title for row ' . $post->getId())->save();
 }
 
-print_r($posts->getTags());
-
-$b = new BlogPost();
-$b->setTitle('Heeelo');
-$b->save();
-
-
-die;
-
-$cache->getBackend()->flush();
-
-$num = rand(10000, 99999);
-
-if ($cache->get('posts'))
+if (is_null($posts = $cache->get('posts')))
 {
-  $t->fail($num . ': Key exists');
-}
-else
-{
-  $t->pass($num . ': flush done, no keys available');
+  $t->pass('Posts should be updated - no valid cache is there');
 
-  if ($cache->set('posts', $posts, null, $tags = get_tags($posts, 'posts')))
+  $posts = BlogPostTable::getTable()->getPostsQuery()->execute();
+
+  if ($cache->set('posts', $posts, null, $posts->getTags()))
   {
-    $t->pass($num . ': posts saved to mm with tags (' . implode(', ', array_keys($tags)) . ')');
-
-    if ($posts = $cache->get('posts'))
-    {
-      $t->pass($num . ': posts is not expired');
-    }
-
-    $posts[1]['name'] = 'AAA';
-    $cache->setTag('posts_1', time());
-
-    if ($cache->get('posts'))
-    {
-      $t->fail($num . ': post_1 tag changed, but posts is not expired');
-    }
-    else
-    {
-      $t->pass($num . ': post is expired');
-
-      if ($cache->set('posts', $posts, null, get_tags($posts, 'posts')))
-      {
-        $t->pass($num . ': ok, rebuilding posts in mm');
-
-        if ($cache->get('posts'))
-        {
-          $t->pass($num . ': post is cached');
-        }
-        else
-        {
-          $t->fail($num . ': failed to get posts from mm');
-        }
-      }
-      else
-      {
-        $t->fail($num . ': could not update posts');
-      }
-    }
+    $t->pass('New posts setted to mm');
   }
   else
   {
-    $t->fail($num . ': failed to set posts into mm');
+    $t->fail('could not set new posts to mm');
   }
 }
-
-
+else
+{
+  $t->fail('cache is valid, but should be invalid');
+}
