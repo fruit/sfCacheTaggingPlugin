@@ -48,7 +48,7 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
    */
   public function setTableDefinition ()
   {
-    $this->hasColumn('object_version', 'string', 17, array('notnull' => false));
+    $this->hasColumn('object_version', 'string', 20, array('notnull' => false));
 
     $this->addListener(new Doctrine_Template_Listener_Cachetaggable($this->_options));
   }

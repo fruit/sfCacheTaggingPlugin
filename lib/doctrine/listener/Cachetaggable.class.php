@@ -62,10 +62,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
    */
   public function preSave (Doctrine_Event $event)
   {
-    # transform "0.20573100 1258907456" to "1258907456205731"
-    $version = substr(implode('', array_reverse(explode(' ', substr(microtime(), 2)))), 0, -2);
-
-    $event->getInvoker()->setObjectVersion($version);
+    $event->getInvoker()->setObjectVersion(sprintf("%0.0f", pow(10, 10) * microtime(true)));
   }
 
   public function postSave (Doctrine_Event $event)
