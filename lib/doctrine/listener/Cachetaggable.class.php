@@ -20,7 +20,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
     $this->_options = $options;
   }
 
-  private function getCache ()
+  private function getTagger ()
   {
     if (sfContext::hasInstance() and sfConfig::get('sf_cache'))
     {
@@ -31,14 +31,14 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
         throw new sfConfigurationException('sfCacheTaggingPlugin will work only with own sfViewCacheTagManager. Please, edit yours factories.yml to fix this problem');
       }
 
-      $cache = $manager->getCache();
+      $tagger = $manager->getTagger();
 
-      if (! $cache instanceof sfCacheTagInterface)
+      if (! $tagger instanceof sfTagCache)
       {
         throw new sfConfigurationException('sfCacheTaggingPlugin will work only with own sf%cache_engine%CacheTag class. Please, edit yours factories.yml to fix this problem');
       }
 
-      return $cache;
+      return $tagger;
     }
 
     return null;
@@ -50,9 +50,9 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
    */
   public function postDelete(Doctrine_Event $event)
   {
-    if (! is_null($cache = $this->getCache()))
+    if (! is_null($taggerCache = $this->getTagger()))
     {
-      $cache->removeTag($event->getInvoker()->getTagName());
+      $taggerCache->removeTag($event->getInvoker()->getTagName());
     }
   }
 
@@ -69,9 +69,9 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
   {
     $object = $event->getInvoker();
 
-    if (! is_null($cache = $this->getCache()))
+    if (! is_null($taggerCache = $this->getTagger()))
     {
-      $cache->setTag(
+      $taggerCache->setTag(
         $object->getTagName(),
         $object->getObjectVersion(),
         sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)

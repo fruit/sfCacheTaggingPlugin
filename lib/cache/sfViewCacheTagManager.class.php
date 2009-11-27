@@ -2,9 +2,10 @@
 
 class sfViewCacheTagManager extends sfViewCacheManager
 {
+  protected $tagger = null;
+
   public function initialize($context, sfCache $cache, $options = array())
   {
-    var_dump($cache);die;
     $this->context    = $context;
     $this->dispatcher = $context->getEventDispatcher();
     $this->controller = $context->getController();
@@ -22,6 +23,7 @@ class sfViewCacheTagManager extends sfViewCacheManager
     // empty configuration
     $this->cacheConfig = array();
 
+    $this->tagger = $cache;
     // cache instance
     $this->cache = $cache->getCache();
 
@@ -29,6 +31,13 @@ class sfViewCacheTagManager extends sfViewCacheManager
     $this->routing = $context->getRouting();
   }
 
+  /**
+   * @return sfTagCache
+   */
+  public function getTagger ()
+  {
+    return $this->tagger;
+  }
 
   public function startWithTags($name)
   {
@@ -53,7 +62,10 @@ class sfViewCacheTagManager extends sfViewCacheManager
     {
       $this->getCache()->set($name, $data, $lifeTime, $tags);
     }
-    catch (Exception $e) { }
+    catch (Exception $e)
+    {
+      # could be triggered Exception?
+    }
 
     return $data;
   }

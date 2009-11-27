@@ -26,10 +26,10 @@ class sfTagCache extends sfCache
    */
   public function __construct($options)
   {
-    parent::__construct($options);
-
     $AZ = range('A', 'Z');
     $this->id = $AZ[rand(0, count($AZ) - 1)];
+
+    $this->initialize($options);
   }
 
   /**
@@ -53,11 +53,14 @@ class sfTagCache extends sfCache
       # check is valid class
       $this->locker = new $lockerClassName($options['locker']['param']);
     }
-    
-    $this->setStatsFilename(
-      sfConfig::get('sf_log_dir') . DIRECTORY_SEPARATOR .
-      sprintf('cache_%s.log', sfConfig::get('sf_environment'))
-    );
+
+    if ($options['logging'])
+    {
+      $this->setStatsFilename(
+        sfConfig::get('sf_log_dir') . DIRECTORY_SEPARATOR .
+        sprintf('cache_%s.log', sfConfig::get('sf_environment'))
+      );
+    }
   }
 
   /**
@@ -120,7 +123,7 @@ class sfTagCache extends sfCache
 
   public function set ($key, $data, $lifetime = null, $tags = null)
   {
-    $lifetime = null === $lifetime ? $this->getOption('lifetime') : $lifetime;
+    $lifetime = null === $lifetime ? $this->getCache()->getOption('lifetime') : $lifetime;
 
     $extendedData = ! is_null($tags)
       ? array('data' => $data, 'tags' => $tags)
@@ -162,7 +165,7 @@ class sfTagCache extends sfCache
 
   public function setTag ($key, $value, $lifetime = null)
   {
-    $tagKey = sprintf(sfCacheTagInterface::TEMPLATE_TAG, $key);
+    $tagKey = sprintf(self::TEMPLATE_TAG, $key);
     $this->getBackend()->set($tagKey, $value, false, $lifetime);
   }
 
@@ -170,20 +173,31 @@ class sfTagCache extends sfCache
   {
     return $this
       ->getBackend()
-      ->get(sprintf(sfCacheTagInterface::TEMPLATE_TAG, $key));
+      ->get(sprintf(self::TEMPLATE_TAG, $key));
   }
 
   public function deleteTag ($key)
   {
     return $this
       ->getBackend()
-      ->delete(sprintf(sfCacheTagInterface::TEMPLATE_TAG, $key));
+      ->delete(sprintf(self::TEMPLATE_TAG, $key));
   }
 
   public function get ($key, $default = null)
   {
     # reading data
     $value = $this->getBackend()->get($key);
+
+//    print $key . "\n";
+    
+    if ($value instanceof Doctrine_Collection)
+    {
+//      print "DC {$value->count()}\n";
+    }
+    else
+    {
+//      var_dump($value);
+    }
 
     # not expired
     if (false !== $value)
@@ -210,7 +224,7 @@ class sfTagCache extends sfCache
 
         if ($hasExpired)
         {
-          if ($this->getBackend()->isLocked($key))
+          if ($this->isLocked($key))
           {
             # return old cache coz new data is writing to the current cache
             $value = $data;
@@ -251,7 +265,7 @@ class sfTagCache extends sfCache
   public function setStatsFilename ($statsFilename)
   {
     $this->tryToCloseStatsFileResource();
-
+    
     if (! file_exists($statsFilename))
     {
       if (0 === file_put_contents($statsFilename, ''))
@@ -303,11 +317,14 @@ class sfTagCache extends sfCache
 
   private function writeChar ($char, $key = null)
   {
-    if (! is_null($key))
+    if (is_resource($this->fileResource))
     {
-      fwrite($this->fileResource, sprintf("[%s] %s: %-35s | %s\n", $this->id, $char, $key, microtime()));
+      if (! is_null($key))
+      {
+        fwrite($this->fileResource, sprintf("[%s] %s: %-35s | %s\n", $this->id, $char, $key, microtime()));
+      }
+  //    fwrite($this->fileResource, $char);
     }
-//    fwrite($this->fileResource, $char);
   }
 
   public function lock ($key, $expire = 10)

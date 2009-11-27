@@ -24,7 +24,7 @@ $t = new lime_test();
 
 $posts = BlogPostTable::getTable()->getPostsQuery()->execute();
 
-$cache = sfContext::getInstance()->getViewCacheManager()->getCache();
+$cache = sfContext::getInstance()->getViewCacheManager()->getTagger();
 
 $cache->getBackend()->flush();
 
@@ -95,6 +95,8 @@ if (! is_null($posts = $cache->get('posts')))
 $t->pass('Posts should be updated - no valid cache is there');
 
 $posts = BlogPostTable::getTable()->getPostsQuery()->execute();
+
+//print_r($posts->getTags());die;
 
 if (! $cache->set('posts', $posts, null, $posts->getTags()))
 {
