@@ -20,25 +20,22 @@ require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
 define('PLUGIN_DATA_DIR', realpath(dirname(__FILE__) . '/../data'));
 
-Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml');
-
-$posts = BlogPostTable::getTable()->getPostsQuery()->execute();
-
 $tagger = sfContext::getInstance()->getViewCacheManager()->getTagger();
 
 $dataCacheSetups = sfYaml::load(PLUGIN_DATA_DIR . '/config/cache_setup.yml');
-//print_r($dataCacheSetups);die;
 $lockCacheSetups = $dataCacheSetups;
 
 $count = count($dataCacheSetups);
 
-//$t = new lime_test();
-$t = new lime_test(pow($count, 2) * 12);
+$t = new lime_test(pow($count, 2) * 16);
 
 foreach ($dataCacheSetups as $data)
 {
   foreach ($lockCacheSetups as $locker)
   {
+    Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml');
+    $posts = BlogPostTable::getTable()->getPostsQuery()->execute();
+
     $tagger->initialize(array('logging' => true, 'cache' => $data, 'locker' => $locker));
     $tagger->clean();
 
@@ -133,6 +130,7 @@ foreach ($dataCacheSetups as $data)
     $wasComments = $table->count();
 
     $table->findOneByAuthor('marko')->delete();
+    
     $nowComments = $table->count();
 
     $t->is($wasComments, $nowComments + 1, 'Comments count -1');

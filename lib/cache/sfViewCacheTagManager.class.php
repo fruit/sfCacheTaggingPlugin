@@ -15,7 +15,9 @@ class sfViewCacheTagManager extends sfViewCacheManager
   {
     if (! $cache instanceof sfTagCache)
     {
-      throw new InvalidArgumentException('Cache is not type of sfTagCache');
+      throw new InvalidArgumentException(
+        sprintf('Cache "%s" is not instanceof sfTagCache', get_class($cache))
+      );
     }
 
     $this->context    = $context;

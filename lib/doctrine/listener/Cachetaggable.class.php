@@ -22,7 +22,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
 
   private function getTagger ()
   {
-    if (sfContext::hasInstance() and sfConfig::get('sf_cache'))
+    if (sfContext::hasInstance())
     {
       $manager = sfContext::getInstance()->getViewCacheManager();
 
@@ -68,7 +68,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
   public function postSave (Doctrine_Event $event)
   {
     $object = $event->getInvoker();
-
+    
     if (! is_null($taggerCache = $this->getTagger()))
     {
       $taggerCache->setTag(

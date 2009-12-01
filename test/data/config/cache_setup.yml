@@ -8,19 +8,19 @@
     port: 11211
     timeout: 1
     lifetime: 900
-#-
-#  class: sfAPCCache
-#  param:
-#    lifetime: 600
-#-
-#  class: sfSQLiteTaggingCache
-#  param:
-#    database: <?php print sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite.db
-#-
-#  class: sfSQLiteTaggingCache
-#  param:
-#    database: ":memory:"
-#-
-#  class: sfFileTaggingCache
-#  param:
-#    cache_dir: <?php print sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/file
+-
+  class: sfAPCCache
+  param:
+    lifetime: 600
+-
+  class: sfSQLiteTaggingCache
+  param:
+    database: <?php print sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite.db
+-
+  class: sfSQLiteTaggingCache
+  param:
+    database: ":memory:"
+-
+  class: sfFileTaggingCache
+  param:
+    cache_dir: <?php print sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/file
