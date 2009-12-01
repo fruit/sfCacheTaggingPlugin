@@ -48,7 +48,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
    * @param string $Doctrine_Event
    * @return void
    */
-  public function postDelete(Doctrine_Event $event)
+  public function preDelete(Doctrine_Event $event)
   {
     if (! is_null($taggerCache = $this->getTagger()))
     {
