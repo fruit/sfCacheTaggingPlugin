@@ -1,4 +1,4 @@
 *.tgz
-test/temp/file
+test/temp
 !.gitignore
 
