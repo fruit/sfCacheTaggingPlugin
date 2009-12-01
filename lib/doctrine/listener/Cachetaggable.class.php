@@ -52,7 +52,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
   {
     if (! is_null($taggerCache = $this->getTagger()))
     {
-      $taggerCache->removeTag($event->getInvoker()->getTagName());
+      $taggerCache->deleteTag($event->getInvoker()->getTagName());
     }
   }
 

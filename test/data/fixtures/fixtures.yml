@@ -10,3 +10,4 @@ BlogPostComment:
   bc0: { author: fruit, message: 'Ata!', BlogPost: b }
   bc1: { author: david, message: 'Bye-Bye!', BlogPost: b }
   bc2: { author: david, message: 'Have a nice day!', BlogPost: b }
+  bc3: { author: marko, message: 'Tra-ala', BlogPost: c }

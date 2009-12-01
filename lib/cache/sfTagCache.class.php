@@ -19,6 +19,11 @@ class sfTagCache extends sfCache
    */
   protected $locker = null;
 
+  /**
+   * Log file pointer
+   * 
+   * @var resource
+   */
   private $fileResource = null;
 
   /**
@@ -39,7 +44,14 @@ class sfTagCache extends sfCache
   public function initialize ($options = array())
   {
     $cacheClassName = $options['cache']['class'];
-    
+
+    if (! class_exists($cacheClassName, true))
+    {
+      throw new sfInitializationException(
+        sprintf('Tagging cache class "%s" not found', $cacheClassName)
+      );
+    }
+
     # check is valid class
     $this->cache = new $cacheClassName($options['cache']['param']);
     
@@ -50,6 +62,14 @@ class sfTagCache extends sfCache
     else
     {
       $lockerClassName = $options['locker']['class'];
+
+      if (! class_exists($lockerClassName, true))
+      {
+        throw new sfInitializationException(
+          sprintf('Tagging locker class "%s" not found', $lockerClassName)
+        );
+      }
+
       # check is valid class
       $this->locker = new $lockerClassName($options['locker']['param']);
     }
@@ -79,73 +99,69 @@ class sfTagCache extends sfCache
     return $this->locker;
   }
 
-  /**
-   * @return sfCache
-   */
-  public function getBackend ()
-  {
-    return $this->getCache()->getBackend();
-  }
-
   public function has($key)
   {
-    return $this->getBackend()->has($key);
+    return $this->getCache()->has($key);
   }
 
   public function remove($key)
   {
-    $result = $this->getBackend()->remove($key);
+    $result = $this->getCache()->remove($key);
 
-    $this->writeChar($result ? 'D' : 'd', $key);
+    $this->writeChar($result ? 'D' : 'd');
 
     return $result;
   }
 
   public function removePattern($pattern)
   {
-    return $this->getBackend()->removePattern($pattern);
-  }
-
-  public function clean($mode = self::ALL)
-  {
-    return $this->getBackend()->clean($mode);
+    return $this->getCache()->removePattern($pattern);
   }
 
   public function getTimeout($key)
   {
-    return $this->getBackend()->getTimeout($key);
+    return $this->getCache()->getTimeout($key);
   }
 
   public function getLastModified($key)
   {
-    return $this->getBackend()->getLastModified($key);
+    return $this->getCache()->getLastModified($key);
   }
 
   public function set ($key, $data, $lifetime = null, $tags = null)
   {
-    $lifetime = null === $lifetime ? $this->getCache()->getOption('lifetime') : $lifetime;
+    $lifetime = null === $lifetime 
+      ? $this->getCache()->getOption('lifetime')
+      : $lifetime;
 
-    $extendedData = ! is_null($tags)
-      ? array('data' => $data, 'tags' => $tags)
-      : $data;
+    $extendedData = new stdClass();
+    $extendedData->data = $data;
+
+    if (! is_null($tags))
+    {
+      $extendedData->tags = (array) $tags;
+    }
 
     if ($this->lock($key))
     {
-      # write
-      $result = $this->getBackend()->set($key, $extendedData, false, time() + $lifetime);
+      $result = $this
+        ->getCache()
+        ->set($key, $extendedData, $lifetime);
+
+      $this->writeChar($result ? 'W' : 'w');
 
       $this->unlock($key);
 
-      if (isset($extendedData['tags']))
+      if (isset($extendedData->tags))
       {
-        foreach ($extendedData['tags'] as $tagKey => $value)
+        foreach ($extendedData->tags as $tagKey => $value)
         {
           $this->setTag($tagKey, $value);
         }
       }
 
       // save metadata
-      $this->setMetadata($key, $lifetime);
+//      $this->getCache()->setMetadata($key, $lifetime);
 
       // save key for removePattern()
       if ($this->getOption('storeCacheInfo', false))
@@ -155,10 +171,10 @@ class sfTagCache extends sfCache
     }
     else
     {
+      $this->writeChar('w');
+
       $result = false;
     }
-
-    $this->writeChar($result ? 'W' : 'w', $key);
 
     return $result;
   }
@@ -166,50 +182,41 @@ class sfTagCache extends sfCache
   public function setTag ($key, $value, $lifetime = null)
   {
     $tagKey = sprintf(self::TEMPLATE_TAG, $key);
-    $this->getBackend()->set($tagKey, $value, false, $lifetime);
+    
+    $result = $this->getCache()->set($tagKey, $value, $lifetime);
+
+    return $result;
   }
 
   public function getTag ($key)
   {
-    return $this
-      ->getBackend()
+    $result = $this
+      ->getCache()
       ->get(sprintf(self::TEMPLATE_TAG, $key));
+
+    return $result;
   }
 
   public function deleteTag ($key)
   {
     return $this
-      ->getBackend()
+      ->getCache()
       ->delete(sprintf(self::TEMPLATE_TAG, $key));
   }
 
   public function get ($key, $default = null)
   {
     # reading data
-    $value = $this->getBackend()->get($key);
-
-//    print $key . "\n";
-    
-    if ($value instanceof Doctrine_Collection)
-    {
-//      print "DC {$value->count()}\n";
-    }
-    else
-    {
-//      var_dump($value);
-    }
+    $value = $this->getCache()->get($key, $default);
 
     # not expired
     if (false !== $value)
     {
-      if (is_array($value) and
-          array_key_exists('tags', $value) and
-          array_key_exists('data', $value))
+      if (($value instanceof stdClass) and isset($value->tags, $value->data))
       {
-        list($data, $tags) = array_values($value);
-
         $hasExpired = false;
-        foreach ($tags as $tagKey => $tagOldVersion)
+
+        foreach ($value->tags as $tagKey => $tagOldVersion)
         {
           # reding tag version
           $tagNewVersion = $this->getTag($tagKey);
@@ -227,7 +234,7 @@ class sfTagCache extends sfCache
           if ($this->isLocked($key))
           {
             # return old cache coz new data is writing to the current cache
-            $value = $data;
+            $value = $value->data;
           }
           else
           {
@@ -236,7 +243,7 @@ class sfTagCache extends sfCache
         }
         else
         {
-          $value = $data;
+          $value = $value->data;
         }
       }
     }
@@ -245,17 +252,9 @@ class sfTagCache extends sfCache
       $value = $default;
     }
 
-    $this->writeChar($value != $default ? 'H' : 'h', $key);
+    $this->writeChar($value != $default ? 'H' : 'h');
 
     return $value;
-  }
-
-  protected function setMetadata($key, $lifetime)
-  {
-    $this->getBackend()->set(
-      '[metadata]-' . $key,
-      array('lastModified' => time(), 'timeout' => time() + $lifetime), false, $lifetime
-    );
   }
 
   /**
@@ -310,46 +309,60 @@ class sfTagCache extends sfCache
 
   public function __destruct ()
   {
-    $this->writeChar("\n");
-
     $this->tryToCloseStatsFileResource();
   }
 
-  private function writeChar ($char, $key = null)
+  private function writeChar ($char)
   {
     if (is_resource($this->fileResource))
     {
-      if (! is_null($key))
-      {
-        fwrite($this->fileResource, sprintf("[%s] %s: %-35s | %s\n", $this->id, $char, $key, microtime()));
-      }
-  //    fwrite($this->fileResource, $char);
+      fwrite($this->fileResource, $char);
     }
   }
 
   public function lock ($key, $expire = 10)
   {
-    $result = $this->getLocker()->getBackend()->add(sprintf(self::TEMPLATE_LOCK, $key), 1, $expire);
+    if ($this->isLocked($key))
+    {
+      return false;
+    }
 
-    if (true === $result)
-    {
-      $this->writeChar('L', sprintf(self::TEMPLATE_LOCK, $key));
-    }
-    else
-    {
-      $this->writeChar('l', sprintf(self::TEMPLATE_LOCK, $key));
-    }
+    $lockKey = sprintf(self::TEMPLATE_LOCK, $key);
+
+    $result = $this->getLocker()->set($lockKey, 1, $expire);
+
+    $this->writeChar(true === $result ? 'L' : 'l');
 
     return $result;
   }
 
   public function isLocked ($key)
   {
-    return $this->getLocker()->getBackend()->get(sprintf(self::TEMPLATE_LOCK, $key));
+    $value = $this
+      ->getLocker()
+      ->get(sprintf(self::TEMPLATE_LOCK, $key));
+
+    return (bool) $value;
   }
 
   public function unlock ($key)
   {
-    return $this->getLocker()->getBackend()->delete(sprintf(self::TEMPLATE_LOCK, $key));
+    $lockKey = sprintf(self::TEMPLATE_LOCK, $key);
+
+    $result = $this->getLocker()->remove($lockKey);
+
+    $this->writeChar(true === $result ? 'U' : 'u');
+
+    return $result;
+  }
+
+  public function clean ($mode = sfCache::ALL)
+  {
+    if ($this->getCache() !== $this->getLocker())
+    {
+      $this->getCache()->clean($mode);
+    }
+
+    $this->getLocker()->clean($mode);
   }
 }

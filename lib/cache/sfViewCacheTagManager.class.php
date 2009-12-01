@@ -2,10 +2,22 @@
 
 class sfViewCacheTagManager extends sfViewCacheManager
 {
-  protected $tagger = null;
+  protected 
+    $tagger = null,
+    $options = array();
+
+  public function getOptions ()
+  {
+    return $this->options;
+  }
 
   public function initialize($context, sfCache $cache, $options = array())
   {
+    if (! $cache instanceof sfTagCache)
+    {
+      throw new InvalidArgumentException('Cache is not type of sfTagCache');
+    }
+
     $this->context    = $context;
     $this->dispatcher = $context->getEventDispatcher();
     $this->controller = $context->getController();
@@ -41,7 +53,7 @@ class sfViewCacheTagManager extends sfViewCacheManager
 
   public function startWithTags($name)
   {
-    if (! is_null($data = $this->getCache()->get($name)))
+    if (! is_null($data = $this->getTagger()->get($name)))
     {
       return $data;
     }
@@ -60,7 +72,7 @@ class sfViewCacheTagManager extends sfViewCacheManager
 
     try
     {
-      $this->getCache()->set($name, $data, $lifeTime, $tags);
+      $this->getTagger()->set($name, $data, $lifeTime, $tags);
     }
     catch (Exception $e)
     {
