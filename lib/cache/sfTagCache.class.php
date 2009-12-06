@@ -1,10 +1,22 @@
 <?php
 
+/*
+ * This file is part of the sfCacheTaggingPlugin package.
+ * (c) 2009-2010 Ilya Sabelnikov <fruit.dev@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
+ * This code adds opportunity to use cache tagging, there are extra methods to
+ * work with cache tags and locks
+ *
+ * @package sfCacheTaggingPlugin
+ * @author Ilya Sabelnikov <fruit.dev@gmail.com>
+ */
 class sfTagCache extends sfCache
 {
-  const TEMPLATE_LOCK = '[lock]-%s';
-  const TEMPLATE_TAG  = '[tag]-%s';
-
   /**
    * This cache stores your data any instanceof sfCache
    *
@@ -27,17 +39,9 @@ class sfTagCache extends sfCache
   protected $fileResource = null;
 
   /**
-   * Temporary method
-   */
-  public function __construct($options)
-  {
-    $AZ = range('A', 'Z');
-    $this->id = $AZ[rand(0, count($AZ) - 1)];
-
-    $this->initialize($options);
-  }
-
-  /**
+   * Initialization process based on parent but without calling parent method
+   *
+   * @see sfCache::initialize
    * @throws sfInitializationException
    * @param array $options
    */
@@ -84,6 +88,8 @@ class sfTagCache extends sfCache
   }
 
   /**
+   * Returns cache class for data caching
+   *
    * @return sfCache
    */
   public function getCache ()
@@ -92,6 +98,8 @@ class sfTagCache extends sfCache
   }
   
   /**
+   * Returns cache class for locks
+   *
    * @return sfCache
    */
   public function getLocker ()
@@ -99,35 +107,72 @@ class sfTagCache extends sfCache
     return $this->locker;
   }
 
+  /**
+   * @see sfCache::has
+   * @param string $key
+   * @return boolean
+   */
   public function has($key)
   {
     return $this->getCache()->has($key);
   }
 
+  /**
+   * Removes cache from backend by key
+   *
+   * @see sfCache::remove
+   * @param string $key
+   * @return boolean
+   */
   public function remove($key)
   {
     $result = $this->getCache()->remove($key);
 
-    $this->writeChar($result ? 'D.' : 'd.');
+    $this->writeChar($result ? 'D' : 'd');
 
     return $result;
   }
 
+  /**
+   * @see sfCache::removePattern
+   * @param string $pattern
+   * @return boolean
+   */
   public function removePattern($pattern)
   {
     return $this->getCache()->removePattern($pattern);
   }
 
+  /**
+   * @see sfCache::getTimeout
+   * @param string $key
+   * @return int
+   */
   public function getTimeout($key)
   {
     return $this->getCache()->getTimeout($key);
   }
 
+  /**
+   * @see sfCache::getLastModified
+   * @param string $key
+   * @return int
+   */
   public function getLastModified($key)
   {
     return $this->getCache()->getLastModified($key);
   }
 
+  /**
+   * Sets data into the cache with related tags
+   *
+   * @see sfCache::set
+   * @param string $key
+   * @param mixed $data
+   * @param string $lifetime optional
+   * @param array $tags optional
+   * @return mixed|false Cache expired/not valid - returns false, in other case mixed
+   */
   public function set ($key, $data, $lifetime = null, $tags = null)
   {
     $lifetime = null === $lifetime 
@@ -170,39 +215,62 @@ class sfTagCache extends sfCache
     return $result;
   }
 
+  /**
+   * Saves tag with its version
+   *
+   * @param string $key tag key
+   * @param string $value tag version
+   * @param int $lifetime optional tag time to live
+   * @return boolean
+   */
   public function setTag ($key, $value, $lifetime = null)
   {
-    $tagKey = sprintf(self::TEMPLATE_TAG, $key);
+    $tagKey = $this->generateTagKey($key);
     
     $result = $this->getCache()->set($tagKey, $value, $lifetime);
-
-    $this->writeChar($result ? 'ST' : 'st');
 
     return $result;
   }
 
+  /**
+   * Returns version of the tag by key
+   *
+   * @param string $key
+   * @return string version of the tag
+   */
   public function getTag ($key)
   {
     $result = $this
       ->getCache()
-      ->get(sprintf(self::TEMPLATE_TAG, $key));
-
-    $this->writeChar($result ? 'GT' : 'gt');
+      ->get($this->generateTagKey($key));
 
     return $result;
   }
 
+  /**
+   * Removes tag version (basicly called on physical object removing)
+   *
+   * @param string $key
+   * @return boolean
+   */
   public function deleteTag ($key)
   {
     $result = $this
       ->getCache()
-      ->remove(sprintf(self::TEMPLATE_TAG, $key));
-
-    $this->writeChar($result ? 'DT' : 'dt');
+      ->remove($this->generateTagKey($key));
 
     return $result;
   }
 
+  /**
+   * Pulls data out of cache.
+   * Also, it checks all related tags for expiration/version-up.
+   *
+   * @see sfCache::get
+   * @param string $key
+   * @param mixed $default returned back if result is false
+   * @return mixed|$default
+   */
   public function get ($key, $default = null)
   {
     # reading data
@@ -257,6 +325,8 @@ class sfTagCache extends sfCache
   }
 
   /**
+   * Defines log file
+   *
    * @param string $statsFilename
    * @return MemcacheLock
    */
@@ -298,6 +368,10 @@ class sfTagCache extends sfCache
     return $this;
   }
 
+  /**
+   * Closes file log resource
+   * @return void
+   */
   private function tryToCloseStatsFileResource ()
   {
     if (! is_null($this->fileResource))
@@ -311,6 +385,12 @@ class sfTagCache extends sfCache
     $this->tryToCloseStatsFileResource();
   }
 
+  /**
+   * Writes $char to log file
+   *
+   * @param string $char
+   * @return void
+   */
   private function writeChar ($char)
   {
     if (is_resource($this->fileResource))
@@ -319,14 +399,21 @@ class sfTagCache extends sfCache
     }
   }
 
-  public function lock ($key, $expire = 10)
+  /**
+   * Set lock on $key on $expire seconds
+   *
+   * @param string $key
+   * @param int $expire expire time in seconds
+   * @return boolean locked - true, could not lock - false
+   */
+  public function lock ($key, $expire = 2)
   {
     if ($this->isLocked($key))
     {
       return false;
     }
 
-    $lockKey = sprintf(self::TEMPLATE_LOCK, $key);
+    $lockKey = $this->generateLockKey($key);
 
     $result = $this->getLocker()->set($lockKey, 1, $expire);
 
@@ -335,18 +422,30 @@ class sfTagCache extends sfCache
     return $result;
   }
 
+  /**
+   * Check for $key is locked/not locked
+   *
+   * @param string $key
+   * @return boolean
+   */
   public function isLocked ($key)
   {
     $value = $this
       ->getLocker()
-      ->get(sprintf(self::TEMPLATE_LOCK, $key));
+      ->get($this->generateLockKey($key));
 
     return (bool) $value;
   }
 
+  /**
+   * Call this to unlock key
+   *
+   * @param string $key
+   * @return boolean
+   */
   public function unlock ($key)
   {
-    $lockKey = sprintf(self::TEMPLATE_LOCK, $key);
+    $lockKey = $this->generateLockKey($key);
 
     $result = $this->getLocker()->remove($lockKey);
 
@@ -355,6 +454,11 @@ class sfTagCache extends sfCache
     return $result;
   }
 
+  /**
+   * @see sfCache::clean
+   * @param int $mode One of sfCache::ALL, sfCache::OLD params
+   * @return void
+   */
   public function clean ($mode = sfCache::ALL)
   {
     if ($this->getCache() !== $this->getLocker())
@@ -363,5 +467,33 @@ class sfTagCache extends sfCache
     }
 
     $this->getLocker()->clean($mode);
+  }
+
+  /**
+   * Creates name for lock key
+   *
+   * @param string $key
+   * @return string
+   */
+  private function generateLockKey ($key)
+  {
+    return sprintf(
+      sfConfig::get('app_sfcachetaggingplugin_template_lock', '[lock]-%s'),
+      $key
+    );
+  }
+
+  /**
+   * Creates name for tag key
+   *
+   * @param <type> $key
+   * @return <type>
+   */
+  private function generateTagKey ($key)
+  {
+    return sprintf(
+      sfConfig::get('app_sfcachetaggingplugin_template_tag', '[tag]-%s'),
+      $key
+    );
   }
 }

@@ -1,5 +1,23 @@
 <?php
 
+/*
+ * This file is part of the sfCacheTaggingPlugin package.
+ * (c) 2009-2010 Ilya Sabelnikov <fruit.dev@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
+ * This is extended cache manager with additional methods to work with cache tags.
+ * The most important difference from sfViewCacheManager is support to use
+ * sepparate cache systems for data and locks (performance reasons).
+ *
+ * By default data and lock cache system is same.
+ *
+ * @package sfCacheTaggingPlugin
+ * @author Ilya Sabelnikov <fruit.dev@gmail.com>
+ */
 class sfViewCacheTagManager extends sfViewCacheManager
 {
   protected 
@@ -11,6 +29,15 @@ class sfViewCacheTagManager extends sfViewCacheManager
     return $this->options;
   }
 
+  /**
+   * Initialize cache manager
+   *
+   * @param sfContext $context
+   * @param sfCache $cache
+   * @param array $options
+   *
+   * @see sfViewCacheManager::initialize
+   */
   public function initialize($context, sfCache $cache, $options = array())
   {
     if (! $cache instanceof sfTagCache)
@@ -53,9 +80,16 @@ class sfViewCacheTagManager extends sfViewCacheManager
     return $this->tagger;
   }
 
-  public function startWithTags($name)
+  /**
+   * Initializes ouput buffering
+   *
+   * @param string $key This is Your cache key
+   * @return null|mixed if cache exists and it is not expired,
+   *                    returns cache data, in other case null
+   */
+  public function startWithTags($key)
   {
-    if (! is_null($data = $this->getTagger()->get($name)))
+    if (! is_null($data = $this->getTagger()->get($key)))
     {
       return $data;
     }
@@ -68,22 +102,28 @@ class sfViewCacheTagManager extends sfViewCacheManager
     }
   }
 
-  public function stopWithTags($name, $lifeTime, $tags)
+  /**
+   * Determinates output buffering
+   *
+   * @param string $key Cache key
+   * @param integer $lifeTime Time to live in seconds
+   * @param array $tags Assoc array where key is tag key and value is version
+   * @return mixed cache data
+   */
+  public function stopWithTags($key, $lifeTime, $tags)
   {
     $data = ob_get_clean();
 
-    try
-    {
-      $this->getTagger()->set($name, $data, $lifeTime, $tags);
-    }
-    catch (Exception $e)
-    {
-      # could be triggered Exception?
-    }
-
+    $this->getTagger()->set($key, $data, $lifeTime, $tags);
+    
     return $data;
   }
 
+  /**
+   * Temporary stores tag keys, while buffer is writing
+   *
+   * @param array $tags
+   */
   public function setTags ($tags)
   {
     sfConfig::set('symfony.cache.tags', $tags);

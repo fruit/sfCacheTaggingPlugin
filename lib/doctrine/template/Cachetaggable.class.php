@@ -1,15 +1,19 @@
 <?php
 
-/**
- * Easily create a slug for each record based on a specified set of fields
+/*
+ * This file is part of the sfCacheTaggingPlugin package.
+ * (c) 2009-2010 Ilya Sabelnikov <fruit.dev@gmail.com>
  *
- * @package     sfCacheTaggingPlugin
- * @subpackage  template
- * @license     http://www.opensource.org/licenses/lgpl-license.php LGPL
- * @link        www.phpdoctrine.org
- * @since       1.0
- * @version     $Revision$
- * @author      Ilya Sabelnikov <fruit.dev@gmail.com>
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+/**
+ * Additional setup to table and its objects
+ * Adds new table column "object_version" and one method to creates tag names
+ *
+ * @package sfCacheTaggingPlugin
+ * @author Ilya Sabelnikov <fruit.dev@gmail.com>
  */
 class Doctrine_Template_Cachetaggable extends Doctrine_Template
 {
@@ -32,13 +36,6 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
   {
     $this->_options = Doctrine_Lib::arrayDeepMerge($this->_options, $options);
   }
-
-//  public function setUp ()
-//  {
-//    parent::setUp();
-//
-//    $this->actAs(new Doctrine_Template_Timestampable());
-//  }
 
   /**
    * Set table definition for sortable behavior
