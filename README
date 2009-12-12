@@ -1,16 +1,14 @@
 # sfCacheTaggingPlugin #
 
-> The `sfCacheTaggingPlugin` is a symfony plugin to store caches associated with unique tags to keep cache content up-to-date based by incrementing tags version.
+The `sfCacheTaggingPlugin` is a symfony plugin to store caches associated with unique tags to keep cache content up-to-date based by incrementing tags version.
 
 ## Description ##
 
-> Cache tagging is a concept that was invented in one time by many developers
-  ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/))
+Cache tagging is a concept that was invented in one time by many developers
+  ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/) and probability by some other people)
 
-  This software uses Andrey Smirnoffs teoretical work about "Cache tagging with Memcached".
-  Some ideas are implemented in the real world (i.e. tag versions based on datetime,
-  cache hit/set logging, cache locking) and part of them are not (atomic counter)
-
+This software was developed push of Andrey Smirnoff`s theoretical work ["Cache tagging with Memcached (in Russian)"](http://www.smira.ru/tag/memcached/).
+Some ideas are implemented in the real world (i.e. tag versions based on datetime and microtime, cache hit/set logging, cache locking) and part of them are not implemented (atomic counter)
 
 ## Repository ##
 
@@ -19,16 +17,107 @@
 
 ## Installation ##
 
-   * Install the plugin
+Install the plugin
 
-        $ ./symfony plugin:install sfCacheTaggingPlugin
+    $ ./symfony plugin:install sfCacheTaggingPlugin
 
-   * Clear you cache
+Clear you cache
 
-        $ ./symfony cc
+    $ ./symfony cc
 
 ## Usage ##
 
+1.  Create new file ``/config/factories.yml``  or edit each applications-level ``/apps/%app%/config/factories.yml`` file
+
+    > Cache tagging work for you when you save/update Doctrine record or fetch them from DB. So you should enable caching (``sf_cache: true``) in the all applications you work with. I recommend You to create default factories.yml for all application you have by creating empty file ``/config/factories.yml``. Symfony will check this file and load it as default factories.yml configuration to all applications you have in the project.
+
+    > This is /config/factories.yml content (you can copy & past it into your brand new created file) or merge this config with each application factories.yml where data will be fetched from the cache or written to the cache:
+
+    > ### Example: file ``/config/factories.yml``
+
+        all:
+          view_cache:
+            class: sfTagCache
+            param:
+              logging: true                 # logging is enabled (false to disable)
+              cache:                        # Content will be stored in Memcache
+                class: sfMemcacheCache      # Here you can switch to any other backend
+                param:                      # (see Restrictions block for more info)
+                  persistent: true
+                  storeCacheInfo: false
+                  host: localhost
+                  port: 11211
+                  timeout: 5
+                  lifetime: 86400
+              locker:                       # Locks will be stored in APC
+                class: sfAPCCache           # Here you can switch to any other backend sf*Cache
+                param:                      # (see Restrictions block for more info)
+                  lifetime: 5
+
+          view_cache_manager:
+            class: sfViewCacheTagManager          # Extended sfViewCacheManager class
+            param:
+              cache_key_use_vary_headers: true
+              cache_key_use_host_name:    true
+
+    > **Easter eggs**: If you remome "``all_view_cache_param_locker``" section, locker will be the same as "all_view_cache_param_cache" section.
+
+    > **Restrictions**: Backend class should be inheritable from ``sfCache`` class. It should support to cache objects/arrays.
+
+    > **Bonus**: In additional to this plugin commes ``sfFileTaggingCache`` and ``sfSQLiteTaggingCache`` which are ready to use them as backend class.
+
+2.  Remove Symfony predefined applications-level ``factories.yml`` files
+
+    > If you have addited each applications-level ``factories.yml`` file in 1. step - go to 3 step.
+
+    > In each application you want to use cache tagging, remove "``all_view_cache_manager``" section (you have already configured them in global ``/config/factories.yml`` file).
+
+3. Add "Cachetaggable" behavior to each models you want to be a part of cache.
+
+    > ### Exmample: file ``/config/doctrine/schema.yml``
+
+        BlogPost:
+          tableName: blog_post
+          actAs:
+            Cachetaggable: ~
+            #Cachetaggable:
+            #  uniqueColumn: id               # you can setup you unique column name (default is "id")
+            #  versionColumn: object_version  # and custom column name to store versions (default is "object_version")
+          columns:
+            id:
+              type: integer
+              primary: true
+              autoincrement: true
+              unsigned: true
+            title: string(255)
+          relations:
+            BlogPostComment:
+              class: BlogPostComment
+              type: many
+              local: id
+              foreign: blog_post_id
+              cascade: [delete]
+
+        BlogPostComment:
+          tableName: blog_post_comment
+          actAs:
+            Cachetaggable: ~
+          columns:
+            id:
+              type: integer
+              primary: true
+              autoincrement: true
+              unsigned: true
+            blog_post_id:
+              type: integer
+              unsigned: true
+              notnull: false
+            author: string(20)
+            message: string(255)
+          indexes:
+            blog_post_id: { fields: [blog_post_id] }
+
+4. Start using taggable helpers in the templates
 
 ## Unit test ##
 

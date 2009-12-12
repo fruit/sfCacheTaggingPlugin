@@ -23,7 +23,8 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
    * @var string
    */
   protected $_options = array(
-    'uniqueColumn'   =>  'id',
+    'uniqueColumn'  =>  'id',
+    'versionColumn' =>  'object_version',
   );
 
   /**
@@ -45,7 +46,14 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
    */
   public function setTableDefinition ()
   {
-    $this->hasColumn('object_version', 'string', 20, array('notnull' => false));
+    $versionColumn = $this->_options['versionColumn'];
+
+    if (! is_string($versionColumn) or 0 > strlen($versionColumn))
+    {
+      throw new sfConfigurationException('sfCacheTaggingPlugin: "Cachetaggable" behaviors "versionColumn" should be string and not empty');
+    }
+
+    $this->hasColumn($versionColumn, 'string', 20, array('notnull' => false));
 
     $this->addListener(new Doctrine_Template_Listener_Cachetaggable($this->_options));
   }
@@ -69,5 +77,17 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
       sfInflector::tableize(get_class($object)),
       $object->{$this->_options['uniqueColumn']}
     );
+  }
+
+  public function setObjectVersion ($version)
+  {
+    $this->getInvoker()->{$this->_options['versionColumn']} = $version;
+
+    return $this->getInvoker();
+  }
+
+  public function getObjectVersion ()
+  {
+    return $this->getInvoker()->{$this->_options['versionColumn']};
   }
 }
