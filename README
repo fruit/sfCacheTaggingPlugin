@@ -1,0 +1,35 @@
+# sfCacheTaggingPlugin #
+
+> The `sfCacheTaggingPlugin` is a symfony plugin to store caches associated with unique tags to keep cache content up-to-date based by incrementing tags version.
+
+## Description ##
+
+> Cache tagging is a concept that was invented in one time by many developers
+  ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/))
+
+  This software uses Andrey Smirnoffs teoretical work about "Cache tagging with Memcached".
+  Some ideas are implemented in the real world (i.e. tag versions based on datetime,
+  cache hit/set logging, cache locking) and part of them are not (atomic counter)
+
+
+## Repository ##
+
+ * plugin repository @ github [http://github.com/fruit/sfCacheTaggingPlugin](http://github.com/fruit/sfCacheTaggingPlugin "Repository")
+ * plugin tickets @ github [http://github.com/fruit/sfCacheTaggingPlugin/issues](http://github.com/fruit/sfCacheTaggingPlugin/issues "Issues")
+
+## Installation ##
+
+   * Install the plugin
+
+        $ ./symfony plugin:install sfCacheTaggingPlugin
+
+   * Clear you cache
+
+        $ ./symfony cc
+
+## Usage ##
+
+
+## Unit test ##
+
+ * Unit tests (400 of 400) successfully completed
