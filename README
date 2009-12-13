@@ -297,6 +297,9 @@ Install the plugin
           }
         }
 
+    ##### Combining posts with comments components.class.php (complex)
+
+        <?php ...
 
 ## Unit test ##
 
