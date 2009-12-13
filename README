@@ -21,11 +21,20 @@ Install the plugin
 
     $ ./symfony plugin:install sfCacheTaggingPlugin
 
-Clear you cache
+## Setup ##
 
-    $ ./symfony cc
+1.  Check ``sfCacheTaggingPlugin`` plugin is enabled in ``/config/ProjectConfiguration.class.php``
 
-## Usage ##
+        <?php
+
+        class ProjectConfiguration extends sfProjectConfiguration
+        {
+          public function setup()
+          {
+            # … other plugins
+            $this->enablePlugins('sfCacheTaggingPlugin');
+          }
+        }
 
 1.  Create new file ``/config/factories.yml``  or edit each applications-level ``/apps/%app%/config/factories.yml`` file
 
@@ -66,15 +75,15 @@ Clear you cache
 
     > **Bonus**: In additional to this plugin commes ``sfFileTaggingCache`` and ``sfSQLiteTaggingCache`` which are ready to use them as backend class.
 
-2.  Remove Symfony predefined applications-level ``factories.yml`` files
+1.  Edit Symfony`s predefined applications-level ``factories.yml`` files
 
-    > If you have addited each applications-level ``factories.yml`` file in 1. step - go to 3 step.
+    > If you have addited each applications-level ``factories.yml`` file in 2nd step - go to 4th step.
 
     > In each application you want to use cache tagging, remove "``all_view_cache_manager``" section (you have already configured them in global ``/config/factories.yml`` file).
 
-3. Add "Cachetaggable" behavior to each models you want to be a part of cache.
+1.  Add "Cachetaggable" behavior to each models you want to be a part of cache.
 
-    > ### Exmample: file ``/config/doctrine/schema.yml``
+    > ### Exmaple: file ``/config/doctrine/schema.yml``
 
         BlogPost:
           tableName: blog_post
@@ -117,7 +126,177 @@ Clear you cache
           indexes:
             blog_post_id: { fields: [blog_post_id] }
 
-4. Start using taggable helpers in the templates
+1.  Enable cache in ``settings.yml``
+
+    > To setup cache is usually used a separate environment "cache",
+      but in the same way you can do it in any other enviroment which you have.
+
+        prod:
+          .settings:
+            cache: true
+
+        cache:
+          .settings:
+            cache: true
+
+        all:
+          .settings:
+            cache: false
+
+1.  Configure cache keys realation to Doctrine objects in ``/config/app.yml``
+
+    > Creating a new cache, you must specify what types of objects stored in them.
+      This is required to ensure that new facilities, which could be in them, reported to
+      the cache that appeared completely new information and need to rebuild the cache.
+
+    > Here is example how to do this:
+
+        all:
+          sfcachetaggingplugin:
+            containers:
+              BlogPost:
+                - index-blog-posts-component
+                - index-blog-posts-with-comments-component
+                - index-blog-posts-with-comments-slot-component
+              BlogPostComment:
+                - index-blog-posts-with-comments-component
+                - index-blog-posts-with-comments-slot-component
+
+    > This is enought to sfCacheTaggingPlugin starts listening on creation of the new
+      objects, which are linked existing cache keys.
+      Cache key could be appeared many times on others Doctrin_Record classes.
+
+## Using ##
+
+*   ### Native use:
+
+        # Somewhere in frontend you need to output latest 3 posts
+        $posts = Doctrine::getTable('BlogPost')
+          ->createQuery()
+          ->orderBy('id DESC')
+          ->limit(3)
+          ->execute();
+
+        # write them to cache backend ($posts is instance of Doctrine_Collection_Cachetaggable)
+        $tagger->set('my_posts', $posts, null, $posts->getTags());
+
+        # i want to change title of your latest post
+        $post = posts->getFirst();
+
+        # prints something like "12607059650629789696"
+        print $post->getObjectVersion();
+
+        $post->setTitle('How to use sfCacheTaggingPlugin');
+
+        # this will say to backend, to expire tag associated to this blog post
+        # all cache that have this tag in his tag list, will be invalidated
+        $post->save();
+
+        # prints something like "12607229083969089536" (new version)
+        print $post->getObjectVersion();
+
+        # will return null ($post object is updated)
+        if ($data = $tagger->get('my_posts'))
+        {
+          # this block will not be executed
+        }
+
+        # save new data to cache
+        $tagger->set('my_posts', $posts, null, $posts->getTags());
+
+        # will return data (objects are fresh)
+        if ($data = $tagger->get('my_posts'))
+        {
+          # this code block will be runned
+        }
+
+        # If you create new post, you probably want to cache 'my_posts' will be expired automatically
+        # But new $post object tag never was used before, so any existed caches could not
+        # understand - does this content is linked to new object $post
+        # To resolve this problem, you need to declare cache index relations with object classes
+        # See more info how to do this in the 6th step of the Setup
+
+        # For example, app.yml is looked like:
+
+        #all:
+        #  sfcachetaggingplugin:
+        #    containers:
+        #      BlogPost: [my_posts]
+
+        $post = new BlogPost();
+        $post->setTitle('New post should be in inserted to the cache results');
+        $post->save();
+
+        # will return null (new $post is typeof BlogPost and linked to "my_posts")
+        if ($data = $tagger->get('my_posts'))
+        {
+          # this block will not be executed
+        }
+
+        $posts = Doctrine::getTable('BlogPost')
+          ->createQuery()
+          ->orderBy('id DESC')
+          ->limit(3)
+          ->execute();
+
+        $tagger->set('my_posts', $posts, null, $posts->getTags());
+
+        # will return data
+        if ($data = $tagger->get('my_posts'))
+        {
+          # this block will be executed
+        }
+
+
+*   ### Using with partials:
+
+        <fieldset>
+          <legend>Partial</legend>
+
+          <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
+            <?php foreach ($posts as $post) { ?>
+              <?php include_partial('posts/one_post', array('post' => $post) ?>
+            <?php } ?>
+            <?php cache_tag_save($posts->getTags()); ?>
+          <?php } ?>
+
+        </fieldset>
+
+*   ### Using with components:
+
+    ##### indexSuccess.php
+
+        <fieldset>
+          <legend>Component</legend>
+
+          <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
+            <?php include_component_tag('posts', 'listOfPosts') ?>
+            <?php cache_tag_save(); ?>
+          <?php } ?>
+
+        </fieldset>
+
+
+    ##### components.class.php
+
+        <?php
+
+        class postsComponents extends sfComponents
+        {
+          public function executeListOfPosts($request)
+          {
+            $posts = Doctrine::getTable('BlogPost')
+              ->createQuery()
+              ->orderBy('id DESC')
+              ->limit(3)
+              ->execute();
+
+            $this->getContext()->getViewCacheManager()->setTags($posts->getTags());
+
+            $this->posts = $posts;
+          }
+        }
+
 
 ## Unit test ##
 

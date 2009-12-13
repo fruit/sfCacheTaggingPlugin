@@ -79,6 +79,12 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
     );
   }
 
+  /**
+   * Updates version of the object
+   *
+   * @param string $version
+   * @return Doctrine_Record
+   */
   public function setObjectVersion ($version)
   {
     $this->getInvoker()->{$this->_options['versionColumn']} = $version;
@@ -86,8 +92,23 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
     return $this->getInvoker();
   }
 
+  /**
+   * Fetches a version of the object
+   *
+   * @return Doctrine_Record
+   */
   public function getObjectVersion ()
   {
     return $this->getInvoker()->{$this->_options['versionColumn']};
+  }
+
+  /**
+   * Returns Cache manger tagger
+   *
+   * @return sfTagCache
+   */
+  public function getTagger ()
+  {
+    return sfContext::getInstance()->getViewCacheManager()->getTagger();
   }
 }

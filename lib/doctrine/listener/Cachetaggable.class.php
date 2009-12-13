@@ -85,7 +85,24 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
    */
   public function preSave (Doctrine_Event $event)
   {
-    $event->getInvoker()->setObjectVersion(sprintf("%0.0f", pow(10, 10) * microtime(true)));
+    $object = $event->getInvoker();
+
+    $object->setObjectVersion(sprintf("%0.0f", pow(10, 10) * microtime(true)));
+
+    if ($object->isNew() and ! is_null($taggerCache = $this->getTagger()))
+    {
+      $objectClassName = get_class($object);
+
+      $containers = sfConfig::get('app_sfcachetaggingplugin_containers', array());
+
+      if (array_key_exists($objectClassName, $containers) and 0 < count($containers))
+      {
+        foreach ($containers[$objectClassName] as $cacheKey)
+        {
+          $taggerCache->remove($cacheKey);
+        }
+      }
+    }
   }
 
   /**
