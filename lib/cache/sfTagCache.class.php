@@ -33,7 +33,7 @@ class sfTagCache extends sfCache
 
   /**
    * Log file pointer
-   * 
+   *
    * @var resource
    */
   protected $fileResource = null;
@@ -58,7 +58,7 @@ class sfTagCache extends sfCache
 
     # check is valid class
     $this->cache = new $cacheClassName($options['cache']['param']);
-    
+
     if (! isset($options['locker']) or ! is_array($options['cache']))
     {
       $this->locker = $this->cache;
@@ -96,7 +96,7 @@ class sfTagCache extends sfCache
   {
     return $this->cache;
   }
-  
+
   /**
    * Returns cache class for locks
    *
@@ -141,7 +141,7 @@ class sfTagCache extends sfCache
 
     $result = $this->getCache()->remove($key);
 
-    $this->writeChar($result ? 'D' : 'd', $key);
+    $this->writeChar($result ? 'D' : 'd');
 
     return $result;
   }
@@ -188,7 +188,7 @@ class sfTagCache extends sfCache
    */
   public function set ($key, $data, $lifetime = null, $tags = null)
   {
-    $lifetime = null === $lifetime 
+    $lifetime = null === $lifetime
       ? $this->getCache()->getOption('lifetime')
       : $lifetime;
 
@@ -206,7 +206,7 @@ class sfTagCache extends sfCache
         ->getCache()
         ->set($key, $extendedData, $lifetime);
 
-      $this->writeChar($result ? 'S' : 's', $key);
+      $this->writeChar($result ? 'S' : 's');
 
       $this->unlock($key);
 
@@ -220,7 +220,7 @@ class sfTagCache extends sfCache
     }
     else
     {
-      $this->writeChar('s', $key);
+      $this->writeChar('s');
 
       $result = false;
     }
@@ -239,7 +239,7 @@ class sfTagCache extends sfCache
   public function setTag ($key, $value, $lifetime = null)
   {
     $tagKey = $this->generateTagKey($key);
-    
+
     $result = $this->getCache()->set($tagKey, $value, $lifetime);
 
     return $result;
@@ -332,7 +332,7 @@ class sfTagCache extends sfCache
       $value = $default;
     }
 
-    $this->writeChar($value != $default ? 'G' : 'g', $key);
+    $this->writeChar($value != $default ? 'G' : 'g');
 
     return $value;
   }
@@ -346,7 +346,7 @@ class sfTagCache extends sfCache
   public function setStatsFilename ($statsFilename)
   {
     $this->tryToCloseStatsFileResource();
-    
+
     if (! file_exists($statsFilename))
     {
       if (0 === file_put_contents($statsFilename, ''))
@@ -404,13 +404,11 @@ class sfTagCache extends sfCache
    * @param string $char
    * @return void
    */
-  private function writeChar ($char, $key)
+  private function writeChar ($char)
   {
     if (is_resource($this->fileResource))
     {
-      fwrite($this->fileResource, sprintf("%s: %-40s | %s\n",  $char, $key, microtime()));
-
-//      fwrite($this->fileResource, $char);
+      fwrite($this->fileResource, $char);
     }
   }
 
@@ -432,7 +430,7 @@ class sfTagCache extends sfCache
 
     $result = $this->getLocker()->set($lockKey, 1, $expire);
 
-    $this->writeChar(true === $result ? 'L' : 'l', $lockKey);
+    $this->writeChar(true === $result ? 'L' : 'l');
 
     return $result;
   }
@@ -464,7 +462,7 @@ class sfTagCache extends sfCache
 
     $result = $this->getLocker()->remove($lockKey);
 
-    $this->writeChar(true === $result ? 'U' : 'u', $lockKey);
+    $this->writeChar(true === $result ? 'U' : 'u');
 
     return $result;
   }
