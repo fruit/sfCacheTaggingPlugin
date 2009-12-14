@@ -1,14 +1,19 @@
 # sfCacheTaggingPlugin #
 
-The `sfCacheTaggingPlugin` is a symfony plugin to store caches associated with unique tags to keep cache content up-to-date based by incrementing tag version.
+The `sfCacheTaggingPlugin` is a Symfony plugin to store cache with
+associated tags to keep cache content up-to-date based by incrementing tag version when cache objects are edited/removed or new objects are ready to be a part of cache content.
 
 ## Description ##
 
-Cache tagging is a concept that was invented in one time by many developers
-  ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/) and probability by some other people)
+Tagging a cache, is a concept that was invented in the one time by many developers
+([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/)
+and probability by somebody else)
 
-This software was developed push of Andrey Smirnoff`s theoretical work ["Cache tagging with Memcached (in Russian)"](http://www.smira.ru/tag/memcached/).
-Some ideas are implemented in the real world (i.e. tag versions based on datetime and microtime, cache hit/set logging, cache locking) and part of them are not implemented (atomic counter)
+This software was developed push of Andrey Smirnoff`s theoretical work
+["Cache tagging with Memcached (in Russian)"](http://www.smira.ru/tag/memcached/).
+Some ideas are implemented in the real world (i.e. tag versions based on datetime
+and microtime, cache hit/set logging, cache locking) and part of them are not
+(atomic counter)
 
 ## Repository ##
 
@@ -36,11 +41,21 @@ Install the plugin
           }
         }
 
-1.  Create new file ``/config/factories.yml``  or edit each applications-level ``/apps/%app%/config/factories.yml`` file
+1.  Create new file ``/config/factories.yml`` or edit each application`s-level
+    ``/apps/%app%/config/factories.yml`` file
 
-    > Cache tagging work for you when you save/update Doctrine record or fetch them from DB. So you should enable caching (``sf_cache: true``) in the all applications you work with. I recommend You to create default factories.yml for all application you have by creating empty file ``/config/factories.yml``. Symfony will check this file and load it as default factories.yml configuration to all applications you have in the project.
+    > Cache tagging work for you each time when you save/update/delete Doctrine
+      record or fetch
+them from DB.
+      So you should enable caching (``sf_cache: true``) in the all
+      applications you work with. I recommend you to create default ``factories.yml``
+      for all applications you have by creating file ``/config/factories.yml`` (bellow will be this file content).
+      Symfony will check this file and load it as default ``factories.yml``
+      configuration to all applications you have in the project.
 
-    > This is /config/factories.yml content (you can copy & past it into your brand new created file) or merge this config with each application factories.yml where data will be fetched from the cache or written to the cache:
+    > This is ``/config/factories.yml`` content (you can copy&past this code into your
+      brand new created file) or merge this config with each application`s
+      ``factories.yml`` (applications, where you need to data be fetched/written from/to cache)
 
     > ### Example: file ``/config/factories.yml``
 
@@ -48,7 +63,7 @@ Install the plugin
           view_cache:
             class: sfTagCache
             param:
-              logging: true                 # logging is enabled (false to disable)
+              logging: true                 # logging is enabled ("false" to disable)
               cache:                        # Content will be stored in Memcache
                 class: sfMemcacheCache      # Here you can switch to any other backend
                 param:                      # (see Restrictions block for more info)
@@ -69,19 +84,27 @@ Install the plugin
               cache_key_use_vary_headers: true
               cache_key_use_host_name:    true
 
-    > **Easter eggs**: If you remome "``all_view_cache_param_locker``" section, locker will be the same as "all_view_cache_param_cache" section.
+    > **Easter eggs**: If you remove "``all_view_cache_param_locker``" section,
+      locker will be the same as section "all_view_cache_param_cache".
 
-    > **Restrictions**: Backend class should be inheritable from ``sfCache`` class. It should support to cache objects/arrays.
+    > **Restrictions**: Backend`s class should be inheritable from ``sfCache``
+      class. Also, it should support the caching of objects and/or arrays.
 
-    > **Bonus**: In additional to this plugin commes ``sfFileTaggingCache`` and ``sfSQLiteTaggingCache`` which are ready to use them as backend class.
+    > **Bonus**: In additional to this plugin comes ``sfFileTaggingCache``
+      and ``sfSQLiteTaggingCache`` which are ready to use them as backend class.
 
-1.  Edit Symfony`s predefined applications-level ``factories.yml`` files
+      This classes already have serialization/unserialization support.
 
-    > If you have addited each applications-level ``factories.yml`` file in 2nd step - go to 4th step.
+1.  Edit Symfony`s predefined application`s-level ``factories.yml`` files
 
-    > In each application you want to use cache tagging, remove "``all_view_cache_manager``" section (you have already configured them in global ``/config/factories.yml`` file).
+    > If you have audited each application`s-level ``factories.yml`` file in
+      2nd step - go to 4th step.
 
-1.  Add "Cachetaggable" behavior to each models you want to be a part of cache.
+    > In each application you want to use cache tagging, please, remove
+      "``all_view_cache_manager``" section (you have already configured them
+      in global ``/config/factories.yml`` file).
+
+1.  Add "Cachetaggable" behavior to each model, which you want to be a part of cache content.
 
     > ### Exmaple: file ``/config/doctrine/schema.yml``
 
@@ -90,8 +113,8 @@ Install the plugin
           actAs:
             Cachetaggable: ~
             #Cachetaggable:
-            #  uniqueColumn: id               # you can setup you unique column name (default is "id")
-            #  versionColumn: object_version  # and custom column name to store versions (default is "object_version")
+            #  uniqueColumn: id               # you can customize unique column name (default is "id")
+            #  versionColumn: object_version  # you can customize column name to store versions (default is "object_version")
           columns:
             id:
               type: integer
@@ -128,8 +151,8 @@ Install the plugin
 
 1.  Enable cache in ``settings.yml``
 
-    > To setup cache is usually used a separate environment "cache",
-      but in the same way you can do it in any other enviroment which you have.
+    > To setup cache, often, used a separate environment named "cache",
+      but in the same way you can do it in any other environments which you have.
 
         prod:
           .settings:
@@ -143,18 +166,18 @@ Install the plugin
           .settings:
             cache: false
 
-1.  Configure cache keys realation to Doctrine objects in ``/config/app.yml``
+1.  Configure cache keys relationships with ``Doctrine`` objects in the ``/config/app.yml``
 
-    > Creating a new cache, you must specify what types of objects stored in them.
-      This is required to ensure that new facilities, which could be in them, reported to
-      the cache that appeared completely new information and need to rebuild the cache.
+    > Creating a new cache, you must specify which types of objects stored in it.
+      This is required, to new objects communicated associated keys, to invalidate his content.
 
-    > Here is example how to do this:
+    > Here is example how to do it:
 
         all:
           sfcachetaggingplugin:
             containers:
-              BlogPost:
+              BlogPost: # On preSave event of the all new objects of type "BlogPost"
+                        # will be triggered cleaning process of listed keys
                 - index-blog-posts-component
                 - index-blog-posts-with-comments-component
                 - index-blog-posts-with-comments-slot-component
@@ -162,9 +185,9 @@ Install the plugin
                 - index-blog-posts-with-comments-component
                 - index-blog-posts-with-comments-slot-component
 
-    > This is enought to sfCacheTaggingPlugin starts listening on creation of the new
-      objects, which are linked existing cache keys.
-      Cache key could be appeared many times on others Doctrin_Record classes.
+    > This is enough to "sfCacheTaggingPlugin" starts listening on creation of
+      the new objects, which are linked with existed cache keys. Cache key could
+      be appeared many times on others Doctrin_Record classes.
 
 ## Using ##
 
@@ -177,10 +200,11 @@ Install the plugin
           ->limit(3)
           ->execute();
 
-        # write them to cache backend ($posts is instance of the Doctrine_Collection_Cachetaggable)
+        # write data to the cache ($posts is instance of the Doctrine_Collection_Cachetaggable)
         $tagger->set('my_posts', $posts, null, $posts->getTags());
 
-        # i want to change title of your latest post
+        # fetch latest post
+ to edit it
         $post = posts->getFirst();
 
         # prints something like "12607059650629789696"
@@ -188,35 +212,35 @@ Install the plugin
 
         $post->setTitle('How to use sfCacheTaggingPlugin');
 
-        # this will say to backend, to expire tag associated to this blog post
-        # all cache that have this tag in his tag list, will be invalidated
+        # save and update/upgrade version of the tag
         $post->save();
 
-        # prints something like "12607229083969089536" (new version)
+        # prints something like "12607229083969089536" (new version of the tag)
         print $post->getObjectVersion();
 
-        # will return null ($post object is updated)
+        # will return null
+        # $post object was updated, so, all $posts in cache "my_posts” is invalidated automatically)
         if ($data = $tagger->get('my_posts'))
         {
           # this block will not be executed
         }
 
-        # save new data to cache
+        # save new data to the cache
         $tagger->set('my_posts', $posts, null, $posts->getTags());
 
         # will return data (objects are fresh)
         if ($data = $tagger->get('my_posts'))
         {
-          # this code block will be runned
+          # this code block will be executed
         }
 
-        # If you create new post, you probably want to cache 'my_posts' will be expired automatically
+        # If you create new post, you, probably, would like to "my_posts" will be expired automatically
         # But new $post object tag never was used before, so any existed caches could not
         # understand - does this content is linked to new object $post
-        # To resolve this problem, you need to declare cache index relations with object classes
-        # See more info how to do this in the 6th step of the Setup
+        # To resolve this problem, you need to declare cache index relationships with object classes
+        # See more info how to do it you could find in the 6th step of the Setup
 
-        # For example, app.yml is looked like:
+        # For example, app.yml is look like:
 
         #all:
         #  sfcachetaggingplugin:
@@ -227,7 +251,7 @@ Install the plugin
         $post->setTitle('New post should be in inserted to the cache results');
         $post->save();
 
-        # will return null (new $post is typeof BlogPost and linked to "my_posts")
+        # will return null (new $post is type of "BlogPost" and is linked to "my_posts")
         if ($data = $tagger->get('my_posts'))
         {
           # this block will not be executed
@@ -247,6 +271,30 @@ Install the plugin
           # this block will be executed
         }
 
+
+*   ### non-Doctrine use:
+
+    ##### indexSuccess.php
+
+        <fieldset>
+          <legend>Daylight</legend>
+
+          <?php if (! cache_tag('daylight_content')) { ?>
+
+            <h1>Text to cache No-<?php rand(1, 1000000) ?></h1>
+
+            Text text text text text text text text text text text text text.
+            <?php cache_tag_save(array('sun' => time(), 'moon' => time())); ?>
+          <?php } ?>
+
+        </fieldset>
+
+    ##### code.php
+
+          # when you want to update Daylight content
+          $this->getContext()->getViewCacheManager()->getTagger()->setTag('moon', time());
+
+</fieldset>
 
 *   ### Using with partials:
 
