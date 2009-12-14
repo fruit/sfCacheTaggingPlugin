@@ -1,6 +1,6 @@
 # sfCacheTaggingPlugin #
 
-The `sfCacheTaggingPlugin` is a symfony plugin to store caches associated with unique tags to keep cache content up-to-date based by incrementing tags version.
+The `sfCacheTaggingPlugin` is a symfony plugin to store caches associated with unique tags to keep cache content up-to-date based by incrementing tag version.
 
 ## Description ##
 
@@ -177,7 +177,7 @@ Install the plugin
           ->limit(3)
           ->execute();
 
-        # write them to cache backend ($posts is instance of Doctrine_Collection_Cachetaggable)
+        # write them to cache backend ($posts is instance of the Doctrine_Collection_Cachetaggable)
         $tagger->set('my_posts', $posts, null, $posts->getTags());
 
         # i want to change title of your latest post
@@ -262,7 +262,7 @@ Install the plugin
 
         </fieldset>
 
-*   ### Using with components:
+*   ### Using with components (simple):
 
     ##### indexSuccess.php
 
@@ -286,8 +286,9 @@ Install the plugin
           public function executeListOfPosts($request)
           {
             $posts = Doctrine::getTable('BlogPost')
-              ->createQuery()
-              ->orderBy('id DESC')
+              ->createQuery('bp')
+              ->select('bp.*')
+              ->orderBy('bp.id DESC')
               ->limit(3)
               ->execute();
 
@@ -297,10 +298,59 @@ Install the plugin
           }
         }
 
-    ##### Combining posts with comments components.class.php (complex)
+*   ### Using with components (complex - Combining posts with comments)
 
-        <?php ...
+    ##### components.class.php
+
+        <fieldset>
+          <legend>Component (posts and comments)</legend>
+
+          <?php if (! cache_tag('posts_and_comments')) { ?>
+            <?php include_component_tag('post', 'listOfPostsAndComments') ?>
+            <?php cache_tag_save(); ?>
+          <?php } ?>
+
+        </fieldset>
+
+    ##### components.class.php
+
+        <?php
+
+        class postsComponents extends sfComponents
+        {
+          public function executeListOfPostsAndComments($request)
+          {
+            $posts = Doctrine::getTable('BlogPost')
+              ->createQuery('bp')
+              ->addSelect('bp.*, bpc.*')
+              ->innerJoin('bp.BlogPostComments bpc')
+              ->orderBy('bp.id DESC')
+              ->limit(3)
+              ->execute();
+
+            foreach ($posts as $post)
+            {
+              # 1st variant (shorter)
+              # our cache should be updated if one of comment will be edited/deleted
+              # therefore, we are collecting comment`s tags
+
+              $posts->addTags($post->getBlogPostComment()->getTags());
+              # or shorter
+              # $posts->addTags($post->getBlogPostComment());
+            }
+
+            $this->getContext()->getViewCacheManager()->setTags($posts->getTags());
+
+            $this->posts = $posts;
+          }
+        }
 
 ## Unit test ##
 
  * Unit tests (400 of 400) successfully completed
+
+## Contacts ##
+
+@: Ilya Sabelnikov <fruit dot dev at gmail doc com>
+IRC: irc.freenode.net, #symfony, fruit
+skype: ilya_roll
