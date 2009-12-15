@@ -1,5 +1,8 @@
 # sfCacheTaggingPlugin #
 
+@todo Memcache atomic method add insted of set/get locks
+@todo smira.ru opinion when new objects is created
+
 The `sfCacheTaggingPlugin` is a Symfony plugin to store cache with
 associated tags to keep cache content up-to-date based by incrementing tag version when cache objects are edited/removed or new objects are ready to be a part of cache content.
 
@@ -166,29 +169,6 @@ them from DB.
           .settings:
             cache: false
 
-1.  Configure cache keys relationships with ``Doctrine`` objects in the ``/config/app.yml``
-
-    > Creating a new cache, you must specify which types of objects stored in it.
-      This is required, to new objects communicated associated keys, to invalidate his content.
-
-    > Here is example how to do it:
-
-        all:
-          sfcachetaggingplugin:
-            containers:
-              BlogPost: # On preSave event of the all new objects of type "BlogPost"
-                        # will be triggered cleaning process of listed keys
-                - index-blog-posts-component
-                - index-blog-posts-with-comments-component
-                - index-blog-posts-with-comments-slot-component
-              BlogPostComment:
-                - index-blog-posts-with-comments-component
-                - index-blog-posts-with-comments-slot-component
-
-    > This is enough to "sfCacheTaggingPlugin" starts listening on creation of
-      the new objects, which are linked with existed cache keys. Cache key could
-      be appeared many times on others Doctrin_Record classes.
-
 ## Using ##
 
 *   ### Native use:
@@ -234,24 +214,12 @@ them from DB.
           # this code block will be executed
         }
 
-        # If you create new post, you, probably, would like to "my_posts" will be expired automatically
-        # But new $post object tag never was used before, so any existed caches could not
-        # understand - does this content is linked to new object $post
-        # To resolve this problem, you need to declare cache index relationships with object classes
-        # See more info how to do it you could find in the 6th step of the Setup
-
-        # For example, app.yml is look like:
-
-        #all:
-        #  sfcachetaggingplugin:
-        #    containers:
-        #      BlogPost: [my_posts]
-
         $post = new BlogPost();
         $post->setTitle('New post should be in inserted to the cache results');
         $post->save();
 
-        # will return null (new $post is type of "BlogPost" and is linked to "my_posts")
+        # will return null, because 'my_posts' cache knows that it contains BlogPost objects
+        # and listens on new objects with same type that are newer
         if ($data = $tagger->get('my_posts'))
         {
           # this block will not be executed
@@ -399,6 +367,6 @@ them from DB.
 
 ## Contacts ##
 
-@: Ilya Sabelnikov <fruit dot dev at gmail doc com>
-IRC: irc.freenode.net, #symfony, fruit
-skype: ilya_roll
+* @: Ilya Sabelnikov `` <fruit dot dev at gmail doc com> ``
+* IRC: irc.freenode.net, #symfony, fruit
+* skype: ilya_roll

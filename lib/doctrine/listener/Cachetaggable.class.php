@@ -93,6 +93,10 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
     {
       $objectClassName = get_class($object);
 
+      $taggerCache->setTag($objectClassName, $object->getObjectVersion());
+
+      # old version to handle new objects with cache content
+      /*
       $containers = sfConfig::get('app_sfcachetaggingplugin_containers', array());
 
       if (array_key_exists($objectClassName, $containers) and 0 < count($containers))
@@ -101,7 +105,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
         {
           $taggerCache->remove($cacheKey);
         }
-      }
+      }*/
     }
   }
 

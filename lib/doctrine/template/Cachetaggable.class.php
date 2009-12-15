@@ -74,7 +74,7 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
     
     return sprintf(
       '%s_%s',
-      sfInflector::tableize(get_class($object)),
+      get_class($object),
       $object->{$this->_options['uniqueColumn']}
     );
   }

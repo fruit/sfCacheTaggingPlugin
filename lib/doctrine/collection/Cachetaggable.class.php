@@ -36,11 +36,31 @@ class Doctrine_Collection_Cachetaggable extends Doctrine_Collection
 
     $collection = is_null($collection) ? $this : $collection;
 
-    foreach ($collection as $object)
+    $latestFoundVersion = 0;
+
+    if ($collection->count())
     {
-      $tags[$object->getTagName()] = $object->getObjectVersion();
+      foreach ($collection as $object)
+      {
+        $tags[$object->getTagName()] = $object->getObjectVersion();
+
+        $latestFoundVersion = $latestFoundVersion < $object->getObjectVersion()
+          ? $object->getObjectVersion()
+          : $latestFoundVersion;
+      }
+
+      if (! is_null($first = $collection->getFirst()))
+      {
+        $tagger = sfContext::getInstance()->getViewCacheManager()->getTagger();
+
+        $lastSavedVersion = $tagger->getTag(get_class($first));
+
+        $tags[get_class($first)] = is_null($lastSavedVersion)
+          ? $latestFoundVersion
+          : $lastSavedVersion;
+      }
     }
-    
+
     return $tags;
   }
 
