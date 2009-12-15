@@ -1,7 +1,7 @@
 # sfCacheTaggingPlugin #
 
 @todo Memcache atomic method add insted of set/get locks
-@todo smira.ru opinion when new objects is created
+@todo write tests for catching the exceptions
 
 The `sfCacheTaggingPlugin` is a Symfony plugin to store cache with
 associated tags to keep cache content up-to-date based by incrementing tag version when cache objects are edited/removed or new objects are ready to be a part of cache content.
@@ -169,6 +169,16 @@ them from DB.
           .settings:
             cache: false
 
+1.  Customize sfCacheTaggingPlugin in the ``/config/app.yml``
+
+        all:
+          sfcachetaggingplugin:
+            template_lock: "lock_%s"    # name for locks
+            template_tag: "tag_%s"      # name for tags
+            microtime_precision: 5       # version precision (0, or positive number)
+                                         # (0 - without micro time, version will be 10 digits length)
+                                         # (5 - with micro time part, version will be 15 digits length)
+
 ## Using ##
 
 *   ### Native use:
@@ -187,7 +197,7 @@ them from DB.
  to edit it
         $post = posts->getFirst();
 
-        # prints something like "12607059650629789696"
+        # prints something like "1260705962"
         print $post->getObjectVersion();
 
         $post->setTitle('How to use sfCacheTaggingPlugin');
@@ -195,7 +205,7 @@ them from DB.
         # save and update/upgrade version of the tag
         $post->save();
 
-        # prints something like "12607229083969089536" (new version of the tag)
+        # prints something like "1260722908" (new version of the tag)
         print $post->getObjectVersion();
 
         # will return null

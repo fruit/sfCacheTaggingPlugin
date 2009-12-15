@@ -52,12 +52,22 @@ class sfTagCache extends sfCache
     if (! class_exists($cacheClassName, true))
     {
       throw new sfInitializationException(
-        sprintf('Tagging cache class "%s" not found', $cacheClassName)
+        sprintf(
+          'sfCacheTaggingPlugin: Tagging cache class "%s" not found',
+          $cacheClassName
+        )
       );
     }
 
     # check is valid class
     $this->cache = new $cacheClassName($options['cache']['param']);
+
+    if (! $this->cache instanceof sfCache)
+    {
+      throw new sfInitializationException(
+        'sfCacheTaggingPlugin: Data backend class is not instance of sfCache.'
+      );
+    }
 
     if (! isset($options['locker']) or ! is_array($options['cache']))
     {
@@ -70,12 +80,22 @@ class sfTagCache extends sfCache
       if (! class_exists($lockerClassName, true))
       {
         throw new sfInitializationException(
-          sprintf('Tagging locker class "%s" not found', $lockerClassName)
+          sprintf(
+            'sfCacheTaggingPlugin: Tagging locker class "%s" not found',
+            $lockerClassName
+          )
         );
       }
 
       # check is valid class
       $this->locker = new $lockerClassName($options['locker']['param']);
+
+      if (! $this->locker instanceof sfCache)
+      {
+        throw new sfInitializationException(
+          'sfCacheTaggingPlugin: Locker backend class is not instance of sfCache.'
+        );
+      }
     }
 
     if ($options['logging'])
@@ -493,7 +513,7 @@ class sfTagCache extends sfCache
     return sprintf(
       sfConfig::get(
         'app_sfcachetaggingplugin_template_lock',
-        '[lock]-%s'
+        'lock_%s'
       ),
       $key
     );
@@ -510,7 +530,7 @@ class sfTagCache extends sfCache
     return sprintf(
       sfConfig::get(
         'app_sfcachetaggingplugin_template_tag',
-        '[tag]-%s'
+        'tag_%s'
       ),
       $key
     );

@@ -87,25 +87,17 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
   {
     $object = $event->getInvoker();
 
-    $object->setObjectVersion(sprintf("%0.0f", pow(10, 10) * microtime(true)));
+    $precision = (int) sfConfig::get('app_sfcachetaggingplugin_microtime_precision', 0);
+
+    $precision = 0 > $precision ? 0 : $precision;
+    
+    $object->setObjectVersion(sprintf("%0.0f", pow(10, $precision) * microtime(true)));
 
     if ($object->isNew() and ! is_null($taggerCache = $this->getTagger()))
     {
       $objectClassName = get_class($object);
 
       $taggerCache->setTag($objectClassName, $object->getObjectVersion());
-
-      # old version to handle new objects with cache content
-      /*
-      $containers = sfConfig::get('app_sfcachetaggingplugin_containers', array());
-
-      if (array_key_exists($objectClassName, $containers) and 0 < count($containers))
-      {
-        foreach ($containers[$objectClassName] as $cacheKey)
-        {
-          $taggerCache->remove($cacheKey);
-        }
-      }*/
     }
   }
 

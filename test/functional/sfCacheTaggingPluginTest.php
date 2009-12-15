@@ -29,6 +29,10 @@ $count = count($dataCacheSetups);
 
 $t = new lime_test(pow($count, 2) * 16);
 
+# if precision approach to 0, unit tests will be failed
+# (0 precision is too small for the current test)
+sfConfig::set('app_sfcachetaggingplugin_microtime_precision', 5);
+
 foreach ($dataCacheSetups as $data)
 {
   foreach ($lockCacheSetups as $locker)
