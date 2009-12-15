@@ -19,11 +19,11 @@
 
 /* Usage
 
-<?php if (!cache('name')): ?>
+<?php if (!cache_tag('name')): ?>
 
 ... HTML ...
 
-  <?php cache_save() ?>
+  <?php cache_save(array('tag' => time()) ?>
 <?php endif; ?>
 
 */
@@ -79,7 +79,9 @@ function cache_tag_save(array $tags = null)
     ->getViewCacheManager()
     ->stopWithTags(
       sfConfig::get('symfony.cache.current_name', ''),
-      sfConfig::get('symfony.cache.lifetime', 86400),
+      sfConfig::get('symfony.cache.lifetime', 
+        sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
+      ),
       sfConfig::get('symfony.cache.tags', array())
     );
 

@@ -1,8 +1,5 @@
 # sfCacheTaggingPlugin #
 
-@todo Memcache atomic method add insted of set/get locks
-@todo write tests for catching the exceptions
-
 The `sfCacheTaggingPlugin` is a Symfony plugin to store cache with
 associated tags to keep cache content up-to-date based by incrementing tag version when cache objects are edited/removed or new objects are ready to be a part of cache content.
 
@@ -67,19 +64,22 @@ them from DB.
             class: sfTagCache
             param:
               logging: true                 # logging is enabled ("false" to disable)
-              cache:                        # Content will be stored in Memcache
-                class: sfMemcacheCache      # Here you can switch to any other backend
-                param:                      # (see Restrictions block for more info)
+              cache:                        
+                class: sfMemcacheCache      # Content will be stored in Memcache
+                                            # Here you can switch to any other backend
+                                            # (see Restrictions block for more info)
+                param:
                   persistent: true
                   storeCacheInfo: false
                   host: localhost
                   port: 11211
                   timeout: 5
                   lifetime: 86400
-              locker:                       # Locks will be stored in APC
-                class: sfAPCCache           # Here you can switch to any other backend sf*Cache
-                param:                      # (see Restrictions block for more info)
-                  lifetime: 5
+              locker:                       
+                class: sfAPCCache           # Locks will be stored in APC
+                                            # Here you can switch to any other backend sf*Cache
+                                            # (see Restrictions block for more info)
+                param: {}
 
           view_cache_manager:
             class: sfViewCacheTagManager          # Extended sfViewCacheManager class
@@ -175,9 +175,12 @@ them from DB.
           sfcachetaggingplugin:
             template_lock: "lock_%s"    # name for locks
             template_tag: "tag_%s"      # name for tags
-            microtime_precision: 5       # version precision (0, or positive number)
-                                         # (0 - without micro time, version will be 10 digits length)
-                                         # (5 - with micro time part, version will be 15 digits length)
+
+            microtime_precision: 5      # version precision (0, or positive number)
+                                        # (0 - without micro time, version will be 10 digits length)
+                                        # (5 - with micro time part, version will be 15 digits length)
+
+            lock_lifetime: 2            # seconds to keep lock, if failed to unlock after locking it
 
 ## Using ##
 
@@ -270,7 +273,7 @@ them from DB.
     ##### code.php
 
           # when you want to update Daylight content
-          $this->getContext()->getViewCacheManager()->getTagger()->setTag('moon', time());
+          $this->getContext()->getViewCacheManager()->getTagger()->setTag('moon', time(), 86400);
 
 </fieldset>
 

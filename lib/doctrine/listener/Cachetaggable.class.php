@@ -87,17 +87,19 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
   {
     $object = $event->getInvoker();
 
-    $precision = (int) sfConfig::get('app_sfcachetaggingplugin_microtime_precision', 0);
+    $precision = (int) sfConfig::get('app_sfcachetaggingplugin_microtime_precision', 5);
 
-    $precision = 0 > $precision ? 0 : $precision;
-    
     $object->setObjectVersion(sprintf("%0.0f", pow(10, $precision) * microtime(true)));
 
     if ($object->isNew() and ! is_null($taggerCache = $this->getTagger()))
     {
       $objectClassName = get_class($object);
 
-      $taggerCache->setTag($objectClassName, $object->getObjectVersion());
+      $taggerCache->setTag(
+        $objectClassName,
+        $object->getObjectVersion(),
+        sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
+      );
     }
   }
 

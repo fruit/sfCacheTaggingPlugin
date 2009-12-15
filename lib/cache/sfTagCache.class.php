@@ -93,7 +93,8 @@ class sfTagCache extends sfCache
       if (! $this->locker instanceof sfCache)
       {
         throw new sfInitializationException(
-          'sfCacheTaggingPlugin: Locker backend class is not instance of sfCache.'
+          'sfCacheTaggingPlugin: Locker backend class is not instance ' .
+          'of sfCache.'
         );
       }
     }
@@ -150,7 +151,10 @@ class sfTagCache extends sfCache
 
     if (! is_null($value))
     {
-      if (($value instanceof stdClass) and isset($value->tags) and is_array($value->tags))
+      if (($value instanceof stdClass) and
+        isset($value->tags) and
+        is_array($value->tags)
+      )
       {
         foreach ($value->tags as $tagKey => $tagOldVersion)
         {
@@ -204,7 +208,8 @@ class sfTagCache extends sfCache
    * @param mixed $data
    * @param string $lifetime optional
    * @param array $tags optional
-   * @return mixed|false Cache expired/not valid - returns false, in other case mixed
+   * @return mixed|false false - when cache expired/not valid
+   *                     mixed - in other case
    */
   public function set ($key, $data, $lifetime = null, $tags = null)
   {
@@ -220,7 +225,8 @@ class sfTagCache extends sfCache
       $extendedData->tags = (array) $tags;
     }
 
-    if ($this->lock($key))
+    $lockLifetime = sfConfig::get('app_sfcachetaggingplugin_lock_lifetime');
+    if ($this->lock($key, $lockLifetime))
     {
       $result = $this
         ->getCache()
@@ -230,11 +236,15 @@ class sfTagCache extends sfCache
 
       $this->unlock($key);
 
-      if (isset($extendedData->tags))
+      if (isset($extendedData->tags) and is_array($extendedData->tags))
       {
         foreach ($extendedData->tags as $tagKey => $value)
         {
-          $this->setTag($tagKey, $value);
+          $this->setTag(
+            $tagKey,
+            $value,
+            sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
+          );
         }
       }
     }
@@ -259,6 +269,10 @@ class sfTagCache extends sfCache
   public function setTag ($key, $value, $lifetime = null)
   {
     $tagKey = $this->generateTagKey($key);
+
+    $lifetime = is_null($lifetime)
+      ? sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
+      : $lifetime;
 
     $result = $this->getCache()->set($tagKey, $value, $lifetime);
 
@@ -441,14 +455,29 @@ class sfTagCache extends sfCache
    */
   public function lock ($key, $expire = 2)
   {
-    if ($this->isLocked($key))
-    {
-      return false;
-    }
-
     $lockKey = $this->generateLockKey($key);
 
-    $result = $this->getLocker()->set($lockKey, 1, $expire);
+    if ($this->getLocker() instanceof sfMemcacheCache)
+    {
+      $memcache = $this->getLocker()->getBackend();
+
+      $result = $memcache->add(
+        "{$this->getLocker()->getOption('prefix')}{$lockKey}",
+        1,
+        $expire
+      );
+    }
+    else
+    {
+      if ($this->isLocked($key))
+      {
+        $result = false;
+      }
+      else
+      {
+        $result = $this->getLocker()->set($lockKey, 1, $expire);
+      }
+    }
 
     $this->writeChar(true === $result ? 'L' : 'l');
 
@@ -463,9 +492,9 @@ class sfTagCache extends sfCache
    */
   public function isLocked ($key)
   {
-    $value = $this
-      ->getLocker()
-      ->get($this->generateLockKey($key));
+    $lockKey = $this->generateLockKey($key);
+
+    $value = $this->getLocker()->get($lockKey);
 
     return (bool) $value;
   }

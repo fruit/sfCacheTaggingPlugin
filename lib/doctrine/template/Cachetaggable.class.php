@@ -53,9 +53,7 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
       throw new sfConfigurationException('sfCacheTaggingPlugin: "Cachetaggable" behaviors "versionColumn" should be string and not empty');
     }
 
-    $precision = (int) sfConfig::get('app_sfcachetaggingplugin_microtime_precision', 0);
-
-    $precision = 0 > $precision ? 0 : $precision;
+    $precision = (int) sfConfig::get('app_sfcachetaggingplugin_microtime_precision', 5);
 
     $this->hasColumn($versionColumn, 'string', 10 + $precision, array('notnull' => false));
 
