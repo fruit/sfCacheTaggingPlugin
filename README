@@ -1,6 +1,6 @@
 # sfCacheTaggingPlugin #
 
-The `sfCacheTaggingPlugin` is a Symfony plugin to store cache with
+The 'sfCacheTaggingPlugin' is a Symfony plugin to store cache with
 associated tags to keep cache content up-to-date based by incrementing tag version when cache objects are edited/removed or new objects are ready to be a part of cache content.
 
 ## Description ##
@@ -9,7 +9,7 @@ Tagging a cache, is a concept that was invented in the one time by many develope
 ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/)
 and probability by somebody else)
 
-This software was developed push of Andrey Smirnoff`s theoretical work
+This software was developed push of Andrey Smirnoff's theoretical work
 ["Cache tagging with Memcached (in Russian)"](http://www.smira.ru/tag/memcached/).
 Some ideas are implemented in the real world (i.e. tag versions based on datetime
 and microtime, cache hit/set logging, cache locking) and part of them are not
@@ -41,7 +41,7 @@ Install the plugin
           }
         }
 
-1.  Create new file ``/config/factories.yml`` or edit each application`s-level
+1.  Create new file ``/config/factories.yml`` or edit each application's-level
     ``/apps/%app%/config/factories.yml`` file
 
     > Cache tagging work for you each time when you save/update/delete Doctrine
@@ -54,7 +54,7 @@ them from DB.
       configuration to all applications you have in the project.
 
     > This is ``/config/factories.yml`` content (you can copy&past this code into your
-      brand new created file) or merge this config with each application`s
+      brand new created file) or merge this config with each application's
       ``factories.yml`` (applications, where you need to data be fetched/written from/to cache)
 
     > ### Example: file ``/config/factories.yml``
@@ -90,7 +90,7 @@ them from DB.
     > **Easter eggs**: If you remove "``all_view_cache_param_locker``" section,
       locker will be the same as section "``all_view_cache_param_cache``".
 
-    > **Restrictions**: Backend`s class should be inheritable from ``sfCache``
+    > **Restrictions**: Backend's class should be inheritable from ``sfCache``
       class. Also, it should support the caching of objects and/or arrays.
 
     > **Bonus**: In additional to this plugin comes ``sfFileTaggingCache``
@@ -98,9 +98,9 @@ them from DB.
 
       This classes already have serialization/unserialization support.
 
-1.  Edit Symfony`s predefined application`s-level ``factories.yml`` files
+1.  Edit Symfony's predefined application's-level ``factories.yml`` files
 
-    > If you have audited each application`s-level ``factories.yml`` file in
+    > If you have audited each application's-level ``factories.yml`` file in
       2nd step - go to 4th step.
 
     > In each application you want to use cache tagging, please, remove
@@ -360,7 +360,7 @@ them from DB.
             {
               # 1st variant (shorter)
               # our cache should be updated if one of comment will be edited/deleted
-              # therefore, we are collecting comment`s tags
+              # therefore, we are collecting comment's tags
 
               $posts->addTags($post->getBlogPostComment()->getTags());
               # or shorter
