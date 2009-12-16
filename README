@@ -7,7 +7,7 @@ associated tags to keep cache content up-to-date based by incrementing tag versi
 
 Tagging a cache, is a concept that was invented in the one time by many developers
 ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/)
-and probability by somebody else)
+and probably by somebody else)
 
 This software was developed push of Andrey Smirnoff's theoretical work
 ["Cache tagging with Memcached (in Russian)"](http://www.smira.ru/tag/memcached/).
@@ -152,7 +152,7 @@ them from DB.
           indexes:
             blog_post_id: { fields: [blog_post_id] }
 
-1.  Enable cache in ``settings.yml``
+1.  Enable cache in ``settings.yml`` and add additionals helpers to standart_helpers
 
     > To setup cache, often, used a separate environment named "cache",
       but in the same way you can do it in any other environments which you have.
@@ -169,7 +169,16 @@ them from DB.
           .settings:
             cache: false
 
-1.  Customize sfCacheTaggingPlugin in the ``/config/app.yml``
+    > Add helpers to the frontend application
+
+        all:
+          .settings:
+            standard_helpers:
+              - Partial     # symfony build in helper (mandatory)
+              - CacheTag    # sfCacheTaggingPlugin helper (mandatory)
+              - PartialTag  # sfCacheTaggingPlugin helper (mandatory)
+
+1.  Customize ``sfCacheTaggingPlugin`` in the ``/config/app.yml``
 
         all:
           sfcachetaggingplugin:
@@ -372,6 +381,13 @@ them from DB.
             $this->posts = $posts;
           }
         }
+
+## Limitations ##
+
+Do not use Doctrine::getTable('BlogPost')->delete()->where('id > ?', 10)->execute();
+
+Object deletion should be performed using ``Doctrine_Record::delete()`` method.
+This is necessary to remove object tags when object is removed. Otherwise your cache will be not expired.
 
 ## Unit test ##
 

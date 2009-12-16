@@ -16,15 +16,17 @@
   </lead>
   <date>2009-12-16</date>
   <version>
-    <release>0.1.0</release>
-    <api>0.1.0</api>
+    <release>1.0.0</release>
+    <api>1.0.0</api>
   </version>
   <stability>
-    <release>beta</release>
-    <api>alpha</api>
+    <release>stable</release>
+    <api>stable</api>
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
-  <notes>-</notes>
+  <notes>
+    * ilya: updated setup manual in README, added Limitation block.
+  </notes>
   <contents>
     <dir name="/">
       <file name="LICENSE" role="data" />
@@ -96,6 +98,21 @@
   <changelog>
     <release>
       <version>
+        <release>1.0.0</release>
+        <api>1.0.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2009-12-16</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+         * ilya: updated setup manual in README, added Limitation block.
+      </notes>
+    </release>
+    <release>
+      <version>
         <release>0.1.0</release>
         <api>0.1.0</api>
       </version>
@@ -106,7 +123,7 @@
       <date>2009-12-16</date>
       <license uri="http://www.symfony-project.com/license">MIT</license>
       <notes>
-     * ilya: first release
+        * ilya: first release
       </notes>
     </release>
   </changelog>
