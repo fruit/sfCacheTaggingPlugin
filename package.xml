@@ -14,13 +14,13 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2009-12-13</date>
+  <date>2009-12-16</date>
   <version>
-    <release>0.1.0</release>
+    <release>1.0.0</release>
     <api>0.1.0</api>
   </version>
   <stability>
-    <release>alpha</release>
+    <release>beta</release>
     <api>alpha</api>
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
@@ -78,7 +78,7 @@
   <dependencies>
     <required>
       <php>
-        <min>5.2.8</min>
+        <min>5.2.4</min>
       </php>
       <pearinstaller>
         <min>1.4.1</min>
@@ -96,17 +96,17 @@
   <changelog>
     <release>
       <version>
-        <release>0.1.0</release>
+        <release>1.0.0</release>
         <api>0.1.0</api>
       </version>
       <stability>
-        <release>alpha</release>
+        <release>beta</release>
         <api>alpha</api>
       </stability>
-      <date>2009-12-13</date>
+      <date>2009-12-16</date>
       <license uri="http://www.symfony-project.com/license">MIT</license>
       <notes>
-     * ilya: initial alpha version
+     * ilya: first release
       </notes>
     </release>
   </changelog>

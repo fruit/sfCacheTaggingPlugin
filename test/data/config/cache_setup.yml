@@ -24,3 +24,9 @@
   class: sfFileTaggingCache
   param:
     cache_dir: <?php print sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/file
+#-
+#  class: sfEAcceleratorCache
+#  param: {}
+#-
+#  class: sfXCacheCache
+#  param: {}

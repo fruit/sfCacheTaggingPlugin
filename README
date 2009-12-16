@@ -88,7 +88,7 @@ them from DB.
               cache_key_use_host_name:    true
 
     > **Easter eggs**: If you remove "``all_view_cache_param_locker``" section,
-      locker will be the same as section "all_view_cache_param_cache".
+      locker will be the same as section "``all_view_cache_param_cache``".
 
     > **Restrictions**: Backend`s class should be inheritable from ``sfCache``
       class. Also, it should support the caching of objects and/or arrays.
@@ -186,7 +186,7 @@ them from DB.
 
 *   ### Native use:
 
-        # Somewhere in frontend you need to output latest 3 posts
+        # Somewhere in the frontend, you need to print out latest posts
         $posts = Doctrine::getTable('BlogPost')
           ->createQuery()
           ->orderBy('id DESC')
@@ -194,13 +194,12 @@ them from DB.
           ->execute();
 
         # write data to the cache ($posts is instance of the Doctrine_Collection_Cachetaggable)
-        $tagger->set('my_posts', $posts, null, $posts->getTags());
+        $tagger->set('my_posts', $posts, 86400, $posts->getTags());
 
-        # fetch latest post
- to edit it
+        # fetch latest post to edit it
         $post = posts->getFirst();
 
-        # prints something like "1260705962"
+        # prints something like "126070596212512"
         print $post->getObjectVersion();
 
         $post->setTitle('How to use sfCacheTaggingPlugin');
@@ -208,7 +207,7 @@ them from DB.
         # save and update/upgrade version of the tag
         $post->save();
 
-        # prints something like "1260722908" (new version of the tag)
+        # prints something like "126072290862231" (new version of the tag)
         print $post->getObjectVersion();
 
         # will return null
@@ -376,10 +375,28 @@ them from DB.
 
 ## Unit test ##
 
- * Unit tests (400 of 400) successfully completed
+ * 400 of 400 successfully completed
+
+Are tested all combinations (data backend / locker backend) of listed below:
+
+  * sfMemcacheCache
+  * sfAPCCache
+  * sfSQLiteTaggingCache - file (extended from sfSQLiteCache)
+  * sfSQLiteTaggingCache - memory (extended from sfSQLiteCache)
+  * sfFileTaggingCache (extended from sfFilecache)
+
+Partialy tested listed below backends. If anyone could help me to run functional tests
+for this backends, I will be thankful to you:
+
+  * sfXCacheCache
+  * sfEAcceleratorCache
+
 
 ## Contacts ##
 
-* @: Ilya Sabelnikov `` <fruit dot dev at gmail doc com> ``
-* IRC: irc.freenode.net, #symfony, fruit
+* @: Ilya Sabelnikov `` <fruit dot dev at gmail dot com> ``
+* IRC:
+  * server: irc.freenode.net
+  * channel: #symfony
+  * username: fruit
 * skype: ilya_roll
