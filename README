@@ -1,19 +1,21 @@
 # sfCacheTaggingPlugin #
 
-The 'sfCacheTaggingPlugin' is a Symfony plugin to store cache with
-associated tags to keep cache content up-to-date based by incrementing tag version when cache objects are edited/removed or new objects are ready to be a part of cache content.
+The ``sfCacheTaggingPlugin`` is a Symfony plugin, that helps to store cache with
+associated tags and to keep cache content up-to-date based by incrementing tag
+version when cache objects are edited/removed or new objects are ready to be a
+part of cache content.
 
 ## Description ##
 
-Tagging a cache, is a concept that was invented in the one time by many developers
+Tagging a cache is a concept that was invented in the same time by many developers
 ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/)
-and probably by somebody else)
+and, perhaps, by somebody else)
 
-This software was developed push of Andrey Smirnoff's theoretical work
+This software was developed inspired by Andrey Smirnoff`s theoretical work
 ["Cache tagging with Memcached (in Russian)"](http://www.smira.ru/tag/memcached/).
 Some ideas are implemented in the real world (i.e. tag versions based on datetime
-and microtime, cache hit/set logging, cache locking) and part of them are not
-(atomic counter)
+and microtime, cache hit/set logging, cache locking) and part of them
+are not (atomic counter).
 
 ## Repository ##
 
@@ -28,7 +30,7 @@ Install the plugin
 
 ## Setup ##
 
-1.  Check ``sfCacheTaggingPlugin`` plugin is enabled in ``/config/ProjectConfiguration.class.php``
+1.  Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``)
 
         <?php
 
@@ -41,21 +43,19 @@ Install the plugin
           }
         }
 
-1.  Create new file ``/config/factories.yml`` or edit each application's-level
+1.  Create a new file ``/config/factories.yml`` or edit each application\`s level
     ``/apps/%app%/config/factories.yml`` file
 
-    > Cache tagging work for you each time when you save/update/delete Doctrine
-      record or fetch
-them from DB.
-      So you should enable caching (``sf_cache: true``) in the all
-      applications you work with. I recommend you to create default ``factories.yml``
-      for all applications you have by creating file ``/config/factories.yml`` (bellow will be this file content).
-      Symfony will check this file and load it as default ``factories.yml``
-      configuration to all applications you have in the project.
+    > Cache tagging works for you each time you save/update/delete Doctrine record
+      or fetch them from DB. So you should enable caching (**sf_cache: true**) in
+      all applications you work with. I recommend you to create default ``factories.yml``
+      for all applications you have by creating a file ``/config/factories.yml``
+      (bellow that will be this file content). Symfony will check this file and load
+      it as a default factories.yml configuration to all applications you have in the project.
 
-    > This is ``/config/factories.yml`` content (you can copy&past this code into your
-      brand new created file) or merge this config with each application's
-      ``factories.yml`` (applications, where you need to data be fetched/written from/to cache)
+    > This is ``/config/factories.yml`` content (you can copy&paste this code
+      into your brand new created file) or merge this config with each application\`s
+      ``factories.yml`` (applications, where you need the data to be fetched/written from/to cache)
 
     > ### Example: file ``/config/factories.yml``
 
@@ -64,7 +64,7 @@ them from DB.
             class: sfTagCache
             param:
               logging: true                 # logging is enabled ("false" to disable)
-              cache:                        
+              cache:
                 class: sfMemcacheCache      # Content will be stored in Memcache
                                             # Here you can switch to any other backend
                                             # (see Restrictions block for more info)
@@ -75,7 +75,7 @@ them from DB.
                   port: 11211
                   timeout: 5
                   lifetime: 86400
-              locker:                       
+              locker:
                 class: sfAPCCache           # Locks will be stored in APC
                                             # Here you can switch to any other backend sf*Cache
                                             # (see Restrictions block for more info)
@@ -90,21 +90,21 @@ them from DB.
     > **Easter eggs**: If you remove "``all_view_cache_param_locker``" section,
       locker will be the same as section "``all_view_cache_param_cache``".
 
-    > **Restrictions**: Backend's class should be inheritable from ``sfCache``
+    > **Restrictions**: Backend\`s class should be inheritable from ``sfCache``
       class. Also, it should support the caching of objects and/or arrays.
 
     > **Bonus**: In additional to this plugin comes ``sfFileTaggingCache``
-      and ``sfSQLiteTaggingCache`` which are ready to use them as backend class.
+      and ``sfSQLiteTaggingCache`` which are ready to use as backend class.
 
       This classes already have serialization/unserialization support.
 
-1.  Edit Symfony's predefined application's-level ``factories.yml`` files
+1.  Edit Symfony\`s predefined application\`s level ``factories.yml`` files
 
-    > If you have audited each application's-level ``factories.yml`` file in
+    > If you have edited each application\`s level ``factories.yml`` file in
       2nd step - go to 4th step.
 
-    > In each application you want to use cache tagging, please, remove
-      "``all_view_cache_manager``" section (you have already configured them
+    > In each application you want to use cache tagging please remove
+      "``all_view_cache_manager``" section (you have already configured it
       in global ``/config/factories.yml`` file).
 
 1.  Add "Cachetaggable" behavior to each model, which you want to be a part of cache content.
@@ -152,7 +152,7 @@ them from DB.
           indexes:
             blog_post_id: { fields: [blog_post_id] }
 
-1.  Enable cache in ``settings.yml`` and add additionals helpers to standart_helpers
+1.  Enable cache in ``settings.yml`` and add additionals helpers to ``standart_helpers``
 
     > To setup cache, often, used a separate environment named "cache",
       but in the same way you can do it in any other environments which you have.
@@ -387,13 +387,14 @@ them from DB.
 Do not use Doctrine::getTable('BlogPost')->delete()->where('id > ?', 10)->execute();
 
 Object deletion should be performed using ``Doctrine_Record::delete()`` method.
-This is necessary to remove object tags when object is removed. Otherwise your cache will be not expired.
+This is necessary to remove object tags when object is fizicaly removed.
+Otherwise your cache will be not expired.
 
 ## Unit test ##
 
  * 400 of 400 successfully completed
 
-Are tested all combinations (data backend / locker backend) of listed below:
+Every combination is tested (data backend / locker backend) of listed below:
 
   * sfMemcacheCache
   * sfAPCCache
