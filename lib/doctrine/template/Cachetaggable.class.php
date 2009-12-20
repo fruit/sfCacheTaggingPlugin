@@ -23,8 +23,9 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
    * @var string
    */
   protected $_options = array(
-    'uniqueColumn'  =>  'id',
-    'versionColumn' =>  'object_version',
+    'uniqueColumn'    =>  'id',
+    'uniqueKeyFormat' =>  '%d',
+    'versionColumn'   =>  'object_version',
   );
 
   /**
@@ -73,11 +74,38 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
     {
       throw new LogicException('To call ->getTagName() you should save it before');
     }
-    
-    return sprintf(
-      '%s_%s',
-      get_class($object),
-      $object->{$this->_options['uniqueColumn']}
+
+    $columnValues = array(get_class($object));
+
+    foreach ((array) $this->_options['uniqueColumn'] as $column)
+    {
+      $methodName = sprintf('get%s', sfInflector::camelize($column));
+
+      $callable = new sfCallable(array($object, $methodName));
+
+      try
+      {
+        $columnValues[] = $callable->call();
+      }
+      catch (Exception $e)
+      {
+        throw new sfConfigurationException(
+          sprintf(
+            'Table "%s" does not have a column "%s". ' .
+              'After you fix this column name, you should rebuild your models',
+            sfInflector::tableize(get_class($object)),
+            $column
+          )
+        );
+      }
+    }
+
+    return call_user_func_array(
+      'sprintf',
+      array_merge(
+        array("%s_{$this->_options['uniqueKeyFormat']}"),
+        $columnValues
+      )
     );
   }
 

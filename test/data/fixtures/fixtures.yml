@@ -1,7 +1,28 @@
 BlogPost:
-  a: { title: Hello A }
-  b: { title: Bye B }
-  c: { title: Me away C }
+  a:
+    title: Hello A
+    is_enabled: 1
+    Translation:
+      en:
+        content: 'Hello, Hello, Hello'
+      ru:
+        content: 'Хеллоу, Хеллоу, Хеллоу'
+  b:
+    title: Bye B
+    is_enabled: 0
+    Translation:
+      en:
+        content: 'Bye, Bye, Bye'
+      ru:
+        content: 'Ата, Ата, Ата'
+  c:
+    title: Me away C
+    is_enabled: 1
+    Translation:
+      en:
+        content: 'Offline, Offline, Offline'
+      ru:
+        content: 'Отошел, Отошел, Отошел'
 
 BlogPostComment:
   ac0: { author: fruit, message: 'Hi!', BlogPost: a }

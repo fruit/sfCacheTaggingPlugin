@@ -4,9 +4,10 @@
   <channel>pear.symfony-project.com</channel>
   <summary>Cache tagging plugin compatible with any cache backends</summary>
   <description>
-    The `sfCacheTaggingPlugin` is a symfony plugin to store caches associated
-    with unique tags to keep cache content up-to-date based by incrementing
-    tags version. Work only with Doctrine.
+    The ``sfCacheTaggingPlugin`` is a Symfony plugin, that helps to store cache with
+    associated tags and to keep cache content up-to-date based by incrementing tag
+    version when cache objects are edited/removed or new objects are ready to be a
+    part of cache content.
   </description>
   <lead>
     <name>Ilya Sabelnikov</name>
@@ -14,10 +15,10 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2009-12-18</date>
+  <date>2009-12-20</date>
   <version>
-    <release>1.0.1</release>
-    <api>1.0.0</api>
+    <release>1.1.0</release>
+    <api>1.0.1</api>
   </version>
   <stability>
     <release>stable</release>
@@ -25,7 +26,9 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: correcting lexical/grammatical mistakes
+    * ilya: update README
+    * ilya: tag name could be based on many columns
+    * ilya: checked opportunity to work with I18n behavior
   </notes>
   <contents>
     <dir name="/">
@@ -96,6 +99,23 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>1.1.0</release>
+        <api>1.0.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2009-12-20</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+         * ilya: update README
+         * ilya: tag name could be based on many columns
+         * ilya: checked opportunity to work with I18n behavior
+      </notes>
+    </release>
     <release>
       <version>
         <release>1.0.1</release>

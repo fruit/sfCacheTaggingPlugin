@@ -118,6 +118,15 @@ Install the plugin
             #Cachetaggable:
             #  uniqueColumn: id               # you can customize unique column name (default is "id")
             #  versionColumn: object_version  # you can customize column name to store versions (default is "object_version")
+            #  uniqueKeyFormat: '%d'          # you can customize key format (default is "%d")
+            #
+            #  # if you have more then 1 unique column, you could pass all of them
+            #  # as array (tag name will be based on them)
+            #
+            #  uniqueColumn: [id, is_enabled]
+            #  uniqueKeyFormat: '%d-%02b'      # the order of unique columns
+            #                                  # matches the "uniqueKeyFormat" template variables order
+
           columns:
             id:
               type: integer
@@ -131,7 +140,6 @@ Install the plugin
               type: many
               local: id
               foreign: blog_post_id
-              cascade: [delete]
 
         BlogPostComment:
           tableName: blog_post_comment
@@ -151,6 +159,10 @@ Install the plugin
             message: string(255)
           indexes:
             blog_post_id: { fields: [blog_post_id] }
+          relations:
+            BlogPost:
+              onUpdate: CASCADE
+              onDelete: CASCADE
 
 1.  Enable cache in ``settings.yml`` and add additionals helpers to ``standart_helpers``
 
@@ -382,13 +394,16 @@ Install the plugin
           }
         }
 
-## Limitations ##
+## Limitations / Peculiarities ##
 
-Do not use Doctrine::getTable('BlogPost')->delete()->where('id > ?', 10)->execute();
+  * Do not use ``Doctrine::getTable('BlogPost')->delete()->where('id > ?', 10)->execute();``
+    Object deletion should be performed using ``Doctrine_Record::delete()`` method.
+    This is necessary to remove object tags when object is fizicaly removed.
+    Otherwise your cache will be not expired.
 
-Object deletion should be performed using ``Doctrine_Record::delete()`` method.
-This is necessary to remove object tags when object is fizicaly removed.
-Otherwise your cache will be not expired.
+  * In case, when model has translations (I18n behavior), it is enough to add
+    "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
+    behavior.
 
 ## Unit test ##
 
