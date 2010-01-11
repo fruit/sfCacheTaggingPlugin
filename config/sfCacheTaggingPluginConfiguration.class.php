@@ -20,5 +20,6 @@ class sfCacheTaggingPluginConfiguration extends sfPluginConfiguration
   {
     $manager = Doctrine_Manager::getInstance();
     $manager->setAttribute(Doctrine::ATTR_COLLECTION_CLASS, 'Doctrine_Collection_Cachetaggable');
+    $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
   }
 }

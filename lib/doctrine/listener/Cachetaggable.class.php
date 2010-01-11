@@ -87,9 +87,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
   {
     $object = $event->getInvoker();
 
-    $precision = (int) sfConfig::get('app_sfcachetaggingplugin_microtime_precision', 5);
-
-    $object->setObjectVersion(sprintf("%0.0f", pow(10, $precision) * microtime(true)));
+    $object->setObjectVersion(sfCacheTaggingToolkit::generateVersion());
 
     if ($object->isNew() and ! is_null($taggerCache = $this->getTagger()))
     {
@@ -98,7 +96,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
       $taggerCache->setTag(
         $objectClassName,
         $object->getObjectVersion(),
-        sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
+        sfCacheTaggingToolkit::getTagLifetime()
       );
     }
   }
@@ -117,8 +115,61 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
       $taggerCache->setTag(
         $object->getTagName(),
         $object->getObjectVersion(),
-        sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
+        sfCacheTaggingToolkit::getTagLifetime()
       );
+    }
+  }
+
+  /**
+   * pre dql update hook - add updated
+   *
+   * @param string $Doctrine_Event
+   * @return void
+   */
+  public function preDqlUpdate (Doctrine_Event $event)
+  {
+    if (! is_null($taggerCache = $this->getTagger()))
+    {
+      /* @var $q Doctrine_Query */
+      $q = $event->getQuery();
+
+      $updateVersion = sfCacheTaggingToolkit::generateVersion();
+      $q->set($this->getOption('versionColumn'), $updateVersion);
+
+      $updateQuery = $event->getInvoker()->getTable()->createQuery();
+      $updateQuery->select('*');
+
+      foreach ($q->getDqlPart('where') as $whereCondition)
+      {
+        $updateQuery->addWhere($whereCondition);
+      }
+
+      $params = $q->getParams();
+      $params['set'] = array();
+      $updateQuery->setParams($params);
+
+      foreach ($updateQuery->execute() as $object)
+      {
+        $taggerCache->setTag(
+          $object->getTagName(),
+          $updateVersion,
+          sfCacheTaggingToolkit::getTagLifetime()
+        );
+      }
+    }
+  }
+
+  public function preDqlDelete (Doctrine_Event $event)
+  {
+    if (! is_null($taggerCache = $this->getTagger()))
+    {
+      /* @var $q Doctrine_Query */
+      $q = clone $event->getQuery();
+
+      foreach ($q->select('*')->execute() as $object)
+      {
+        $taggerCache->deleteTag($object->getTagName());
+      }
     }
   }
 }

@@ -27,7 +27,7 @@ $lockCacheSetups = $dataCacheSetups;
 
 $count = count($dataCacheSetups);
 
-$t = new lime_test(pow($count, 2) * 16);
+$t = new lime_test(pow($count, 2) * 22);
 
 # if precision approach to 0, unit tests will be failed
 # (0 precision is too small for the current test)
@@ -140,5 +140,53 @@ foreach ($dataCacheSetups as $data)
     $t->is($wasComments, $nowComments + 1, 'Comments count -1');
 
     $t->is(is_null($tagger->get('posts+comments')), true, '"posts+comments" is expired, 1 comment removed');
+
+    $postsAndComments = BlogPostTable::getTable()->getPostsWithCommentQuery()->execute();
+
+    foreach ($postsAndComments as $post)
+    {
+      $postsAndComments->addTags($post->getBlogPostComment());
+    }
+
+    $t->is(
+      $tagger->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
+      true,
+      'Saving posts with comments'
+    );
+
+    $table->createQuery()->addWhere('author = ?', 'david')->delete()->execute();
+
+    $afterDeleteComments = $table->count();
+
+    3 == $afterDeleteComments
+      ? $t->pass('Removed all davids comments')
+      : $t->fail('Not removed davids comments');
+
+    $t->is(is_null($tagger->get('posts+comments')), true, '"posts+comments" is not expired, removed 3 comments');
+
+    $postsAndComments = BlogPostTable::getTable()->getPostsWithCommentQuery()->execute();
+
+    foreach ($postsAndComments as $post)
+    {
+      $postsAndComments->addTags($post->getBlogPostComment());
+    }
+
+    $t->is(
+      $tagger->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
+      true,
+      'Saving posts with comments'
+    );
+
+    $q = Doctrine_Query::create()
+      ->update('BlogPostComment b')
+      ->addWhere('author = ?', 'fruit')
+      ->set('message', 'upper(message)')
+      ;
+
+    3 == $q->execute()
+      ? $t->pass('Updated all fruits comments')
+      : $t->fail('Not removed fruits');
+
+    $t->is(is_null($tagger->get('posts+comments')), true, '"posts+comments" is expired, 3 fruit comment updated');
   }
 }

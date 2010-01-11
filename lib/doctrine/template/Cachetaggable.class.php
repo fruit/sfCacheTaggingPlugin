@@ -37,6 +37,19 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
   public function __construct (array $options = array())
   {
     $this->_options = Doctrine_Lib::arrayDeepMerge($this->_options, $options);
+
+    $versionColumn = $this->getOption('versionColumn');
+
+    if (! is_string($versionColumn) or 0 > strlen($versionColumn))
+    {
+      throw new sfConfigurationException(
+        sprintf(
+          'sfCacheTaggingPlugin: "Cachetaggable" behaviors "versionColumn" ' .
+            'should be string and not empty, passed "%s"',
+          (string) $versionColumn
+        )
+      );
+    }
   }
 
   /**
@@ -47,18 +60,16 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
    */
   public function setTableDefinition ()
   {
-    $versionColumn = $this->_options['versionColumn'];
+    $this->hasColumn(
+      $this->getOption('versionColumn'),
+      'string',
+      10 + sfCacheTaggingToolkit::getPrecision(),
+      array('notnull' => false)
+    );
 
-    if (! is_string($versionColumn) or 0 > strlen($versionColumn))
-    {
-      throw new sfConfigurationException('sfCacheTaggingPlugin: "Cachetaggable" behaviors "versionColumn" should be string and not empty');
-    }
-
-    $precision = (int) sfConfig::get('app_sfcachetaggingplugin_microtime_precision', 5);
-
-    $this->hasColumn($versionColumn, 'string', 10 + $precision, array('notnull' => false));
-
-    $this->addListener(new Doctrine_Template_Listener_Cachetaggable($this->_options));
+    $this->addListener(
+      new Doctrine_Template_Listener_Cachetaggable($this->_options)
+    );
   }
 
   /**
@@ -72,7 +83,9 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
 
     if ($object->isNew())
     {
-      throw new LogicException('To call ->getTagName() you should save it before');
+      throw new LogicException(
+        'To call ->getTagName() you should save it before'
+      );
     }
 
     $columnValues = array(get_class($object));

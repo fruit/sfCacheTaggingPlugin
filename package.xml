@@ -15,9 +15,9 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2009-12-20</date>
+  <date>2010-01-11</date>
   <version>
-    <release>1.1.0</release>
+    <release>1.2.0</release>
     <api>1.0.1</api>
   </version>
   <stability>
@@ -26,9 +26,8 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: update README
-    * ilya: tag name could be based on many columns
-    * ilya: checked opportunity to work with I18n behavior
+     * ilya: updated README
+     * ilya: dql queries (update/delete) also updates version column and thier tags
   </notes>
   <contents>
     <dir name="/">
@@ -60,6 +59,9 @@
         <dir name="helper">
           <file name="CacheTagHelper.php" role="data" />
           <file name="PartialTagHelper.php" role="data" />
+        </dir>
+        <dir name="util">
+          <file name="sfCacheTaggingToolkit.class.php" role="data" />
         </dir>
         <dir name="view">
           <file name="sfPartialTagView.class.php" role="data" />
@@ -99,6 +101,22 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>1.2.0</release>
+        <api>1.0.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2010-01-11</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+         * ilya: updated README
+         * ilya: dql queries (update/delete) also updates version column and thier tags
+      </notes>
+    </release>
     <release>
       <version>
         <release>1.1.0</release>

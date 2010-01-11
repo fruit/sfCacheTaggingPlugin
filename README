@@ -28,6 +28,12 @@ Install the plugin
 
     $ ./symfony plugin:install sfCacheTaggingPlugin
 
+## Versions ##
+
+### Since 1.2.0
+
+  Now all dql queries (update/delete) also updates version column and thier tags
+
 ## Setup ##
 
 1.  Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``)
@@ -396,18 +402,13 @@ Install the plugin
 
 ## Limitations / Peculiarities ##
 
-  * Do not use ``Doctrine::getTable('BlogPost')->delete()->where('id > ?', 10)->execute();``
-    Object deletion should be performed using ``Doctrine_Record::delete()`` method.
-    This is necessary to remove object tags when object is fizicaly removed.
-    Otherwise your cache will be not expired.
-
   * In case, when model has translations (I18n behavior), it is enough to add
     "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
     behavior.
 
 ## Unit test ##
 
- * 400 of 400 successfully completed
+ * 550 of 550 successfully completed
 
 Every combination is tested (data backend / locker backend) of listed below:
 
