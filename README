@@ -213,6 +213,23 @@ Install the plugin
                                         # (5 - with micro time part, version will be 15 digits length)
 
             lock_lifetime: 2            # seconds to keep lock, if failed to unlock after locking it
+            log_format_extended: 0      # (0 - print 1 char)
+                                        # (1 - print 1 char + tag key)
+                                        #
+                                        # Char explanation:
+                                        #   "g": cache not found
+                                        #   "G": cache is found
+                                        #   "l": could not lock cache
+                                        #   "L": cache is locked
+                                        #   "s": could set new values to the cache
+                                        #   "S": new values is setted to the cache
+                                        #   "u": could not unlock cache
+                                        #   "U": cache is unlocked
+                                        #   "t": cache tag was expired
+                                        #   "T": cache tag is up-to-date
+                                        #
+                                        #   Chars in lower case indicate negative operation
+                                        #   Chars in upper case indicate positive operation
 
 ## Using ##
 

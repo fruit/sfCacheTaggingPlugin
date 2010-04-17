@@ -341,12 +341,12 @@ class sfTagCache extends sfCache
           # tag is exprired or version is old
           if (! $tagNewVersion or $tagOldVersion < $tagNewVersion)
           {
-            $this->writeChar('t', $tagKey);
+            $this->writeChar('t', $this->generateTagKey($tagKey));
             $hasExpired = true;
             break;
           }
 
-          $this->writeChar('T', $tagKey);
+          $this->writeChar('T', $this->generateTagKey($tagKey));
         }
 
         if ($hasExpired)
@@ -448,7 +448,11 @@ class sfTagCache extends sfCache
   {
     if (is_resource($this->fileResource))
     {
-      fwrite($this->fileResource, sprintf("%s:%s\n", $char, $key));
+      $logFormat = sfConfig::get('app_sfcachetaggingplugin_log_format_extended', false)
+        ? "%s:%s\n"
+        : "%s";
+
+      fwrite($this->fileResource, sprintf($logFormat, $char, $key));
     }
   }
 
