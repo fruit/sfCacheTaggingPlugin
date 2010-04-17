@@ -41,26 +41,26 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
    */
   private function getTagger ()
   {
-    if (sfContext::hasInstance())
+    if (! sfContext::hasInstance())
     {
-      $manager = sfContext::getInstance()->getViewCacheManager();
-
-      if (! $manager instanceof sfViewCacheTagManager)
-      {
-        throw new sfConfigurationException('sfCacheTaggingPlugin will work only with own sfViewCacheTagManager. Please, edit yours factories.yml to fix this problem');
-      }
-
-      $tagger = $manager->getTagger();
-
-      if (! $tagger instanceof sfTagCache)
-      {
-        throw new sfConfigurationException('sfCacheTaggingPlugin will work only with own sf%cache_engine%CacheTag class. Please, edit yours factories.yml to fix this problem');
-      }
-
-      return $tagger;
+      return null;
     }
 
-    return null;
+    $manager = sfContext::getInstance()->getViewCacheManager();
+
+    if (! $manager instanceof sfViewCacheTagManager)
+    {
+      return null;
+    }
+
+    $tagger = $manager->getTagger();
+
+    if (! $tagger instanceof sfTagCache)
+    {
+      return null;
+    }
+
+    return $tagger;
   }
 
   /**
@@ -80,7 +80,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
   /**
    * pre saving hook - sets new object`s version to store it in the database
    *
-   * @param string $Doctrine_Event
+   * @param Doctrine_Event $event
    * @return void
    */
   public function preSave (Doctrine_Event $event)
@@ -123,7 +123,7 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
   /**
    * pre dql update hook - add updated
    *
-   * @param string $Doctrine_Event
+   * @param Doctrine_Event $event
    * @return void
    */
   public function preDqlUpdate (Doctrine_Event $event)
@@ -159,6 +159,12 @@ class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
     }
   }
 
+  /**
+   * pre dql delete hook - remove object tags from tagger
+   *
+   * @param Doctrine_Event $event
+   * @return void
+   */
   public function preDqlDelete (Doctrine_Event $event)
   {
     if (! is_null($taggerCache = $this->getTagger()))

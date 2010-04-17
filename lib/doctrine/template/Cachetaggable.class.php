@@ -28,6 +28,8 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
     'versionColumn'   =>  'object_version',
   );
 
+  protected $tags = array();
+
   /**
    * __construct
    *
@@ -70,6 +72,51 @@ class Doctrine_Template_Cachetaggable extends Doctrine_Template
     $this->addListener(
       new Doctrine_Template_Listener_Cachetaggable($this->_options)
     );
+  }
+
+  /**
+   * @return array assoc array as $objectClass => $objectVersion
+   */
+  protected function fetchTags ()
+  {
+    return array(
+      $this->getTagName() => $this->getObjectVersion(),
+      get_class($this->getInvoker()) => $this->getObjectVersion(),
+    );
+  }
+
+  /**
+   * @return array object tags (self and external from ->addTags())
+   */
+  public function getTags ()
+  {
+    return array_merge($this->tags, $this->fetchTags());
+  }
+
+  /**
+   * Adds many tags to the object
+   *
+   * @param array|ArrayAccess|Doctrine_Collection_Cachetaggable|Doctrine_Record $tags
+   */
+  public function addTags ($tags)
+  {
+    $tags = sfCacheTaggingToolkit::formatTags($tags);
+
+    foreach ($tags as $tagName => $tagVersion)
+    {
+      $this->addTag($tagName, $tagVersion);
+    }
+  }
+
+  /**
+   * Adds new tag to the object
+   *
+   * @param string $tagName
+   * @param int|string $tagVersion
+   */
+  public function addTag ($tagName, $tagVersion)
+  {
+    sfCacheTaggingToolkit::addTag($this->tags, $tagName, $tagVersion);
   }
 
   /**

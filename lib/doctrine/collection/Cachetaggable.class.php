@@ -22,7 +22,7 @@ class Doctrine_Collection_Cachetaggable extends Doctrine_Collection
    *
    * @var array assoc array ("key" - tag key, "value" - tag version)
    */
-  private $tags = array();
+  protected $tags = array();
 
   /**
    * Collects collection tags keys with its versions
@@ -30,7 +30,7 @@ class Doctrine_Collection_Cachetaggable extends Doctrine_Collection
    * @param Doctrine_Collection_Cachetaggable $collection
    * @return array
    */
-  public function fetchTags (self $collection = null)
+  protected function fetchTags (self $collection = null)
   {
     $tags = array();
 
@@ -60,6 +60,18 @@ class Doctrine_Collection_Cachetaggable extends Doctrine_Collection
           : $lastSavedVersion;
       }
     }
+    else
+    {
+      /**
+       * little hack, if collection is empty, emulate collection, without any tags
+       * but version should be staticaly fixed (in day range)
+       *
+       * repeating calls with relative microtime always refresh collection tag
+       * so, here is fixed value
+       */
+      $tags[$collection->getTable()->getClassnameToReturn()]
+        = sfCacheTaggingToolkit::generateVersion(strtotime('today'));
+    }
 
     return $tags;
   }
@@ -78,14 +90,41 @@ class Doctrine_Collection_Cachetaggable extends Doctrine_Collection
    * Adds additional tags to currect collection.
    * Acceptable array or Doctrine_Collection_Cachetaggable instance
    *
-   * @param array|Doctrine_Collection_Cachetaggable $tags
+   * @todo add Doctrine_Record as acceptable $tags type
+   * @todo implement sepparate addTags in plugin toolbox (DRY)
+   *
+   * @param array|Doctrine_Collection_Cachetaggable|ArrayAccess $tags
    */
   public function addTags ($tags)
   {
-    $this->tags = array_merge(
-      $this->tags,
-      $tags instanceof self ? $this->fetchTags($tags) : $tags
-    );
+    $formatedTags = sfCacheTaggingToolkit::formatTags($tags);
+
+    foreach ($formatedTags as $tagName => $tagVersion)
+    {
+      $this->addTag($tagName, $tagVersion);
+    }
+  }
+
+  /**
+   *
+   * @param string $tagName
+   * @param string|int $tagVersion
+   */
+  public function addTag ($tagName, $tagVersion)
+  {
+    sfCacheTaggingToolkit::addTag($this->tags, $tagName, $tagVersion);
+  }
+
+  /**
+   * Remove all added tags
+   *
+   * @return void
+   */
+  public function removeTags ()
+  {
+    $this->tags = array();
+
+    return;
   }
 }
 

@@ -15,10 +15,10 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-01-11</date>
+  <date>2010-04-17</date>
   <version>
-    <release>1.2.0</release>
-    <api>1.0.1</api>
+    <release>1.3.0</release>
+    <api>1.1.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -26,8 +26,10 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-     * ilya: updated README
-     * ilya: dql queries (update/delete) also updates version column and thier tags
+     * ilya: [updated] README
+     * ilya: [fixed] empty collections was never updated
+     * ilya: [added] support to add tags to Doctrine_Collection_Cachetaggable and Doctrine_Record using any compatible types (array|ArrayAccess|Doctrine_Collection_Cachetaggable|Doctrine_Record)
+     * ilya: [added] new tests
   </notes>
   <contents>
     <dir name="/">
@@ -101,6 +103,24 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>1.3.0</release>
+        <api>1.1.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2010-04-17</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+         * ilya: [updated] README
+         * ilya: [fixed] empty collections was never updated
+         * ilya: [added] support to add tags to Doctrine_Collection_Cachetaggable and Doctrine_Record using any compatible types (array|ArrayAccess|Doctrine_Collection_Cachetaggable|Doctrine_Record)
+         * ilya: [added] new tests
+      </notes>
+    </release>
     <release>
       <version>
         <release>1.2.0</release>

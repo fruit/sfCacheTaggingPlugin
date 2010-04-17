@@ -165,7 +165,7 @@ class sfTagCache extends sfCache
 
     $result = $this->getCache()->remove($key);
 
-    $this->writeChar($result ? 'D' : 'd');
+    $this->writeChar($result ? 'D' : 'd', $key);
 
     return $result;
   }
@@ -232,7 +232,7 @@ class sfTagCache extends sfCache
         ->getCache()
         ->set($key, $extendedData, $lifetime);
 
-      $this->writeChar($result ? 'S' : 's');
+      $this->writeChar($result ? 'S' : 's', $key);
 
       $this->unlock($key);
 
@@ -250,7 +250,7 @@ class sfTagCache extends sfCache
     }
     else
     {
-      $this->writeChar('s');
+      $this->writeChar('s', $key);
 
       $result = false;
     }
@@ -291,6 +291,8 @@ class sfTagCache extends sfCache
       ->getCache()
       ->get($this->generateTagKey($key));
 
+    $this->writeChar($result ? 'G' :'g', $this->generateTagKey($key));
+
     return $result;
   }
 
@@ -321,6 +323,7 @@ class sfTagCache extends sfCache
   public function get ($key, $default = null)
   {
     # reading data
+
     $value = $this->getCache()->get($key, $default);
 
     # not expired
@@ -338,9 +341,12 @@ class sfTagCache extends sfCache
           # tag is exprired or version is old
           if (! $tagNewVersion or $tagOldVersion < $tagNewVersion)
           {
+            $this->writeChar('t', $tagKey);
             $hasExpired = true;
             break;
           }
+
+          $this->writeChar('T', $tagKey);
         }
 
         if ($hasExpired)
@@ -366,7 +372,7 @@ class sfTagCache extends sfCache
       $value = $default;
     }
 
-    $this->writeChar($value != $default ? 'G' : 'g');
+    $this->writeChar($value != $default ? 'G' : 'g', $key);
 
     return $value;
   }
@@ -438,11 +444,11 @@ class sfTagCache extends sfCache
    * @param string $char
    * @return void
    */
-  private function writeChar ($char)
+  private function writeChar ($char, $key)
   {
     if (is_resource($this->fileResource))
     {
-      fwrite($this->fileResource, $char);
+      fwrite($this->fileResource, sprintf("%s:%s\n", $char, $key));
     }
   }
 
@@ -479,7 +485,7 @@ class sfTagCache extends sfCache
       }
     }
 
-    $this->writeChar(true === $result ? 'L' : 'l');
+    $this->writeChar(true === $result ? 'L' : 'l', $key);
 
     return $result;
   }
@@ -511,7 +517,7 @@ class sfTagCache extends sfCache
 
     $result = $this->getLocker()->remove($lockKey);
 
-    $this->writeChar(true === $result ? 'U' : 'u');
+    $this->writeChar(true === $result ? 'U' : 'u', $key);
 
     return $result;
   }

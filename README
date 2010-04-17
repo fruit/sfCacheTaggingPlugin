@@ -30,6 +30,11 @@ Install the plugin
 
 ## Versions ##
 
+### Since 1.3.0
+
+  - Resolved problem with caching empty collections with no tags
+  - extra methods and validations are added to ``Doctrine_Collection_Cachetaggable`` class
+
 ### Since 1.2.0
 
   Now all dql queries (update/delete) also updates version column and thier tags
@@ -220,6 +225,9 @@ Install the plugin
           ->limit(3)
           ->execute();
 
+        /* @var $tagger sfViewCacheTagManager */
+        $tagger = $this->getContext()->getViewCacheManager();
+
         # write data to the cache ($posts is instance of the Doctrine_Collection_Cachetaggable)
         $tagger->set('my_posts', $posts, 86400, $posts->getTags());
 
@@ -408,7 +416,7 @@ Install the plugin
 
 ## Unit test ##
 
- * 550 of 550 successfully completed
+ * 861 of 861 test are successfully completed
 
 Every combination is tested (data backend / locker backend) of listed below:
 
