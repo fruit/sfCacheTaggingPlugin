@@ -1,6 +1,0 @@
-+ [2] @bio-tests        test productivity on real blog without sfPartialTagView
-
-+ [3] @doc recheck      README + add HOWTO on adding tags to the action cache
-+ [3] @unit-tests       write some test to check toolbox get(Tag|Lock)Lifetime
-- [5] @php-docs         complete all PHPDOCs
-- [5] @functional-test  st productivity on real blog without sfPartialTagView
