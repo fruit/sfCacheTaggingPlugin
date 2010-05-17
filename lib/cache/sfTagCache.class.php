@@ -22,14 +22,14 @@ class sfTagCache extends sfCache
    *
    * @var sfCache
    */
-  protected $cache = null;
+  protected $dataCache = null;
 
   /**
    * This cache stores locks
    *
    * @var sfCache
    */
-  protected $locker = null;
+  protected $lockerCache = null;
 
   /**
    * Log file pointer
@@ -60,9 +60,9 @@ class sfTagCache extends sfCache
     }
 
     # check is valid class
-    $this->cache = new $cacheClassName($options['cache']['param']);
+    $this->dataCache = new $cacheClassName($options['cache']['param']);
 
-    if (! $this->cache instanceof sfCache)
+    if (! $this->dataCache instanceof sfCache)
     {
       throw new sfInitializationException(
         'sfCacheTaggingPlugin: Data backend class is not instance of sfCache.'
@@ -71,7 +71,7 @@ class sfTagCache extends sfCache
 
     if (! isset($options['locker']) or ! is_array($options['cache']))
     {
-      $this->locker = $this->cache;
+      $this->lockerCache = $this->dataCache;
     }
     else
     {
@@ -88,9 +88,9 @@ class sfTagCache extends sfCache
       }
 
       # check is valid class
-      $this->locker = new $lockerClassName($options['locker']['param']);
+      $this->lockerCache = new $lockerClassName($options['locker']['param']);
 
-      if (! $this->locker instanceof sfCache)
+      if (! $this->lockerCache instanceof sfCache)
       {
         throw new sfInitializationException(
           'sfCacheTaggingPlugin: Locker backend class is not instance ' .
@@ -113,9 +113,26 @@ class sfTagCache extends sfCache
    *
    * @return sfCache
    */
+  public function getDataCache ()
+  {
+    return $this->dataCache;
+  }
+
+  /**
+   * Returns cache class for data caching
+   * 
+   * @deprecated since v1.3.1 use sfTagCache::getDataCache()
+   * @return sfCache
+   */
   public function getCache ()
   {
-    return $this->cache;
+    trigger_error(
+      'sfTagCache::getCache() is depricated since v1.3.1. ' .
+        'Use sfTagCache::getDataCache().',
+      E_USER_DEPRECATED
+    );
+
+    return $this->getDataCache();
   }
 
   /**
@@ -123,19 +140,41 @@ class sfTagCache extends sfCache
    *
    * @return sfCache
    */
-  public function getLocker ()
+  public function getLockerCache ()
   {
-    return $this->locker;
+    return $this->lockerCache;
   }
 
   /**
-   * @see sfCache::has
+   * @deprecated since v1.3.1 use sfTagCache::getLockerCache()
+   *
+   * @return sfCache
+   */
+  public function getLocker ()
+  {
+    trigger_error(
+      'sfTagCache::getLocker() is depricated since v1.3.1. ' .
+        'Use sfTagCache::getLockerCache().',
+      E_USER_DEPRECATED
+    );
+
+    return $this->getLockerCache();
+  }
+
+  /**
+   * @since v1.4.0
+   *    parent::has() replaced by $this->get()
+   *    build-in has method does not check if cache
+   *    is expired (by comparing contents cache tags version)
+   *    works little longer and in the same time accurately
+   *
+   * @see sfCache::get
    * @param string $key
    * @return boolean
    */
   public function has ($key)
   {
-    return $this->getCache()->has($key);
+    return null !== $this->get($key);
   }
 
   /**
@@ -147,9 +186,9 @@ class sfTagCache extends sfCache
    */
   public function remove ($key)
   {
-    $value = $this->getCache()->get($key);
+    $value = $this->getDataCache()->get($key);
 
-    if (! is_null($value))
+    if (null !== $value)
     {
       if (($value instanceof stdClass) and
         isset($value->tags) and
@@ -163,7 +202,7 @@ class sfTagCache extends sfCache
       }
     }
 
-    $result = $this->getCache()->remove($key);
+    $result = $this->getDataCache()->remove($key);
 
     $this->writeChar($result ? 'D' : 'd', $key);
 
@@ -177,7 +216,7 @@ class sfTagCache extends sfCache
    */
   public function removePattern ($pattern)
   {
-    return $this->getCache()->removePattern($pattern);
+    return $this->getDataCache()->removePattern($pattern);
   }
 
   /**
@@ -187,7 +226,7 @@ class sfTagCache extends sfCache
    */
   public function getTimeout ($key)
   {
-    return $this->getCache()->getTimeout($key);
+    return $this->getDataCache()->getTimeout($key);
   }
 
   /**
@@ -195,9 +234,9 @@ class sfTagCache extends sfCache
    * @param string $key
    * @return int
    */
-  public function getLastModified($key)
+  public function getLastModified ($key)
   {
-    return $this->getCache()->getLastModified($key);
+    return $this->getDataCache()->getLastModified($key);
   }
 
   /**
@@ -214,22 +253,23 @@ class sfTagCache extends sfCache
   public function set ($key, $data, $lifetime = null, $tags = null)
   {
     $lifetime = null === $lifetime
-      ? $this->getCache()->getOption('lifetime')
+      ? $this->getDataCache()->getOption('lifetime')
       : $lifetime;
 
     $extendedData = new stdClass();
     $extendedData->data = $data;
 
-    if (! is_null($tags))
+    if (null !== $tags)
     {
       $extendedData->tags = (array) $tags;
     }
 
-    $lockLifetime = sfConfig::get('app_sfcachetaggingplugin_lock_lifetime');
+    $lockLifetime = sfCacheTaggingToolkit::getLockLifetime();
+
     if ($this->lock($key, $lockLifetime))
     {
       $result = $this
-        ->getCache()
+        ->getDataCache()
         ->set($key, $extendedData, $lifetime);
 
       $this->writeChar($result ? 'S' : 's', $key);
@@ -240,11 +280,7 @@ class sfTagCache extends sfCache
       {
         foreach ($extendedData->tags as $tagKey => $value)
         {
-          $this->setTag(
-            $tagKey,
-            $value,
-            sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
-          );
+          $this->setTag($tagKey, $value, sfCacheTaggingToolkit::getTagLifetime());
         }
       }
     }
@@ -270,11 +306,13 @@ class sfTagCache extends sfCache
   {
     $tagKey = $this->generateTagKey($key);
 
-    $lifetime = is_null($lifetime)
-      ? sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
+    $lifetime = (null === $lifetime)
+      ? sfCacheTaggingToolkit::getTagLifetime()
       : $lifetime;
 
-    $result = $this->getCache()->set($tagKey, $value, $lifetime);
+    $result = $this->getDataCache()->set($tagKey, $value, $lifetime);
+
+    $this->writeChar($result ? 'P' :'p', $tagKey, $value);
 
     return $result;
   }
@@ -288,10 +326,10 @@ class sfTagCache extends sfCache
   public function getTag ($key)
   {
     $result = $this
-      ->getCache()
+      ->getDataCache()
       ->get($this->generateTagKey($key));
 
-    $this->writeChar($result ? 'G' :'g', $this->generateTagKey($key));
+    $this->writeChar($result ? 'G' :'g', $this->generateTagKey($key), $result);
 
     return $result;
   }
@@ -305,7 +343,7 @@ class sfTagCache extends sfCache
   public function deleteTag ($key)
   {
     $result = $this
-      ->getCache()
+      ->getDataCache()
       ->remove($this->generateTagKey($key));
 
     return $result;
@@ -324,7 +362,7 @@ class sfTagCache extends sfCache
   {
     # reading data
 
-    $value = $this->getCache()->get($key, $default);
+    $value = $this->getDataCache()->get($key, $default);
 
     # not expired
     if (false !== $value)
@@ -341,12 +379,17 @@ class sfTagCache extends sfCache
           # tag is exprired or version is old
           if (! $tagNewVersion or $tagOldVersion < $tagNewVersion)
           {
-            $this->writeChar('t', $this->generateTagKey($tagKey));
+            $this->writeChar(
+              't',
+              $this->generateTagKey($tagKey),
+              sprintf('%s => %s', $tagOldVersion, $tagNewVersion)
+            );
+
             $hasExpired = true;
             break;
           }
 
-          $this->writeChar('T', $this->generateTagKey($tagKey));
+          $this->writeChar('T', $this->generateTagKey($tagKey), $tagNewVersion);
         }
 
         if ($hasExpired)
@@ -427,7 +470,7 @@ class sfTagCache extends sfCache
    */
   private function tryToCloseStatsFileResource ()
   {
-    if (! is_null($this->fileResource))
+    if (null !== $this->fileResource)
     {
       fclose($this->fileResource);
     }
@@ -444,15 +487,27 @@ class sfTagCache extends sfCache
    * @param string $char
    * @return void
    */
-  private function writeChar ($char, $key)
+  private function writeChar ($char, $key, $info = null)
   {
     if (is_resource($this->fileResource))
     {
-      $logFormat = sfConfig::get('app_sfcachetaggingplugin_log_format_extended', false)
-        ? "%s:%s\n"
-        : "%s";
+      if (sfConfig::get('app_sfcachetaggingplugin_log_format_extended', false))
+      {
+        if (null !== $info)
+        {
+          $logFormat = "%s:%s:%s\n";
+        }
+        else
+        {
+          $logFormat = "%s:%s\n";
+        }
+      }
+      else
+      {
+        $logFormat = "%s";
+      }
 
-      fwrite($this->fileResource, sprintf($logFormat, $char, $key));
+      fwrite($this->fileResource, sprintf($logFormat, $char, $key, $info));
     }
   }
 
@@ -467,12 +522,12 @@ class sfTagCache extends sfCache
   {
     $lockKey = $this->generateLockKey($key);
 
-    if ($this->getLocker() instanceof sfMemcacheCache)
+    if ($this->getLockerCache() instanceof sfMemcacheCache)
     {
-      $memcache = $this->getLocker()->getBackend();
+      $memcache = $this->getLockerCache()->getBackend();
 
       $result = $memcache->add(
-        "{$this->getLocker()->getOption('prefix')}{$lockKey}",
+        sprintf('%s%s', $this->getLockerCache()->getOption('prefix'), $lockKey),
         1,
         $expire
       );
@@ -485,7 +540,7 @@ class sfTagCache extends sfCache
       }
       else
       {
-        $result = $this->getLocker()->set($lockKey, 1, $expire);
+        $result = $this->getLockerCache()->set($lockKey, 1, $expire);
       }
     }
 
@@ -504,7 +559,7 @@ class sfTagCache extends sfCache
   {
     $lockKey = $this->generateLockKey($key);
 
-    $value = $this->getLocker()->get($lockKey);
+    $value = $this->getLockerCache()->get($lockKey);
 
     return (bool) $value;
   }
@@ -519,7 +574,7 @@ class sfTagCache extends sfCache
   {
     $lockKey = $this->generateLockKey($key);
 
-    $result = $this->getLocker()->remove($lockKey);
+    $result = $this->getLockerCache()->remove($lockKey);
 
     $this->writeChar(true === $result ? 'U' : 'u', $key);
 
@@ -533,12 +588,12 @@ class sfTagCache extends sfCache
    */
   public function clean ($mode = sfCache::ALL)
   {
-    if ($this->getCache() !== $this->getLocker())
+    if ($this->getDataCache() !== $this->getLockerCache())
     {
-      $this->getCache()->clean($mode);
+      $this->getDataCache()->clean($mode);
     }
 
-    $this->getLocker()->clean($mode);
+    $this->getLockerCache()->clean($mode);
   }
 
   /**

@@ -15,10 +15,10 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-04-17</date>
+  <date>2010-05-17</date>
   <version>
-    <release>1.3.1</release>
-    <api>1.1.0</api>
+    <release>1.4.0</release>
+    <api>1.1.1</api>
   </version>
   <stability>
     <release>stable</release>
@@ -26,12 +26,21 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-     * ilya: [added] ability to select log format (short|extended)
+    * ilya: [fixed] confused lifetime logic on tags/locks/data
+    * ilya: [fixed] sf*Cache::has() does not checking tags versions
+    * ilya: [added] new section in README file: "Adding tags to the action with layout"
+    * ilya: [added] new section in README file: "Adding tags to the action without layout"
+    * ilya: [updated] updated tag/locks lifetime setup on 6 step section 1 (6.1)
+    * ilya: [added] new functional tests on action and page tagging
+    * ilya: [fixed] microtime_precision should be in range 0…6
+    * mcnilz: [added] ability to add tags to the page with layout
+    * ilya: [added] ability to add tags to the specific action without layout (inspired by mcnilz)
   </notes>
   <contents>
     <dir name="/">
       <file name="LICENSE" role="data" />
       <file name="README" role="data" />
+      <file name="README.markdown" role="data" />
       <dir name="config">
         <file name="sfCacheTaggingPluginConfiguration.class.php" role="data" />
       </dir>
@@ -76,7 +85,11 @@
           </dir>
         </dir>
         <dir name="functional">
-          <file name="sfCacheTaggingPluginTest.php" role="data" />
+          <dir name="frontend">
+            <file name="sfCacheTaggingPluginTest.php" role="data" />
+            <file name="actionWithLayoutTest.php" role="data" />
+            <file name="actionWithoutLayoutTest.php" role="data" />
+          </dir>
         </dir>
       </dir>
     </dir>

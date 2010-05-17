@@ -1,28 +1,31 @@
 BlogPost:
   a:
-    title: Hello A
+    title: Foo
+    slug: foo
     is_enabled: 1
     Translation:
       en:
-        content: 'Hello, Hello, Hello'
+        content: 'Foo, Foo, Foo'
       ru:
-        content: 'Хеллоу, Хеллоу, Хеллоу'
+        content: 'Фоо, Фоо, Фоо'
   b:
-    title: Bye B
+    title: Bar
+    slug: bar
     is_enabled: 0
     Translation:
       en:
-        content: 'Bye, Bye, Bye'
+        content: 'Bar, Bar, Bar'
       ru:
-        content: 'Ата, Ата, Ата'
+        content: 'Бар, Бар, Бар'
   c:
-    title: Me away C
+    title: Baz
+    slug: baz
     is_enabled: 1
     Translation:
       en:
-        content: 'Offline, Offline, Offline'
+        content: 'Baz, Baz, Baz'
       ru:
-        content: 'Отошел, Отошел, Отошел'
+        content: 'Баз, Баз, Баз'
 
 BlogPostComment:
   ac0: { author: fruit, message: 'Hi!', BlogPost: a }

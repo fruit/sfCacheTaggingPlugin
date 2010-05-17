@@ -11,40 +11,32 @@ Tagging a cache is a concept that was invented in the same time by many develope
 ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/)
 and, perhaps, by somebody else)
 
-This software was developed inspired by Andrey Smirnoff`s theoretical work
+This software was developed inspired by Andrey Smirnoff's theoretical work
 ["Cache tagging with Memcached (in Russian)"](http://www.smira.ru/tag/memcached/).
-Some ideas are implemented in the real world (i.e. tag versions based on datetime
+Some ideas are implemented in the real world (e.g. tag versions based on datetime
 and microtime, cache hit/set logging, cache locking) and part of them
 are not (atomic counter).
 
-## Repository ##
+## Contribution ##
 
- * plugin repository @ github [http://github.com/fruit/sfCacheTaggingPlugin](http://github.com/fruit/sfCacheTaggingPlugin "Repository")
- * plugin tickets @ github [http://github.com/fruit/sfCacheTaggingPlugin/issues](http://github.com/fruit/sfCacheTaggingPlugin/issues "Issues")
+ * Repository on github [http://github.com/fruit/sfCacheTaggingPlugin](http://github.com/fruit/sfCacheTaggingPlugin "Repository")
+ * Tickets/Issues on github [http://github.com/fruit/sfCacheTaggingPlugin/issues](http://github.com/fruit/sfCacheTaggingPlugin/issues "Issues")
 
-## Installation ##
+## Installation/Upgrading ##
 
-Install the plugin
+* Installation
 
-    $ ./symfony plugin:install sfCacheTaggingPlugin
+        $ ./symfony plugin:install sfCacheTaggingPlugin
 
-## Versions ##
+* Upgrading
 
-### Since 1.3.0
-
-  - Resolved problem with caching empty collections with no tags
-  - extra methods and validations are added to ``Doctrine_Collection_Cachetaggable`` class
-
-### Since 1.2.0
-
-  Now all dql queries (update/delete) also updates version column and thier tags
+        $ ./symfony plugin:upgrade sfCacheTaggingPlugin
 
 ## Setup ##
 
 1.  Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``)
 
-        <?php
-
+        [php]
         class ProjectConfiguration extends sfProjectConfiguration
         {
           public function setup()
@@ -54,22 +46,23 @@ Install the plugin
           }
         }
 
-1.  Create a new file ``/config/factories.yml`` or edit each application\`s level
-    ``/apps/%app%/config/factories.yml`` file
+1.  Create a new file ``/config/factories.yml`` or edit each application's level
+    ``/apps/%application_name%/config/factories.yml`` file
 
     > Cache tagging works for you each time you save/update/delete Doctrine record
       or fetch them from DB. So you should enable caching (**sf_cache: true**) in
       all applications you work with. I recommend you to create default ``factories.yml``
       for all applications you have by creating a file ``/config/factories.yml``
-      (bellow that will be this file content). Symfony will check this file and load
+      (you could find working example bellow). Symfony will check this file and load
       it as a default factories.yml configuration to all applications you have in the project.
 
     > This is ``/config/factories.yml`` content (you can copy&paste this code
-      into your brand new created file) or merge this config with each application\`s
+      into your brand new created file) or merge this config with each application's
       ``factories.yml`` (applications, where you need the data to be fetched/written from/to cache)
 
-    > ### Example: file ``/config/factories.yml``
+    > ### Working example of file ``/config/factories.yml``
 
+        [yml]
         all:
           view_cache:
             class: sfTagCache
@@ -85,7 +78,7 @@ Install the plugin
                   host: localhost
                   port: 11211
                   timeout: 5
-                  lifetime: 86400
+                  lifetime: 86400           # default value is 1 day - 86400 for each sf*Cache mechanism
               locker:
                 class: sfAPCCache           # Locks will be stored in APC
                                             # Here you can switch to any other backend sf*Cache
@@ -101,17 +94,18 @@ Install the plugin
     > **Easter eggs**: If you remove "``all_view_cache_param_locker``" section,
       locker will be the same as section "``all_view_cache_param_cache``".
 
-    > **Restrictions**: Backend\`s class should be inheritable from ``sfCache``
+    > **Restrictions**: Backend's class should be inheritable from ``sfCache``
       class. Also, it should support the caching of objects and/or arrays.
 
     > **Bonus**: In additional to this plugin comes ``sfFileTaggingCache``
       and ``sfSQLiteTaggingCache`` which are ready to use as backend class.
-
       This classes already have serialization/unserialization support.
 
-1.  Edit Symfony\`s predefined application\`s level ``factories.yml`` files
 
-    > If you have edited each application\`s level ``factories.yml`` file in
+
+1.  Edit Symfony's predefined application's level ``factories.yml`` files
+
+    > If you have edited each application's level ``factories.yml`` file in
       2nd step - go to 4th step.
 
     > In each application you want to use cache tagging please remove
@@ -120,310 +114,438 @@ Install the plugin
 
 1.  Add "Cachetaggable" behavior to each model, which you want to be a part of cache content.
 
-    > ### Exmaple: file ``/config/doctrine/schema.yml``
+  1. ### Example: file ``/config/doctrine/schema.yml``
 
-        BlogPost:
-          tableName: blog_post
-          actAs:
-            Cachetaggable: ~
-            #Cachetaggable:
-            #  uniqueColumn: id               # you can customize unique column name (default is "id")
-            #  versionColumn: object_version  # you can customize column name to store versions (default is "object_version")
-            #  uniqueKeyFormat: '%d'          # you can customize key format (default is "%d")
-            #
-            #  # if you have more then 1 unique column, you could pass all of them
-            #  # as array (tag name will be based on them)
-            #
-            #  uniqueColumn: [id, is_enabled]
-            #  uniqueKeyFormat: '%d-%02b'      # the order of unique columns
-            #                                  # matches the "uniqueKeyFormat" template variables order
-
-          columns:
-            id:
-              type: integer
-              primary: true
-              autoincrement: true
-              unsigned: true
-            title: string(255)
-          relations:
-            BlogPostComment:
-              class: BlogPostComment
-              type: many
-              local: id
-              foreign: blog_post_id
-
-        BlogPostComment:
-          tableName: blog_post_comment
-          actAs:
-            Cachetaggable: ~
-          columns:
-            id:
-              type: integer
-              primary: true
-              autoincrement: true
-              unsigned: true
-            blog_post_id:
-              type: integer
-              unsigned: true
-              notnull: false
-            author: string(20)
-            message: string(255)
-          indexes:
-            blog_post_id: { fields: [blog_post_id] }
-          relations:
+            [yml]
             BlogPost:
-              onUpdate: CASCADE
-              onDelete: CASCADE
+              tableName: blog_post
+              actAs:
+                Cachetaggable: ~
+                #Cachetaggable:
+                #  uniqueColumn: id               # you can customize unique column name (default is "id")
+                #  versionColumn: object_version  # you can customize version column name (default is "object_version")
+                #  uniqueKeyFormat: '%d'          # you can customize key format (default is "%d")
+                #
+                #  # if you have more then 1 unique column, you could pass all of them
+                #  # as array (tag name will be based on them)
+                #
+                #  uniqueColumn: [id, is_enabled]
+                #  uniqueKeyFormat: '%d-%02b'      # the order of unique columns
+                #                                  # matches the "uniqueKeyFormat" template variables order
 
-1.  Enable cache in ``settings.yml`` and add additionals helpers to ``standart_helpers``
+              columns:
+                id:
+                  type: integer
+                  primary: true
+                  autoincrement: true
+                  unsigned: true
+                title: string(255)
+              relations:
+                BlogPostComment:
+                  class: BlogPostComment
+                  type: many
+                  local: id
+                  foreign: blog_post_id
 
-    > To setup cache, often, used a separate environment named "cache",
-      but in the same way you can do it in any other environments which you have.
+            BlogPostComment:
+              tableName: blog_post_comment
+              actAs:
+                Cachetaggable: ~
+              columns:
+                id:
+                  type: integer
+                  primary: true
+                  autoincrement: true
+                  unsigned: true
+                blog_post_id:
+                  type: integer
+                  unsigned: true
+                  notnull: false
+                author: string(20)
+                message: string(255)
+              indexes:
+                blog_post_id: { fields: [blog_post_id] }
+              relations:
+                BlogPost:
+                  onUpdate: CASCADE
+                  onDelete: CASCADE
 
-        prod:
-          .settings:
-            cache: true
+1.  Enable cache in ``settings.yml`` and add additional helpers to ``standard_helpers`` section
 
-        cache:
-          .settings:
-            cache: true
+  1. To setup cache, often, used a separate environment named "cache",
+     but in the same way you can do it in any other environments which you have.
 
-        all:
-          .settings:
-            cache: false
+            [yml]
+            prod:
+              .settings:
+                cache: true
 
-    > Add helpers to the frontend application
+            cache:
+              .settings:
+                cache: true
 
-        all:
-          .settings:
-            standard_helpers:
-              - Partial     # symfony build in helper (mandatory)
-              - CacheTag    # sfCacheTaggingPlugin helper (mandatory)
-              - PartialTag  # sfCacheTaggingPlugin helper (mandatory)
+            all:
+              .settings:
+                cache: false
+
+  1. Add helpers to the frontend application
+
+            [yml]
+            all:
+              .settings:
+                standard_helpers:
+                  - Partial     # symfony build in helper (mandatory)
+                  - CacheTag    # sfCacheTaggingPlugin helper (mandatory)
+                  - PartialTag  # sfCacheTaggingPlugin helper (mandatory)
 
 1.  Customize ``sfCacheTaggingPlugin`` in the ``/config/app.yml``
 
-        all:
-          sfcachetaggingplugin:
-            template_lock: "lock_%s"    # name for locks
-            template_tag: "tag_%s"      # name for tags
+  1. Copy & past this content to yours ``/config/app.yml`` (project level or to each application's level ``/apps/%application_name%/config/app.yml``)
 
-            microtime_precision: 5      # version precision (0, or positive number)
-                                        # (0 - without micro time, version will be 10 digits length)
-                                        # (5 - with micro time part, version will be 15 digits length)
+            [yml]
+            all:
+              sfcachetaggingplugin:
+                template_lock: "lock_%s"    # name for locks
+                template_tag: "tag_%s"      # name for tags
 
-            lock_lifetime: 2            # seconds to keep lock, if failed to unlock after locking it
-            log_format_extended: 0      # (0 - print 1 char)
-                                        # (1 - print 1 char + tag key)
-                                        #
-                                        # Char explanation:
-                                        #   "g": cache not found
-                                        #   "G": cache is found
-                                        #   "l": could not lock cache
-                                        #   "L": cache is locked
-                                        #   "s": could set new values to the cache
-                                        #   "S": new values is setted to the cache
-                                        #   "u": could not unlock cache
-                                        #   "U": cache is unlocked
-                                        #   "t": cache tag was expired
-                                        #   "T": cache tag is up-to-date
-                                        #
-                                        #   Chars in lower case indicate negative operation
-                                        #   Chars in upper case indicate positive operation
+                microtime_precision: 5      # version precision (0, or positive number)
+                                            # (0 - without micro time, version will be 10 digits length)
+                                            # (5 - with micro time part, version will be 15 digits length)
+                                            # (max precision value = 6, min = 0, only decimal numbers)
+
+                lock_lifetime: 2            # number of seconds to keep lock, if failed to unlock after locking it (default value if not set 2)
+                                            # value should be more then zero
+
+                tag_lifetime: 86400         # number of seconds to keep tags alive (default value if not set 86400)
+                                            # it is recommended to keep this value the same as you have declared in factories.yml at "all_view_cache_param_cache_param_lifetime" (86400)
+                                            # value should be more then zero
+
+                log_format_extended: 0      # logs will be stored in ``log/cache_%environment_name%.log``
+                                            # "0" print 1 char in one line
+                                            # "1" print 1 char, cache key, additional data (if available) per line
+                                            #
+                                            # Char explanation:
+                                            #   "g": content cache not found
+                                            #   "G": content cache is found
+                                            #   "l": could not lock the content or the tag
+                                            #   "L": content/tag was locked for writing
+                                            #   "s": could not write new values to the cache (e.g. for lock reasons)
+                                            #   "S": new values are saved to the cache
+                                            #   "u": could not unlock the cache
+                                            #   "U": cache was unlocked
+                                            #   "t": cache tag was expired
+                                            #   "T": cache tag is up-to-date
+                                            #   "p": could not write new version of tag
+                                            #   "P": tag version is updated
+                                            #
+                                            # Chars in lower case indicate negative operation
+                                            # Chars in upper case indicate positive operation
 
 ## Using ##
 
-*   ### Native use:
+*    ### Native use
 
-        # Somewhere in the frontend, you need to print out latest posts
-        $posts = Doctrine::getTable('BlogPost')
-          ->createQuery()
-          ->orderBy('id DESC')
-          ->limit(3)
-          ->execute();
+ * not recommended - use Doctrine_Cache_* to store Doctrine_Record and Doctrine_Collection objects
 
-        /* @var $tagger sfViewCacheTagManager */
-        $tagger = $this->getContext()->getViewCacheManager();
+            [php]
+            # Somewhere in the frontend, you need to print out latest posts
 
-        # write data to the cache ($posts is instance of the Doctrine_Collection_Cachetaggable)
-        $tagger->set('my_posts', $posts, 86400, $posts->getTags());
+            $posts = Doctrine::getTable('BlogPost')
+              ->createQuery()
+              ->orderBy('id DESC')
+              ->limit(3)
+              ->execute();
 
-        # fetch latest post to edit it
-        $post = posts->getFirst();
+            /* @var $tagger sfViewCacheTagManager */
+            $tagger = $this->getContext()->getViewCacheManager();
 
-        # prints something like "126070596212512"
-        print $post->getObjectVersion();
+            # write data to the cache ($posts is instance of the Doctrine_Collection_Cachetaggable)
+            $tagger->set('my_posts', $posts, 60 * 60 * 24 * 30/* 1 month */, $posts->getTags());
 
-        $post->setTitle('How to use sfCacheTaggingPlugin');
+            # fetch latest post to edit it
+            $post = $posts->getFirst();
 
-        # save and update/upgrade version of the tag
-        $post->save();
+            # prints something like "126070596212512"
+            print $post->getObjectVersion();
 
-        # prints something like "126072290862231" (new version of the tag)
-        print $post->getObjectVersion();
+            $post->setTitle('How to use sfCacheTaggingPlugin');
 
-        # will return null
-        # $post object was updated, so, all $posts in cache "my_posts” is invalidated automatically)
-        if ($data = $tagger->get('my_posts'))
-        {
-          # this block will not be executed
-        }
+            # save and update/upgrade version of the tag
+            $post->save();
 
-        # save new data to the cache
-        $tagger->set('my_posts', $posts, null, $posts->getTags());
+            # prints something like "126072290862231" (new version of the tag)
+            print $post->getObjectVersion();
 
-        # will return data (objects are fresh)
-        if ($data = $tagger->get('my_posts'))
-        {
-          # this code block will be executed
-        }
+            # will return null
+            # $post object was updated, so, all $posts in cache "my_posts” is invalidated automatically)
+            if ($data = $tagger->get('my_posts'))
+            {
+              # this block will not be executed
+            }
 
-        $post = new BlogPost();
-        $post->setTitle('New post should be in inserted to the cache results');
-        $post->save();
+            # save new data to the cache
+            $tagger->set('my_posts', $posts, null, $posts->getTags());
 
-        # will return null, because 'my_posts' cache knows that it contains BlogPost objects
-        # and listens on new objects with same type that are newer
-        if ($data = $tagger->get('my_posts'))
-        {
-          # this block will not be executed
-        }
+            # will return data (objects are fresh)
+            if ($data = $tagger->get('my_posts'))
+            {
+              # this code block will be executed
+            }
 
-        $posts = Doctrine::getTable('BlogPost')
-          ->createQuery()
-          ->orderBy('id DESC')
-          ->limit(3)
-          ->execute();
+            $post = new BlogPost();
+            $post->setTitle('New post should be in inserted to the cache results');
+            $post->save();
 
-        $tagger->set('my_posts', $posts, null, $posts->getTags());
+            # will return null, because 'my_posts' cache knows that it contains BlogPost objects
+            # and listens on new objects with same type that are newer
+            if ($data = $tagger->get('my_posts'))
+            {
+              # this block will not be executed
+            }
 
-        # will return data
-        if ($data = $tagger->get('my_posts'))
-        {
-          # this block will be executed
-        }
+            $posts = Doctrine::getTable('BlogPost')
+              ->createQuery()
+              ->orderBy('id DESC')
+              ->limit(3)
+              ->execute();
+
+            $tagger->set('my_posts', $posts, null, $posts->getTags());
+
+            # will return data
+            if ($data = $tagger->get('my_posts'))
+            {
+              # this block will be executed
+            }
 
 
 *   ### non-Doctrine use:
 
-    ##### indexSuccess.php
+    * ``indexSuccess.php``
 
-        <fieldset>
-          <legend>Daylight</legend>
+            [php]
+            <fieldset>
+              <legend>Daylight</legend>
 
-          <?php if (! cache_tag('daylight_content')) { ?>
+              <?php if (! cache_tag('daylight_content')) { ?>
 
-            <h1>Text to cache No-<?php rand(1, 1000000) ?></h1>
+                <h1>Text to cache No-<?php rand(1, 1000000) ?></h1>
 
-            Text text text text text text text text text text text text text.
-            <?php cache_tag_save(array('sun' => time(), 'moon' => time())); ?>
-          <?php } ?>
+                Text text text text text text text text text text text text text.
+                <?php cache_tag_save(array('sun' => time(), 'moon' => time())); ?>
+              <?php } ?>
 
-        </fieldset>
+            </fieldset>
 
-    ##### code.php
+    * e.g. ``actions.class.php`` or ``components.class.php``
 
-          # when you want to update Daylight content
-          $this->getContext()->getViewCacheManager()->getTagger()->setTag('moon', time(), 86400);
+            [php]
+            # when you want to update Daylight content
+            $this->getContext()->getViewCacheManager()->getTaggingCache()->setTag('moon', time(), 60 * 60 * 24 * 7 /*1 week*/);
 
 </fieldset>
 
 *   ### Using with partials:
 
-        <fieldset>
-          <legend>Partial</legend>
+  * ``_posts.php``
 
-          <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
-            <?php foreach ($posts as $post) { ?>
-              <?php include_partial('posts/one_post', array('post' => $post) ?>
-            <?php } ?>
-            <?php cache_tag_save($posts->getTags()); ?>
-          <?php } ?>
+            [php]
+            <?php /* @var $posts Doctrine_Collection */ ?>
+            <fieldset>
+              <legend>Partial</legend>
 
-        </fieldset>
+              <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
+                <?php foreach ($posts as $post) { ?>
+                  <?php include_partial('posts/one_post', array('post' => $post) ?>
+                <?php } ?>
+                <?php cache_tag_save($posts->getTags()); ?>
+              <?php } ?>
+
+            </fieldset>
 
 *   ### Using with components (simple):
 
-    ##### indexSuccess.php
+  * ``indexSuccess.php``
 
-        <fieldset>
-          <legend>Component</legend>
+            [php]
+            <fieldset>
+              <legend>Component</legend>
 
-          <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
-            <?php include_component_tag('posts', 'listOfPosts') ?>
-            <?php cache_tag_save(); ?>
-          <?php } ?>
+              <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
+                <?php include_component_tag('posts', 'listOfPosts') ?>
+                <?php cache_tag_save(); ?>
+              <?php } ?>
 
-        </fieldset>
+            </fieldset>
 
 
-    ##### components.class.php
+  * ``components.class.php``
 
-        <?php
+            [php]
+            class postsComponents extends sfComponents
+            {
+              public function executeListOfPosts($request)
+              {
+                $posts = Doctrine::getTable('BlogPost')
+                  ->createQuery('bp')
+                  ->select('bp.*')
+                  ->orderBy('bp.id DESC')
+                  ->limit(3)
+                  ->execute();
 
-        class postsComponents extends sfComponents
-        {
-          public function executeListOfPosts($request)
-          {
-            $posts = Doctrine::getTable('BlogPost')
-              ->createQuery('bp')
-              ->select('bp.*')
-              ->orderBy('bp.id DESC')
-              ->limit(3)
-              ->execute();
+                $this->getContext()->getViewCacheManager()->setTags($posts->getTags());
+                # or equivalent
+                # $this->getContext()->getViewCacheManager()->setTags($posts);
 
-            $this->getContext()->getViewCacheManager()->setTags($posts->getTags());
-
-            $this->posts = $posts;
-          }
-        }
+                $this->posts = $posts;
+              }
+            }
 
 *   ### Using with components (complex - Combining posts with comments)
 
-    ##### components.class.php
+  * ``_post_and_comments.php``
 
-        <fieldset>
-          <legend>Component (posts and comments)</legend>
+            [php]
+            <fieldset>
+              <legend>Component (posts and comments)</legend>
 
-          <?php if (! cache_tag('posts_and_comments')) { ?>
-            <?php include_component_tag('post', 'listOfPostsAndComments') ?>
-            <?php cache_tag_save(); ?>
-          <?php } ?>
+              <?php if (! cache_tag('posts_and_comments')) { ?>
+                <?php include_component_tag('post', 'listOfPostsAndComments') ?>
+                <?php cache_tag_save(); ?>
+              <?php } ?>
 
-        </fieldset>
+            </fieldset>
 
-    ##### components.class.php
+  * ``components.class.php``
 
-        <?php
-
-        class postsComponents extends sfComponents
-        {
-          public function executeListOfPostsAndComments($request)
-          {
-            $posts = Doctrine::getTable('BlogPost')
-              ->createQuery('bp')
-              ->addSelect('bp.*, bpc.*')
-              ->innerJoin('bp.BlogPostComments bpc')
-              ->orderBy('bp.id DESC')
-              ->limit(3)
-              ->execute();
-
-            foreach ($posts as $post)
+            [php]
+            class postsComponents extends sfComponents
             {
-              # 1st variant (shorter)
-              # our cache should be updated if one of comment will be edited/deleted
-              # therefore, we are collecting comment's tags
+              public function executeListOfPostsAndComments($request)
+              {
+                # each post could have many comments (fetching posts with its comments)
+                $posts = Doctrine::getTable('BlogPost')
+                  ->createQuery('bp')
+                  ->addSelect('bp.*, bpc.*')
+                  ->innerJoin('bp.BlogPostComments bpc')
+                  ->orderBy('bp.id DESC')
+                  ->limit(3)
+                  ->execute();
 
-              $posts->addTags($post->getBlogPostComment()->getTags());
-              # or shorter
-              # $posts->addTags($post->getBlogPostComment());
+                foreach ($posts as $post)
+                {
+                  # our cache (with posts) should be updated on edited/deleted/added the comments
+                  # therefore, we are collecting comment's tags
+
+                  $posts->addTags($post->getBlogPostComment()->getTags());
+
+                  # or shorter
+                  # $posts->addTags($post->getBlogPostComment());
+                }
+
+                # after, we pass all tags to cache manager
+                $this->getContext()->getViewCacheManager()->setTags($posts->getTags());
+
+                # or shorter
+                # $this->getContext()->getViewCacheManager()->setTags($posts);
+
+                $this->posts = $posts;
+              }
             }
 
-            $this->getContext()->getViewCacheManager()->setTags($posts->getTags());
+* ### Adding tags to the whole page (action with layout)
 
-            $this->posts = $posts;
-          }
-        }
+ * In your action you only have to tell the sfViewCacheManager which tags to use for
+   caching the action. It is useful to add a little helper function for that:
+
+            [php]
+            class carActions extends sfActions
+            {
+              public function setPageTags ($tags)
+              {
+                $viewCacheManager = $this->getContext()->getViewCacheManager();
+
+                if ($viewCacheManager instanceof sfViewCacheTagManager)
+                {
+                  $viewCacheManager->setPageTags($tags);
+                }
+              }
+            }
+
+  * Use it in your action to set the tags:
+
+            [php]
+            class carActions extends sfActions
+            {
+              # ... setPageTags()
+
+              public function executeShow (sfWebRequest $request)
+              {
+                # get a "Cachetaggable" Doctrine_Record
+                $this->car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
+
+                # set the tags for the action cache
+                $this->setPageTags($this->car->getTags());
+
+                # or shorter
+                # $this->setPageTags($this->car);
+              }
+            }
+
+  * Of cause you have to enable the cache for that action in ``config/cache.yml``:
+
+            [yml]
+            show:
+              with_layout: true
+              enabled:     true
+              lifetime:    86400
+
+* ### Adding tags to the specific action (action without layout)
+
+ * In your action you only have to tell the sfViewCacheManager which tags to use for
+   caching the action. It is useful to add a little helper function for that:
+
+            [php]
+            class carActions extends sfActions
+            {
+              public function setActionTags ($tags)
+              {
+                $viewCacheManager = $this->getContext()->getViewCacheManager();
+
+                if ($viewCacheManager instanceof sfViewCacheTagManager)
+                {
+                  $viewCacheManager->setActionTags($tags);
+                }
+              }
+            }
+
+  * Use it in your action to set the tags:
+
+            [php]
+            class carActions extends sfActions
+            {
+              # ... setActionTags()
+
+              public function executeShow (sfWebRequest $request)
+              {
+                # get a "Cachetaggable" Doctrine_Record
+                $this->car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
+
+                # set the tags for the action cache
+                $this->setActionTags($this->car->getTags());
+
+                # or shorter
+                # $this->setActionTags($this->car);
+              }
+            }
+
+  * You have to disable "with_layout" and enable the cache for that action in ``config/cache.yml``:
+
+            [yml]
+            show:
+              with_layout: false
+              enabled:     true
+              lifetime:    360
+
 
 ## Limitations / Peculiarities ##
 
@@ -433,7 +555,13 @@ Install the plugin
 
 ## Unit test ##
 
- * 861 of 861 test are successfully completed
+    $ ./symfony test:functional frontend
+    [sfCacheTagging] functional/frontend/actionWithLayoutTest............ok
+    [sfCacheTagging] functional/frontend/actionWithoutLayoutTest.........ok
+    [sfCacheTagging] functional/frontend/sfCacheTaggingPluginTest........ok
+     All tests successful.
+     Files=3, Tests=903
+
 
 Every combination is tested (data backend / locker backend) of listed below:
 
@@ -443,8 +571,8 @@ Every combination is tested (data backend / locker backend) of listed below:
   * sfSQLiteTaggingCache - memory (extended from sfSQLiteCache)
   * sfFileTaggingCache (extended from sfFilecache)
 
-Partialy tested listed below backends. If anyone could help me to run functional tests
-for this backends, I will be thankful to you:
+Partially tested listed below cache adapters. If anyone could help me to run functional tests
+for them, I will be thankful to you:
 
   * sfXCacheCache
   * sfEAcceleratorCache
@@ -452,9 +580,12 @@ for this backends, I will be thankful to you:
 
 ## Contacts ##
 
-* @: Ilya Sabelnikov `` <fruit dot dev at gmail dot com> ``
-* IRC:
-  * server: irc.freenode.net
-  * channel: #symfony
-  * username: fruit
-* skype: ilya_roll
+### Plugin lead/developer
+
+  * @: Ilya Sabelnikov `` <fruit dot dev at gmail dot com> ``
+  * skype: ilya_roll
+
+### Plugin developer (ability to add tags to the whole page with layout)
+
+  * @: Martin Schnabel `` <mcnilz at gmail dot com> ``
+  * skype: mcnilz

@@ -1,95 +1,112 @@
 <?php
 
-/*
- * This file is part of the symfony package.
- * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
- * 
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+  /*
+   * This file is part of the symfony package.
+   * (c) 2004-2006 Fabien Potencier <fabien.potencier@symfony-project.com>
+   *
+   * For the full copyright and license information, please view the LICENSE
+   * file that was distributed with this source code.
+  */
 
-/**
- * CacheHelper.
- *
- * @package    symfony
- * @subpackage helper
- * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id: CacheHelper.php 23810 2009-11-12 11:07:44Z Kris.Wallsmith $
- */
+  /**
+   * CacheHelper.
+   *
+   * @package    symfony
+   * @subpackage helper
+   * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+   * @version    SVN: $Id: CacheHelper.php 23810 2009-11-12 11:07:44Z Kris.Wallsmith $
+   */
 
-/* Usage
+  /* Usage
 
-<?php if (!cache_tag('name')): ?>
+    <?php if (! cache_tag('name', 600)): ?>
 
-... HTML ...
+      ... HTML ...
 
-  <?php cache_save(array('tag' => time()) ?>
-<?php endif; ?>
+      <?php cache_save(array('tag' => time()) ?>
+    <?php endif; ?>
 
-*/
+  */
 
-function cache_tag($name, $lifetime = null)
-{
-  if (! sfConfig::get('sf_cache'))
+  /**
+   * Starts caching process or fetch up-to-date content from the cache
+   *
+   * @param string $name Content cache name
+   * @param integer[optional] $lifetime seconds to cache will live
+   * @return boolean true - cache expired/not yet saved, false - cache is up-to-date
+   */
+  function cache_tag ($name, $lifetime = null)
   {
-    return null;
-  }
-  
-  if (sfConfig::get('symfony.cache.started'))
-  {
-    throw new sfCacheException('Cache already started.');
-  }
+    if (! sfConfig::get('sf_cache'))
+    {
+      return null;
+    }
 
-  $data = sfContext::getInstance()->getViewCacheManager()->startWithTags($name);
+    if (sfConfig::get('symfony.cache.started'))
+    {
+      throw new sfCacheException('Cache already started.');
+    }
 
-  if (null === $data)
-  {
-    sfConfig::set('symfony.cache.started', true);
-    sfConfig::set('symfony.cache.current_name', $name);
-    sfConfig::set('symfony.cache.lifetime', $lifetime);
+    $viewCacheManager = sfContext::getInstance()->getViewCacheManager();
 
-    return false;
-  }
-  else
-  {
-    echo $data;
+    $data = $viewCacheManager->startWithTags($name);
 
-    return true;
-  }
-}
+    if (null === $data)
+    {
+      sfConfig::set('symfony.cache.started', true);
+      sfConfig::set('symfony.cache.current_name', $name);
+      sfConfig::set('symfony.cache.lifetime', $lifetime);
 
-function cache_tag_save(array $tags = null)
-{
-  if (! is_null($tags))
-  {
-    sfConfig::set('symfony.cache.tags', $tags);
-  }
+      return false;
+    }
+    else
+    {
+      echo $data;
 
-  if (!sfConfig::get('sf_cache'))
-  {
-    return null;
+      return true;
+    }
   }
 
-  if (!sfConfig::get('symfony.cache.started'))
+  /**
+   *
+   * @param array $tags assoc array with content tags
+   *    array(
+   *      #array("key: tag name" => "value: tag version"),
+   *      array("user_comment_votes" => "12983219319283213"),
+   *      ...
+   *
+   * @throws sfCacheException
+   * @return null|void null if cache is disable at all, otherwise void
+   */
+  function cache_tag_save (array $tags = null)
   {
-    throw new sfCacheException('Cache not started.');
-  }
+    $viewCacheManager = sfContext::getInstance()->getViewCacheManager();
 
-  $data = sfContext::getInstance()
-    ->getViewCacheManager()
-    ->stopWithTags(
+    if (null !== $tags)
+    {
+      $viewCacheManager->addTags($tags);
+    }
+
+    if (! sfConfig::get('sf_cache'))
+    {
+      return null;
+    }
+
+    if (! sfConfig::get('symfony.cache.started'))
+    {
+      throw new sfCacheException('Cache not started.');
+    }
+
+    $data = $viewCacheManager->stopWithTags(
       sfConfig::get('symfony.cache.current_name', ''),
-      sfConfig::get('symfony.cache.lifetime', 
-        sfConfig::get('app_sfcachetaggingplugin_tag_lifetime', 86400)
-      ),
-      sfConfig::get('symfony.cache.tags', array())
+      sfConfig::get('symfony.cache.lifetime', null)
     );
 
+    sfConfig::set('symfony.cache.started', false);
+    sfConfig::set('symfony.cache.current_name', null);
+    sfConfig::set('symfony.cache.lifetime', null);
 
-  sfConfig::set('symfony.cache.started', false);
-  sfConfig::set('symfony.cache.tags', null);
-  sfConfig::set('symfony.cache.current_name', null);
-  sfConfig::set('symfony.cache.lifetime', null);
+    $viewCacheManager->clearTags();
 
-  echo $data;
-}
+    echo $data;
+  }

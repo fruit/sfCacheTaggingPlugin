@@ -9,6 +9,14 @@
  */
 
 /**
+ * @link http://framework.zend.com/wiki/display/ZFDEV/Zend+Framework+Components+-+Developer+Notes
+ */
+if (! defined('E_USER_DEPRECATED')) 
+{
+  define('E_USER_DEPRECATED', E_USER_WARNING);
+}
+
+/**
  * sfCacheTaggingPlugin configuration
  *
  * @package sfCacheTaggingPlugin
