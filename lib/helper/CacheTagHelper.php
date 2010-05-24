@@ -59,12 +59,10 @@
 
       return false;
     }
-    else
-    {
-      echo $data;
+    
+    echo $data;
 
-      return true;
-    }
+    return true;
   }
 
   /**
@@ -78,15 +76,8 @@
    * @throws sfCacheException
    * @return null|void null if cache is disable at all, otherwise void
    */
-  function cache_tag_save (array $tags = null)
+  function get_cache_tag_save (array $tags = null)
   {
-    $viewCacheManager = sfContext::getInstance()->getViewCacheManager();
-
-    if (null !== $tags)
-    {
-      $viewCacheManager->addTags($tags);
-    }
-
     if (! sfConfig::get('sf_cache'))
     {
       return null;
@@ -97,6 +88,13 @@
       throw new sfCacheException('Cache not started.');
     }
 
+    $viewCacheManager = sfContext::getInstance()->getViewCacheManager();
+
+    if (null !== $tags)
+    {
+      $viewCacheManager->addTags($tags);
+    }
+    
     $data = $viewCacheManager->stopWithTags(
       sfConfig::get('symfony.cache.current_name', ''),
       sfConfig::get('symfony.cache.lifetime', null)
@@ -108,5 +106,14 @@
 
     $viewCacheManager->clearTags();
 
-    echo $data;
+    return $data;
+  }
+
+  /**
+   * @see get_cache_tag_save()
+   * @param array $tags
+   */
+  function cache_tag_save (array $tags = null)
+  {
+    print get_cache_tag_save($tags);
   }

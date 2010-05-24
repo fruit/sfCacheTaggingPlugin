@@ -76,7 +76,7 @@
      * Checks tag/lock defined values
      *
      * @param string $configRoute
-     * @throws OutOfRangeException
+     * @throws  OutOfBoundsException
      * @return int
      */
     protected static function validateLifetime($configRoute, $defaultValue)
@@ -85,7 +85,7 @@
 
       if (0 >= $lifetime)
       {
-        throw new OutOfRangeException(
+        throw new OutOfBoundsException(
           sprintf(
             'Value of "%s" (%s) is less or equal to zero',
             $configRoute,
@@ -116,6 +116,15 @@
       }
       elseif ($tags instanceof Doctrine_Record)
       {
+        if (! $tags->getTable()->hasTemplate('Doctrine_Template_Cachetaggable'))
+        {
+          throw new InvalidArgumentException(sprintf(
+            'Object "%s" should have a "%s" template',
+            $tags->getTable()->getClassnameToReturn(),
+            'Doctrine_Template_Cachetaggable'
+          ));
+        }
+
         $mergeWith = $tags->getTags();
       }
       # Doctrine_Collection_Cachetaggable and Doctrine_Record are instances of ArrayAccess

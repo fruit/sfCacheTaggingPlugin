@@ -13,21 +13,71 @@
 
   define('PLUGIN_DATA_DIR', realpath(dirname(__FILE__) . '/../../data'));
 
-  $manager = sfContext::getInstance()->getViewCacheManager();
-  $tagger = $manager->getTagger();
+  define('SF_VIEW_CACHE_MANAGER_EVENT_NAME', 'view.cache.filter_content');
+
+  
+  $sfContext = sfContext::getInstance();
+
+  $sfContext->getConfiguration()->loadHelpers(array('Url'));
+  
+  $sfEventDispatcher = $sfContext->getEventDispatcher();
+  $sfViewCacheManager = $sfContext->getViewCacheManager();
+
+  $sfTagger = $sfViewCacheManager->getTagger();
 
   $dataCacheSetups = sfYaml::load(PLUGIN_DATA_DIR . '/config/cache_setup.yml');
   $lockCacheSetups = $dataCacheSetups;
 
   $count = count($dataCacheSetups);
 
-  # 16 - OutOfRangeException/addTags/removeTags/addTag method tests
-  # 34 - tagger/cache tests
   # $count - cache adapter count (cross chechs for tagger cache adapter and locker cache adapter)
-  $t = new lime_test(19 + (pow($count, 2) * 34));
+  $t = new lime_test();
 
-  # if precision approach to 0, unit tests will be failed
-  # (0 precision is too small for the current test)
+  try
+  {
+    $article = new BlogPost();
+    $article->getTagName();
+
+    $t->fail('called ->getTagName() on new object');
+  }
+  catch (LogicException $e)
+  {
+    $t->pass('could not call ->getTagName() on not saved object');
+  }
+
+  try
+  {
+    $article = new BlogPost();
+    $article->save();
+    $article->getTagName();
+
+    $t->pass('called ->getTagName() on saved object');
+  }
+  catch (LogicException $e)
+  {
+    $t->fail('could not call ->getTagName() on saved object');
+  }
+
+
+
+  $t->is($sfViewCacheManager->startWithTags('some_cache_key'), null, 'ob_start() on new key');
+  $t->diag('Output some content for testing ob_start() in sfViewCacheManager');
+  $t->isnt($content = $sfViewCacheManager->stopWithTags('some_cache_key', null), null, 'ob_get_clean() on key "some_cache_key"');
+  print $content;
+  $t->isnt($sfViewCacheManager->startWithTags('some_cache_key'), '', 'ob_start() on old key');
+
+  try
+  {
+    $sfViewCacheManager->initialize($sfContext, new sfAPCCache(), $options);
+    $t->fail('Exception "InvalidArgumentException" was trigged');
+  }
+  catch (InvalidArgumentException $e)
+  {
+    $t->pass(sprintf(
+      'Exception "%s" cached - should be instance of sfTagCache',
+      get_class($e)
+    ));
+  }
 
   $precisionToTest = array(
     array('value' => -1, 'throwException' => true),
@@ -36,6 +86,9 @@
     array('value' =>  6, 'throwException' => false),
     array('value' =>  7, 'throwException' => true),
   );
+
+  # if precision approach to 0, unit tests will be failed
+  # (0 precision is too small for the current test)
 
   foreach ($precisionToTest as $precisionTest)
   {
@@ -158,12 +211,12 @@
   }
 
   $posts = BlogPostTable::getInstance()->findAll();
-  $manager->addTags($posts);
-  $t->is($manager->getTags(), $postCollectionTag, 'Tags stored in manager are full/same');
-  $manager->addTags(array('SomeTag' => 1234567890));
-  $t->is($manager->getTags(), array_merge(array('SomeTag' => 1234567890), $postCollectionTag), 'Tags with new tag are successfully saved');
-  $manager->clearTags();
-  $t->is($manager->getTags(), array(), 'All tags are cleared');
+  $sfViewCacheManager->addTags($posts);
+  $t->is($sfViewCacheManager->getTags(), $postCollectionTag, 'Tags stored in manager are full/same');
+  $sfViewCacheManager->addTags(array('SomeTag' => 1234567890));
+  $t->is($sfViewCacheManager->getTags(), array_merge(array('SomeTag' => 1234567890), $postCollectionTag), 'Tags with new tag are successfully saved');
+  $sfViewCacheManager->clearTags();
+  $t->is($sfViewCacheManager->getTags(), array(), 'All tags are cleared');
 
   foreach ($dataCacheSetups as $data)
   {
@@ -172,27 +225,51 @@
       Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml');
       $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
-      $tagger->initialize(array('logging' => true, 'cache' => $data, 'locker' => $locker));
-      $tagger->clean();
+      $sfTagger->initialize(array('logging' => true, 'cache' => $data, 'locker' => $locker));
+      $sfTagger->clean();
 
-      $manager->initialize($manager->getContext(), $tagger, $manager->getOptions());
+
+      $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
+      $sfViewCacheManager->initialize($sfContext, $sfTagger, $sfViewCacheManager->getOptions());
+      $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
+
+      $t->ok(
+        $listenersCountAfter == $listenersCountBefore,
+        '"sf_web_debug" is disabled in test environment'
+      );
+
+      $sfWebDebug = sfConfig::get('sf_web_debug');
+
+      sfConfig::set('sf_web_debug', ! $sfWebDebug);
+
+
+      $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
+      $sfViewCacheManager->initialize($sfContext, $sfTagger, $sfViewCacheManager->getOptions());
+      $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
+
+      $t->ok(
+        $listenersCountAfter > $listenersCountBefore,
+        '"sf_web_debug" is enabled in test environment'
+      );
+
+      sfConfig::set('sf_web_debug', $sfWebDebug);
 
       $t->comment(sprintf(
         'Setuping new configuration (data: "%s", locker: "%s")',
-        get_class($tagger->getDataCache()),
-        get_class($tagger->getLockerCache())
+        get_class($sfTagger->getDataCache()),
+        get_class($sfTagger->getLockerCache())
       ));
 
-      $t->is($tagger->get('posts'), false, 'cache is NOT empty');
+      $t->is($sfTagger->get('posts'), false, 'cache is NOT empty');
 
       $t->is(
-        $tagger->set('posts', $posts, null, $posts->getTags()),
+        $sfTagger->set('posts', $posts, null, $posts->getTags()),
         true,
         'New Doctrine_Collection is saved to cache with key "posts"'
       );
 
       $t->is(
-        null !== ($posts = $tagger->get('posts')),
+        null !== ($posts = $sfTagger->get('posts')),
         true,
         '"posts" are successfully fetched from the cache'
       );
@@ -203,7 +280,7 @@
       # $t->comment('Saving post updates');
 
       $t->is(
-        null === ($posts = $tagger->get('posts')),
+        null === ($posts = $sfTagger->get('posts')),
         true,
         'Key expired after editing first post'
       );
@@ -211,36 +288,36 @@
       $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
       $t->is(
-        $tagger->set('posts', $posts, null, $posts->getTags()),
+        $sfTagger->set('posts', $posts, null, $posts->getTags()),
         true,
         'new "posts" was written to the cache'
       );
 
       $t->is(
-        null === ($posts = $tagger->get('posts')),
+        null === ($posts = $sfTagger->get('posts')),
         false,
         'Fetching "posts" from cache'
       );
 
-      $t->is($tagger->lock('posts'), true, 'Locked key "posts"');
-      $t->is($tagger->isLocked('posts'), true, '"posts" is locked');
+      $t->is($sfTagger->lock('posts'), true, 'Locked key "posts"');
+      $t->is($sfTagger->isLocked('posts'), true, '"posts" is locked');
 
       $post = $posts->getLast();
       $post->setTitle('Row id = ' . $post->getId())->save();
       $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
       $t->is(
-        $tagger->set('posts', $posts, null, $posts->getTags()),
+        $sfTagger->set('posts', $posts, null, $posts->getTags()),
         false,
         'Skipped writing to cache, "posts" is locked'
       );
 
-      $t->is($tagger->unlock('posts'), true, 'Unlocked "posts"');
+      $t->is($sfTagger->unlock('posts'), true, 'Unlocked "posts"');
 
-      $t->is($tagger->isLocked('posts'), false, '"posts" is now not locked');
+      $t->is($sfTagger->isLocked('posts'), false, '"posts" is now not locked');
 
       $t->is(
-        $tagger->set('posts', $posts, null, $posts->getTags()),
+        $sfTagger->set('posts', $posts, null, $posts->getTags()),
         true,
         'Writing to cache, "posts" is not locked'
       );
@@ -253,12 +330,12 @@
       }
 
       $t->is(
-        $tagger->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
+        $sfTagger->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
         true,
         'Saving posts with comments'
       );
 
-      $t->is(null !== ($tagger->get('posts+comments')), true, '"posts+comments" are stored in cache');
+      $t->is(null !== ($sfTagger->get('posts+comments')), true, '"posts+comments" are stored in cache');
 
       $table = BlogPostCommentTable::getInstance();
 
@@ -270,7 +347,7 @@
 
       $t->is($wasComments, $nowComments + 1, 'Comments count -1');
 
-      $t->is(null === ($tagger->get('posts+comments')), true, '"posts+comments" is expired, 1 comment removed');
+      $t->is(null === ($sfTagger->get('posts+comments')), true, '"posts+comments" is expired, 1 comment removed');
 
       $postsAndComments = BlogPostTable::getInstance()->getPostsWithCommentQuery()->execute();
 
@@ -280,7 +357,7 @@
       }
 
       $t->is(
-        $tagger->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
+        $sfTagger->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
         true,
         'Saving posts with comments'
       );
@@ -293,7 +370,7 @@
         ? $t->pass('Removed all davids comments')
         : $t->fail('Not removed davids comments');
 
-      $t->is(null === ($tagger->get('posts+comments')), true, '"posts+comments" is not expired, removed 3 comments');
+      $t->is(null === ($sfTagger->get('posts+comments')), true, '"posts+comments" is not expired, removed 3 comments');
 
       $postsAndComments = BlogPostTable::getInstance()->getPostsWithCommentQuery()->execute();
 
@@ -303,7 +380,7 @@
       }
 
       $t->is(
-        $tagger->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
+        $sfTagger->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
         true,
         'Saving posts with comments'
       );
@@ -318,7 +395,7 @@
         ? $t->pass('Updated all fruits comments')
         : $t->fail('Not removed fruits');
 
-      $t->is(null === ($tagger->get('posts+comments')), true, '"posts+comments" is expired, 3 fruit comment updated');
+      $t->is(null === ($sfTagger->get('posts+comments')), true, '"posts+comments" is expired, 3 fruit comment updated');
 
       $t->diag('Empty Doctrine_Collection tests');
 
@@ -326,7 +403,7 @@
       $emptyPosts = BlogPostTable::getInstance()->findAll();
 
       $t->is(
-        $tagger->set('posts', $emptyPosts, null, $emptyPosts->getTags()),
+        $sfTagger->set('posts', $emptyPosts, null, $emptyPosts->getTags()),
         true,
         'Saving empty "posts" to cache'
       );
@@ -337,18 +414,18 @@
       $newPost->setContent('Content, content, content, content, content');
       $newPost->save();
 
-      $t->is(null === ($tagger->get('posts')), true, '"posts" are expired (first post is saved)');
+      $t->is(null === ($sfTagger->get('posts')), true, '"posts" are expired (first post is saved)');
 
       $posts = BlogPostTable::getInstance()->findAll();
       $t->is(
-        $tagger->set('posts', $posts, null, $posts->getTags()),
+        $sfTagger->set('posts', $posts, null, $posts->getTags()),
         true,
         'Saving empty "posts" to cache'
       );
 
-      $t->is(null === ($tagger->get('posts')), false, '"posts" are not expired (no post was saved during previous save)');
+      $t->is(null === ($sfTagger->get('posts')), false, '"posts" are not expired (no post was saved during previous save)');
 
-      $t->isa_ok($tagger->get('posts'), 'Doctrine_Collection_Cachetaggable', 'Saved object in cache is "Doctrine_Collection_Cachetaggable"');
+      $t->isa_ok($sfTagger->get('posts'), 'Doctrine_Collection_Cachetaggable', 'Saved object in cache is "Doctrine_Collection_Cachetaggable"');
 
       BlogPostTable::getInstance()->findAll()->delete();
       BlogPostCommentTable::getInstance()->findAll()->delete();
@@ -363,7 +440,7 @@
       $emptyPosts->addTags($emptyPostComments);
 
       $t->is(
-        $tagger->set('posts+comments', $emptyPosts, null, $emptyPosts->getTags()),
+        $sfTagger->set('posts+comments', $emptyPosts, null, $emptyPosts->getTags()),
         true,
         sprintf(
         'Saving empty "posts+comments" to cache (%d posts, %d comments)',
@@ -378,18 +455,18 @@
       $newPost->setContent('Content 2, content 2, content 2, content 2, content 2');
       $newPost->save();
 
-      $t->is(null === ($tagger->get('posts+comments')), true, '"posts+comments" are expired (first post is saved)');
+      $t->is(null === ($sfTagger->get('posts+comments')), true, '"posts+comments" are expired (first post is saved)');
 
       $post = BlogPostTable::getInstance()->find($newPost->getId());
       $post->addTags($post->getBlogPostComment());
 
       $t->is(
-        $tagger->set('posts+comments', $post, null, $post->getTags()),
+        $sfTagger->set('posts+comments', $post, null, $post->getTags()),
         true,
         'Saving empty "posts+comments" to cache'
       );
 
-      $t->is(null === ($tagger->get('posts+comments')), false, '"posts+comments" are not expired (no post/comments was saved during previous save)');
+      $t->is(null === ($sfTagger->get('posts+comments')), false, '"posts+comments" are not expired (no post/comments was saved during previous save)');
 
       $newPostComment = new BlogPostComment();
       $newPostComment->setBlogPost($newPost);
@@ -397,6 +474,9 @@
       $newPostComment->setMessage('My Comment');
       $newPostComment->save();
 
-      $t->is(null === ($tagger->get('posts+comments')), true, '"posts+comments" are expired (first associated comment was saved)');
+      $t->is(null === ($sfTagger->get('posts+comments')), true, '"posts+comments" are expired (first associated comment was saved)');
     }
   }
+
+  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
+  $cc->run();

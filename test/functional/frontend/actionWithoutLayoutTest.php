@@ -10,9 +10,6 @@
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
-
   Doctrine::loadData(dirname(__FILE__) . '/../../data/fixtures/fixtures.yml');
 
   $browser = new sfTestFunctional(new sfBrowser());
@@ -59,3 +56,8 @@
     ->isStatusCode(200)
     ->checkElement('.posts a[id*="bar"]', 'Bar_new_fresh')
     ->end();
+
+  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
+  $cc->run();
+
+  

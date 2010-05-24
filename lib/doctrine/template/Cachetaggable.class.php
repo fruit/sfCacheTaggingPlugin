@@ -42,7 +42,7 @@
 
       $versionColumn = $this->getOption('versionColumn');
 
-      if (! is_string($versionColumn) or 0 > strlen($versionColumn))
+      if (! is_string($versionColumn) or 0 >= strlen($versionColumn))
       {
         throw new sfConfigurationException(
           sprintf(
@@ -139,25 +139,18 @@
 
       foreach ((array) $this->_options['uniqueColumn'] as $column)
       {
-        $methodName = sprintf('get%s', sfInflector::camelize($column));
-
-        $callable = new sfCallable(array($object, $methodName));
-
-        try
-        {
-          $columnValues[] = $callable->call();
-        }
-        catch (Exception $e)
+        if (! $object->getTable()->hasColumn($column))
         {
           throw new sfConfigurationException(
             sprintf(
-              'Table "%s" does not have a column "%s". ' .
-                'After you fix this column name, you should rebuild your models',
+              'Table "%s" does not have a column "%s".',
               sfInflector::tableize(get_class($object)),
               $column
             )
           );
         }
+
+        $columnValues[] = $object->{$column};
       }
 
       return call_user_func_array(
@@ -177,7 +170,7 @@
      */
     public function setObjectVersion ($version)
     {
-      $this->getInvoker()->{$this->_options['versionColumn']} = $version;
+      $this->getInvoker()->offsetSet($this->getOption('versionColumn'), $version);
 
       return $this->getInvoker();
     }

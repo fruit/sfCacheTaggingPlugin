@@ -30,7 +30,7 @@
     /**
      * sfViewCacheTagManager option holder
      *
-     * @var arry
+     * @var array
      */
     protected $options = array();
 
@@ -204,13 +204,11 @@
       {
         return $data;
       }
-      else
-      {
-        ob_start();
-        ob_implicit_flush(0);
+      
+      ob_start();
+      ob_implicit_flush(0);
 
-        return null;
-      }
+      return null;
     }
 
     /**
@@ -397,7 +395,7 @@
       }
 
       $content = $data['content'];
-      $data['response']->setEventDispatcher($this->dispatcher);
+      $data['response']->setEventDispatcher($this->getEventDispatcher());
       $this->context->getResponse()->copyProperties($data['response']);
 
       if (sfConfig::get('sf_web_debug'))

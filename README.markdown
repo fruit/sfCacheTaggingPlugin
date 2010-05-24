@@ -553,14 +553,55 @@ are not (atomic counter).
     "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
     behavior.
 
-## Unit test ##
+## Unit/functional test ##
 
-    $ ./symfony test:functional frontend
-    [sfCacheTagging] functional/frontend/actionWithLayoutTest............ok
-    [sfCacheTagging] functional/frontend/actionWithoutLayoutTest.........ok
-    [sfCacheTagging] functional/frontend/sfCacheTaggingPluginTest........ok
-     All tests successful.
-     Files=3, Tests=903
+  ### Tests report (tests: 1027):
+
+            [sfCacheTagging] functional/frontend/CacheTagHelperTest..............ok
+            CacheTagging] functional/frontend/DoctrineTemplateCachetaggableTest..ok
+            [sfCacheTagging] functional/frontend/PartialTagHelperTest............ok
+            [sfCacheTagging] functional/frontend/actionWithLayoutTest............ok
+            [sfCacheTagging] functional/frontend/actionWithoutLayoutTest.........ok
+            [sfCacheTagging] functional/frontend/sfCacheTaggingPluginTest........ok
+            [sfCacheTagging] functional/frontend/sfCacheTaggingToolkitTest.......ok
+            [sfCacheTagging] functional/frontend/sfViewCacheTagManagerTest.......ok
+            [sfCacheTagging] functional/notag/DoctrineListenerCachetaggableTest..ok
+            [sfCacheTagging] unit/DoctrineListenerCachetaggableTest..............ok
+            [sfCacheTagging] unit/DoctrineTemplateCachetaggableTest..............ok
+            [sfCacheTagging] unit/sfCacheTaggingToolkitTest......................ok
+             All tests successful.
+             Files=12, Tests=1027
+
+
+  ### Coverage report (total: 84%):
+
+            >> coverage  running ...achetaggableTest.php (1/12)
+            >> coverage  running ...achetaggableTest.php (2/12)
+            >> coverage  running ...ggingToolkitTest.php (3/12)
+            >> coverage  running ...cheTagHelperTest.php (4/12)
+            >> coverage  running ...aggingPluginTest.php (5/12)
+            >> coverage  running ...heTagManagerTest.php (6/12)
+            >> coverage  running ...ialTagHelperTest.php (7/12)
+            >> coverage  running ...achetaggableTest.php (8/12)
+            >> coverage  running ...onWithLayoutTest.php (9/12)
+            >> coverage  running ...thoutLayoutTest.php (10/12)
+            >> coverage  running ...gingToolkitTest.php (11/12)
+            >> coverage  running ...chetaggableTest.php (12/12)
+            plugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManager.class      76%
+            plugins/sfCacheTaggingPlugin/lib/cache/sfTagCache.class                 73%
+            lugins/sfCacheTaggingPlugin/lib/cache/extra/sfSQLiteTaggingCache.class 100%
+            plugins/sfCacheTaggingPlugin/lib/cache/extra/sfFileTaggingCache.class  100%
+            plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class      100%
+            plugins/sfCacheTaggingPlugin/lib/view/sfPartialTagView.class            92%
+            plugins/sfCacheTaggingPlugin/lib/helper/CacheTagHelper                  95%
+            plugins/sfCacheTaggingPlugin/lib/helper/PartialTagHelper               100%
+            ugins/sfCacheTaggingPlugin/lib/doctrine/collection/Cachetaggable.class 100%
+            plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class 100%
+            plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  97%
+            TOTAL COVERAGE:  84%
+
+
+
 
 
 Every combination is tested (data backend / locker backend) of listed below:

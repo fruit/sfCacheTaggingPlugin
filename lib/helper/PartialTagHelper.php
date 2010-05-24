@@ -34,6 +34,8 @@
 
       return $view->render();
     }
+
+    return;
   }
 
   /**

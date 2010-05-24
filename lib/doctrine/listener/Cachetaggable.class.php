@@ -39,28 +39,21 @@
      *
      * @return sfTagCache
      */
-    private function getTagger ()
+    public function getTagger ()
     {
       if (! sfContext::hasInstance())
       {
-        return null;
+        throw new UnexpectedValueException();
       }
 
       $manager = sfContext::getInstance()->getViewCacheManager();
 
       if (! $manager instanceof sfViewCacheTagManager)
       {
-        return null;
+        throw new UnexpectedValueException();
       }
 
-      $tagger = $manager->getTagger();
-
-      if (! $tagger instanceof sfTagCache)
-      {
-        return null;
-      }
-
-      return $tagger;
+      return $manager->getTagger();
     }
 
     /**
@@ -71,9 +64,13 @@
      */
     public function preDelete (Doctrine_Event $event)
     {
-      if (null !== ($taggerCache = $this->getTagger()))
+      try
       {
-        $taggerCache->deleteTag($event->getInvoker()->getTagName());
+        $this->getTagger()->deleteTag($event->getInvoker()->getTagName());
+      }
+      catch (UnexpectedValueException $e)
+      {
+
       }
     }
 
@@ -91,21 +88,20 @@
 
       # do not check for $object->isNew() and ! is_null(...)) collection name
       # should be every time on object is saved
-      if (null !== ($taggerCache = $this->getTagger()))
+      $taggerCache = $this->getTagger();
+      
+      $objectClassName = get_class($object);
+
+      $collectionTagVersion = $taggerCache->getTag($objectClassName);
+
+      # update collection name on first time or when it is newer
+      if (! $collectionTagVersion or $collectionTagVersion < $object->getObjectVersion())
       {
-        $objectClassName = get_class($object);
-
-        $collectionTagVersion = $taggerCache->getTag($objectClassName);
-
-        # update collection name on first time or when it is newer
-        if (! $collectionTagVersion or $collectionTagVersion < $object->getObjectVersion())
-        {
-          $taggerCache->setTag(
-            $objectClassName,
-            $object->getObjectVersion(),
-            sfCacheTaggingToolkit::getTagLifetime()
-          );
-        }
+        $taggerCache->setTag(
+          $objectClassName,
+          $object->getObjectVersion(),
+          sfCacheTaggingToolkit::getTagLifetime()
+        );
       }
     }
 
@@ -118,13 +114,19 @@
     {
       $object = $event->getInvoker();
 
-      if (null !== ($taggerCache = $this->getTagger()))
+      try
       {
-        $taggerCache->setTag(
-          $object->getTagName(),
-          $object->getObjectVersion(),
-          sfCacheTaggingToolkit::getTagLifetime()
-        );
+        $this
+          ->getTagger()
+          ->setTag(
+            $object->getTagName(),
+            $object->getObjectVersion(),
+            sfCacheTaggingToolkit::getTagLifetime()
+          );
+      }
+      catch (UnexpectedValueException $e)
+      {
+
       }
     }
 
@@ -136,7 +138,7 @@
      */
     public function preDqlUpdate (Doctrine_Event $event)
     {
-      if (null !== ($taggerCache = $this->getTagger()))
+      try
       {
         /* @var $q Doctrine_Query */
         $q = $event->getQuery();
@@ -158,12 +160,16 @@
 
         foreach ($updateQuery->execute() as $object)
         {
-          $taggerCache->setTag(
+          $this->getTagger()->setTag(
             $object->getTagName(),
             $updateVersion,
             sfCacheTaggingToolkit::getTagLifetime()
           );
         }
+      }
+      catch (UnexpectedValueException $e)
+      {
+
       }
     }
 
@@ -175,15 +181,19 @@
      */
     public function preDqlDelete (Doctrine_Event $event)
     {
-      if (null !== ($taggerCache = $this->getTagger()))
+      try
       {
         /* @var $q Doctrine_Query */
         $q = clone $event->getQuery();
 
         foreach ($q->select('*')->execute() as $object)
         {
-          $taggerCache->deleteTag($object->getTagName());
+          $this->getTagger()->deleteTag($object->getTagName());
         }
+      }
+      catch (UnexpectedValueException $e)
+      {
+
       }
     }
   }
