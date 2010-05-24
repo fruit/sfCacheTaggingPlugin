@@ -15,9 +15,9 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-05-17</date>
+  <date>2010-05-24</date>
   <version>
-    <release>1.4.1</release>
+    <release>1.4.2</release>
     <api>1.1.1</api>
   </version>
   <stability>
@@ -26,7 +26,7 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [deleted] removed README.markdown (only for github.com)
+    * ilya: [added] more unit/functional tests, code coverage at 84%
   </notes>
   <contents>
     <dir name="/">
@@ -77,10 +77,23 @@
         </dir>
         <dir name="functional">
           <dir name="frontend">
-            <file name="sfCacheTaggingPluginTest.php" role="data" />
+            <file name="CacheTagHelperTest.php" role="data" />
+            <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
+            <file name="PartialTagHelperTest.php" role="data" />
             <file name="actionWithLayoutTest.php" role="data" />
             <file name="actionWithoutLayoutTest.php" role="data" />
+            <file name="sfCacheTaggingPluginTest.php" role="data" />
+            <file name="sfCacheTaggingToolkitTest.php" role="data" />
+            <file name="sfViewCacheTagManagerTest.php" role="data" />
           </dir>
+          <dir name="notag">
+            <file name="DoctrineListenerCachetaggableTest.php" role="data" />
+          </dir>
+        </dir>
+        <dir name="unit">
+          <file name="DoctrineListenerCachetaggableTest.php" role="data" />
+          <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
+          <file name="sfCacheTaggingToolkitTest.php" role="data" />
         </dir>
       </dir>
     </dir>
@@ -104,6 +117,21 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>1.4.1</release>
+        <api>1.1.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2010-05-17</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [deleted] removed README.markdown (only for github.com)
+      </notes>
+    </release>
     <release>
       <version>
         <release>1.4.0</release>
