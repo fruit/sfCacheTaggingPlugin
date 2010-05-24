@@ -555,7 +555,7 @@ are not (atomic counter).
 
 ## Unit/functional test ##
 
-  ### Tests report (tests: 1027):
+  * Test report (tests: 1027):
 
             [sfCacheTagging] functional/frontend/CacheTagHelperTest..............ok
             CacheTagging] functional/frontend/DoctrineTemplateCachetaggableTest..ok
@@ -573,7 +573,7 @@ are not (atomic counter).
              Files=12, Tests=1027
 
 
-  ### Coverage report (total: 84%):
+  * Coverage report (total: 84%):
 
             >> coverage  running ...achetaggableTest.php (1/12)
             >> coverage  running ...achetaggableTest.php (2/12)
