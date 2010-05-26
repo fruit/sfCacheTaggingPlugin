@@ -15,9 +15,9 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-05-24</date>
+  <date>2010-05-26</date>
   <version>
-    <release>1.4.2</release>
+    <release>1.4.3</release>
     <api>1.1.1</api>
   </version>
   <stability>
@@ -26,18 +26,7 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [fixed] confused lifetime logic on tags/locks/data
-    * ilya: [fixed] sf*Cache::has() does not checking tags versions
-    * ilya: [added] new section in README file: Adding tags to the action with layout
-    * ilya: [added] new section in README file: Adding tags to the action without layout
-    * ilya: [updated] updated tag/locks lifetime setup on 6 step section 1 (6.1)
-    * ilya: [added] new functional tests on action and page tagging
-    * ilya: [fixed] microtime_precision should be in range 0…6
-    * mcnilz: [added] ability to add tags to the page with layout
-    * ilya: [added] ability to add tags to the specific action without layout (inspired by mcnilz)
-    * ilya: [added] more unit/functional tests, code coverage at 84%
-    * ilya: [deleted] removed README.markdown (only for github.com)
-    * ilya: [added] ability to select log format (short|extended)
+    * ilya: [fixed] in case sfViewCacheTagManager is enabled and some model (schema.yml) has no "actAs: Cachetaggable" - throws uncatched exception
   </notes>
   <contents>
     <dir name="/">
@@ -128,6 +117,21 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>1.4.3</release>
+        <api>1.1.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2010-05-26</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [fixed] in case sfViewCacheTagManager is enabled and some model (schema.yml) has no "actAs: Cachetaggable" - throws uncatched exception
+      </notes>
+    </release>
     <release>
       <version>
         <release>1.4.2</release>

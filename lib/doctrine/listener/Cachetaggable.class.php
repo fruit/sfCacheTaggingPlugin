@@ -43,14 +43,14 @@
     {
       if (! sfContext::hasInstance())
       {
-        throw new UnexpectedValueException();
+        throw new UnexpectedValueException('sfContext instance is not initialized');
       }
 
       $manager = sfContext::getInstance()->getViewCacheManager();
 
       if (! $manager instanceof sfViewCacheTagManager)
       {
-        throw new UnexpectedValueException();
+        throw new UnexpectedValueException('Application\'s sfViewManager should be the instance of sfViewCacheTagManager');
       }
 
       return $manager->getTagger();
@@ -88,20 +88,27 @@
 
       # do not check for $object->isNew() and ! is_null(...)) collection name
       # should be every time on object is saved
-      $taggerCache = $this->getTagger();
-      
-      $objectClassName = get_class($object);
-
-      $collectionTagVersion = $taggerCache->getTag($objectClassName);
-
-      # update collection name on first time or when it is newer
-      if (! $collectionTagVersion or $collectionTagVersion < $object->getObjectVersion())
+      try
       {
-        $taggerCache->setTag(
-          $objectClassName,
-          $object->getObjectVersion(),
-          sfCacheTaggingToolkit::getTagLifetime()
-        );
+        $taggerCache = $this->getTagger();
+
+        $objectClassName = get_class($object);
+
+        $collectionTagVersion = $taggerCache->getTag($objectClassName);
+
+        # update collection name on first time or when it is newer
+        if (! $collectionTagVersion or $collectionTagVersion < $object->getObjectVersion())
+        {
+          $taggerCache->setTag(
+            $objectClassName,
+            $object->getObjectVersion(),
+            sfCacheTaggingToolkit::getTagLifetime()
+          );
+        }
+      }
+      catch (UnexpectedValueException $e)
+      {
+
       }
     }
 
