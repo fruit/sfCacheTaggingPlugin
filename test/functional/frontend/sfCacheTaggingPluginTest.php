@@ -15,7 +15,6 @@
 
   define('SF_VIEW_CACHE_MANAGER_EVENT_NAME', 'view.cache.filter_content');
 
-  
   $sfContext = sfContext::getInstance();
 
   $sfContext->getConfiguration()->loadHelpers(array('Url'));
