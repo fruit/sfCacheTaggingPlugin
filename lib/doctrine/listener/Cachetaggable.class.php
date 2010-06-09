@@ -24,6 +24,14 @@
     protected $_options = array();
 
     /**
+     * Removing object does not have a tag name
+     * This variable keeps tag name till postDelete hook is executed
+     *
+     * @var string
+     */
+    protected $preDeleteTagName = null;
+
+    /**
      * __construct
      *
      * @param array $options
@@ -57,21 +65,36 @@
     }
 
     /**
-     * Pre deletion hock - removes associated tag from the cache
+     * Pre deletion hook - saves object tag_name to remove it on postDelete
      *
      * @param Doctrine_Event $event
      * @return void
      */
     public function preDelete (Doctrine_Event $event)
     {
+      $this->preDeleteTagName = $event->getInvoker()->getTagName();
+    }
+
+    /**
+     * Post deletion hook - removes object tag
+     *
+     * @param Doctrine_Event $event
+     */
+    public function postDelete (Doctrine_Event $event)
+    {
       try
       {
-        $this->getTagger()->deleteTag($event->getInvoker()->getTagName());
+        if (null !== $this->preDeleteTagName)
+        {
+          $this->getTagger()->deleteTag($this->preDeleteTagName);
+        }
       }
       catch (UnexpectedValueException $e)
       {
 
       }
+
+      $this->preDeleteTagName = null;
     }
 
     /**
@@ -83,33 +106,14 @@
     public function preSave (Doctrine_Event $event)
     {
       $object = $event->getInvoker();
+      
+      # do not set new object version if no fields are modified
+      if (0 == count($object->getModified()))
+      {
+        return;
+      }
 
       $object->setObjectVersion(sfCacheTaggingToolkit::generateVersion());
-
-      # do not check for $object->isNew() and ! is_null(...)) collection name
-      # should be every time on object is saved
-      try
-      {
-        $taggerCache = $this->getTagger();
-
-        $objectClassName = get_class($object);
-
-        $collectionTagVersion = $taggerCache->getTag($objectClassName);
-
-        # update collection name on first time or when it is newer
-        if (! $collectionTagVersion or $collectionTagVersion < $object->getObjectVersion())
-        {
-          $taggerCache->setTag(
-            $objectClassName,
-            $object->getObjectVersion(),
-            sfCacheTaggingToolkit::getTagLifetime()
-          );
-        }
-      }
-      catch (UnexpectedValueException $e)
-      {
-
-      }
     }
 
     /**
@@ -119,22 +123,43 @@
      */
     public function postSave (Doctrine_Event $event)
     {
-      $object = $event->getInvoker();
-
       try
       {
-        $this
-          ->getTagger()
-          ->setTag(
-            $object->getTagName(),
-            $object->getObjectVersion(),
-            sfCacheTaggingToolkit::getTagLifetime()
-          );
+        $taggerCache = $this->getTagger();
       }
       catch (UnexpectedValueException $e)
       {
-
+        return;
       }
+
+      $object = $event->getInvoker();
+
+      $lastModifiedColumns = $object->getLastModified();
+
+      # do not update tags in cache if no fields was modified
+      if (0 == count($lastModifiedColumns))
+      {
+        return;
+      }
+
+      # When SoftDelete behavior saves "deleted" object
+      # do not update object version on when "deleted" object is saving
+      if ($object->getTable()->hasTemplate('SoftDelete'))
+      {
+        $softDeleteTemplate = $object->getTable()->getTemplate('SoftDelete');
+
+        if (array_key_exists($softDeleteTemplate->getOption('name'), $lastModifiedColumns))
+        {
+          # skip if SoftDeletes sets deleted_at field
+          return;
+        }
+      }
+
+      $tagLifetime = sfCacheTaggingToolkit::getTagLifetime();
+
+      $taggerCache->setTag($object->getTagName(), $object->getObjectVersion(), $tagLifetime);
+
+      $taggerCache->setTag(get_class($object), $object->getObjectVersion(), $tagLifetime);
     }
 
     /**
@@ -147,37 +172,39 @@
     {
       try
       {
-        /* @var $q Doctrine_Query */
-        $q = $event->getQuery();
-
-        $updateVersion = sfCacheTaggingToolkit::generateVersion();
-        $q->set($this->getOption('versionColumn'), $updateVersion);
-
-        $updateQuery = $event->getInvoker()->getTable()->createQuery();
-        $updateQuery->select('*');
-
-        foreach ($q->getDqlPart('where') as $whereCondition)
-        {
-          $updateQuery->addWhere($whereCondition);
-        }
-
-        $params = $q->getParams();
-        $params['set'] = array();
-        $updateQuery->setParams($params);
-
-        foreach ($updateQuery->execute() as $object)
-        {
-          $this->getTagger()->setTag(
-            $object->getTagName(),
-            $updateVersion,
-            sfCacheTaggingToolkit::getTagLifetime()
-          );
-        }
+        $taggerCache = $this->getTagger();
       }
       catch (UnexpectedValueException $e)
       {
-
+        return;
       }
+
+      /* @var $q Doctrine_Query */
+      $q = $event->getQuery();
+
+      $updateVersion = sfCacheTaggingToolkit::generateVersion();
+      $q->set($this->getOption('versionColumn'), $updateVersion);
+
+      $selectQuery = $event->getInvoker()->getTable()->createQuery();
+      $selectQuery->select();
+
+      foreach ($q->getDqlPart('where') as $whereCondition)
+      {
+        $selectQuery->addWhere($whereCondition);
+      }
+
+      $params = $q->getParams();
+      $params['set'] = array();
+      $selectQuery->setParams($params);
+
+      $lifetime = sfCacheTaggingToolkit::getTagLifetime();
+
+      foreach ($selectQuery->execute() as $object)
+      {
+        $taggerCache->setTag($object->getTagName(), $updateVersion, $lifetime);
+      }
+      
+      $taggerCache->setTag(get_class($object), $updateVersion, $lifetime);
     }
 
     /**
@@ -190,17 +217,30 @@
     {
       try
       {
-        /* @var $q Doctrine_Query */
-        $q = clone $event->getQuery();
-
-        foreach ($q->select('*')->execute() as $object)
-        {
-          $this->getTagger()->deleteTag($object->getTagName());
-        }
+        $cacheTagger = $this->getTagger();
       }
       catch (UnexpectedValueException $e)
       {
+        return;
+      }
 
+      /* @var $q Doctrine_Query */
+      $q = clone $event->getQuery();
+
+      # conflicts with build-in SoftDelete behavior
+      # SoftDelete passes UPDATE query to the preDqlDelete event
+      if ($q->getType() != Doctrine_Query::DELETE)
+      {
+        return;
+      }
+
+      $params = $q->getParams();
+      $params['set'] = array();
+      $q->setParams($params);
+
+      foreach ($q->select()->execute() as $object)
+      {
+        $cacheTagger->deleteTag($object->getTagName());
       }
     }
   }

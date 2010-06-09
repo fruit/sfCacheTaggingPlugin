@@ -45,8 +45,8 @@
     $t->pass($e->getMessage());
   }
 
-  BlogPostTable::getInstance()->findAll()->delete();
-  UniversityTable::getInstance()->findAll()->delete();
+  BlogPostTable::getInstance()->createQuery()->delete()->execute();
+  UniversityTable::getInstance()->createQuery()->delete()->execute();
 
 
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());

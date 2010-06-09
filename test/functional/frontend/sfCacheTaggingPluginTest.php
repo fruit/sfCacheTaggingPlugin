@@ -15,6 +15,7 @@
 
   define('SF_VIEW_CACHE_MANAGER_EVENT_NAME', 'view.cache.filter_content');
 
+  
   $sfContext = sfContext::getInstance();
 
   $sfContext->getConfiguration()->loadHelpers(array('Url'));
@@ -398,7 +399,7 @@
 
       $t->diag('Empty Doctrine_Collection tests');
 
-      BlogPostTable::getInstance()->findAll()->delete();
+      BlogPostTable::getInstance()->createQuery()->delete()->execute();
       $emptyPosts = BlogPostTable::getInstance()->findAll();
 
       $t->is(
@@ -426,8 +427,8 @@
 
       $t->isa_ok($sfTagger->get('posts'), 'Doctrine_Collection_Cachetaggable', 'Saved object in cache is "Doctrine_Collection_Cachetaggable"');
 
-      BlogPostTable::getInstance()->findAll()->delete();
-      BlogPostCommentTable::getInstance()->findAll()->delete();
+      BlogPostTable::getInstance()->createQuery()->delete()->execute();
+      BlogPostCommentTable::getInstance()->createQuery()->delete()->execute();
 
       $emptyPosts = BlogPostTable::getInstance()->findAll();
       $emptyPostComments = BlogPostCommentTable::getInstance()->findAll();

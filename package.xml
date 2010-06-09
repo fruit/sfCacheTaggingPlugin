@@ -15,9 +15,9 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-05-26</date>
+  <date>2010-06-09</date>
   <version>
-    <release>1.4.3</release>
+    <release>1.4.4</release>
     <api>1.1.1</api>
   </version>
   <stability>
@@ -26,7 +26,9 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [fixed] in case sfViewCacheTagManager is enabled and some model (schema.yml) has no "actAs: Cachetaggable" - throws uncatched exception
+    * ilya: [fixed] resolved conflict with SoftDelete build-in Doctrine behavior
+    * ilya: [fixed] by saving not modified object, version was updated
+    * ilya: [added] new unit/functional tests
   </notes>
   <contents>
     <dir name="/">
@@ -78,6 +80,7 @@
         <dir name="functional">
           <dir name="frontend">
             <file name="CacheTagHelperTest.php" role="data" />
+            <file name="DoctrineListenerCachetaggableTest.php" role="data" />
             <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
             <file name="PartialTagHelperTest.php" role="data" />
             <file name="actionWithLayoutTest.php" role="data" />
@@ -117,6 +120,23 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>1.4.4</release>
+        <api>1.1.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2010-06-09</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [fixed] resolved conflict with SoftDelete build-in Doctrine behavior
+        * ilya: [fixed] by saving not modified object, version was updated
+        * ilya: [added] new unit/functional tests
+      </notes>
+    </release>
     <release>
       <version>
         <release>1.4.3</release>

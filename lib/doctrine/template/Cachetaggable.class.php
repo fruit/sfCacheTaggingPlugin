@@ -38,7 +38,7 @@
      */
     public function __construct (array $options = array())
     {
-      $this->_options = Doctrine_Lib::arrayDeepMerge($this->_options, $options);
+      $this->_options = Doctrine_Lib::arrayDeepMerge($this->getOptions(), $options);
 
       $versionColumn = $this->getOption('versionColumn');
 
@@ -70,7 +70,7 @@
       );
 
       $this->addListener(
-        new Doctrine_Template_Listener_Cachetaggable($this->_options)
+        new Doctrine_Template_Listener_Cachetaggable($this->getOptions())
       );
     }
 
@@ -137,30 +137,23 @@
 
       $columnValues = array(get_class($object));
 
-      foreach ((array) $this->_options['uniqueColumn'] as $column)
+      foreach ((array) $this->getOption('uniqueColumn') as $columnName)
       {
-        if (! $object->getTable()->hasColumn($column))
+        if ($object->getTable()->hasColumn($columnName))
         {
-          throw new sfConfigurationException(
-            sprintf(
-              'Table "%s" does not have a column "%s".',
-              sfInflector::tableize(get_class($object)),
-              $column
-            )
-          );
+          $columnValues[] = $object[$columnName];
         }
-
-        $columnValues[] = $object->{$column};
       }
 
       return call_user_func_array(
         'sprintf',
         array_merge(
-          array("%s_{$this->_options['uniqueKeyFormat']}"),
+          array("%s_{$this->getOption('uniqueKeyFormat')}"),
           $columnValues
         )
       );
     }
+
 
     /**
      * Updates version of the object
@@ -182,7 +175,7 @@
      */
     public function getObjectVersion ()
     {
-      return $this->getInvoker()->{$this->_options['versionColumn']};
+      return $this->getInvoker()->get($this->getOption('versionColumn'));
     }
 
     /**

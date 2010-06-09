@@ -297,14 +297,14 @@ class sfTagCache extends sfCache
   /**
    * Saves tag with its version
    *
-   * @param string $key tag key
+   * @param string $tagKey tag key
    * @param string $value tag version
    * @param int $lifetime optional tag time to live
    * @return boolean
    */
-  public function setTag ($key, $value, $lifetime = null)
+  public function setTag ($tagKey, $value, $lifetime = null)
   {
-    $tagKey = $this->generateTagKey($key);
+    $tagKey = $this->generateTagKey($tagKey);
 
     $lifetime = (null === $lifetime)
       ? sfCacheTaggingToolkit::getTagLifetime()
@@ -320,31 +320,40 @@ class sfTagCache extends sfCache
   /**
    * Returns version of the tag by key
    *
-   * @param string $key
+   * @param string $tagKey
    * @return string version of the tag
    */
-  public function getTag ($key)
+  public function getTag ($tagKey)
   {
-    $result = $this
-      ->getDataCache()
-      ->get($this->generateTagKey($key));
+    $result = $this->getDataCache()->get($this->generateTagKey($tagKey));
 
-    $this->writeChar($result ? 'G' :'g', $this->generateTagKey($key), $result);
+    $this->writeChar($result ? 'G' :'g', $this->generateTagKey($tagKey), $result);
 
     return $result;
   }
 
   /**
-   * Removes tag version (basicly called on physical object removing)
+   * Checks tag key exists
    *
-   * @param string $key
+   * @param string $tagKey
    * @return boolean
    */
-  public function deleteTag ($key)
+  public function hasTag ($tagKey)
+  {
+    return $this->getDataCache()->has($this->generateTagKey($tagKey));
+  }
+
+  /**
+   * Removes tag version (basicly called on physical object removing)
+   *
+   * @param string $tagKey
+   * @return boolean
+   */
+  public function deleteTag ($tagKey)
   {
     $result = $this
       ->getDataCache()
-      ->remove($this->generateTagKey($key));
+      ->remove($this->generateTagKey($tagKey));
 
     return $result;
   }

@@ -12,15 +12,14 @@ Tagging a cache is a concept that was invented in the same time by many develope
 and, perhaps, by somebody else)
 
 This software was developed inspired by Andrey Smirnoff's theoretical work
-["Cache tagging with Memcached (in Russian)"](http://www.smira.ru/tag/memcached/).
+["Cache tagging with Memcached (on Russian)"](http://www.smira.ru/tag/memcached/).
 Some ideas are implemented in the real world (e.g. tag versions based on datetime
 and microtime, cache hit/set logging, cache locking) and part of them
 are not (atomic counter).
 
 ## Contribution ##
 
- * Repository on github [http://github.com/fruit/sfCacheTaggingPlugin](http://github.com/fruit/sfCacheTaggingPlugin "Repository")
- * Tickets/Issues on github [http://github.com/fruit/sfCacheTaggingPlugin/issues](http://github.com/fruit/sfCacheTaggingPlugin/issues "Issues")
+* [Repository (GitHub)](http://github.com/fruit/sfCacheTaggingPlugin "Repository (GitHub)") and [Issues (GitHub)](http://github.com/fruit/sfCacheTaggingPlugin/issues "Issues")
 
 ## Installation/Upgrading ##
 
@@ -103,9 +102,9 @@ are not (atomic counter).
 
 
 
-1.  Edit Symfony's predefined application's level ``factories.yml`` files
+1.  Edit Symfony's predefined application's level ``/apps/%application_name%/config/factories.yml`` files
 
-    > If you have edited each application's level ``factories.yml`` file in
+    > If you have edited each application's level ``/apps/%application_name%/config/factories.yml`` file in
       2nd step - go to 4th step.
 
     > In each application you want to use cache tagging please remove
@@ -173,7 +172,7 @@ are not (atomic counter).
 1.  Enable cache in ``settings.yml`` and add additional helpers to ``standard_helpers`` section
 
   1. To setup cache, often, used a separate environment named "cache",
-     but in the same way you can do it in any other environments which you have.
+     but in the same way you can do it in any other environments which (dev) you already have.
 
             [yml]
             prod:
@@ -194,6 +193,7 @@ are not (atomic counter).
             all:
               .settings:
                 standard_helpers:
+                  # … other helpers
                   - Partial     # symfony build in helper (mandatory)
                   - CacheTag    # sfCacheTaggingPlugin helper (mandatory)
                   - PartialTag  # sfCacheTaggingPlugin helper (mandatory)
@@ -555,9 +555,10 @@ are not (atomic counter).
 
 ## Unit/functional test ##
 
-  * Test report (tests: 1027):
+  * Test report (tests: 1049):
 
             [sfCacheTagging] functional/frontend/CacheTagHelperTest..............ok
+            CacheTagging] functional/frontend/DoctrineListenerCachetaggableTest..ok
             CacheTagging] functional/frontend/DoctrineTemplateCachetaggableTest..ok
             [sfCacheTagging] functional/frontend/PartialTagHelperTest............ok
             [sfCacheTagging] functional/frontend/actionWithLayoutTest............ok
@@ -570,24 +571,24 @@ are not (atomic counter).
             [sfCacheTagging] unit/DoctrineTemplateCachetaggableTest..............ok
             [sfCacheTagging] unit/sfCacheTaggingToolkitTest......................ok
              All tests successful.
-             Files=12, Tests=1027
-
+             Files=13, Tests=1049
 
   * Coverage report (total: 84%):
 
-            >> coverage  running ...achetaggableTest.php (1/12)
-            >> coverage  running ...achetaggableTest.php (2/12)
-            >> coverage  running ...ggingToolkitTest.php (3/12)
-            >> coverage  running ...cheTagHelperTest.php (4/12)
-            >> coverage  running ...aggingPluginTest.php (5/12)
-            >> coverage  running ...heTagManagerTest.php (6/12)
-            >> coverage  running ...ialTagHelperTest.php (7/12)
-            >> coverage  running ...achetaggableTest.php (8/12)
-            >> coverage  running ...onWithLayoutTest.php (9/12)
-            >> coverage  running ...thoutLayoutTest.php (10/12)
-            >> coverage  running ...gingToolkitTest.php (11/12)
-            >> coverage  running ...chetaggableTest.php (12/12)
-            plugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManager.class      76%
+            >> coverage  running /www/sfpro/dev...tenerCachetaggableTest.php (1/13)
+            >> coverage  running /www/sfpro/dev...plateCachetaggableTest.php (2/13)
+            >> coverage  running /www/sfpro/dev...acheTaggingToolkitTest.php (3/13)
+            >> coverage  running /www/sfpro/dev...end/CacheTagHelperTest.php (4/13)
+            >> coverage  running /www/sfpro/dev...CacheTaggingPluginTest.php (5/13)
+            >> coverage  running /www/sfpro/dev...iewCacheTagManagerTest.php (6/13)
+            >> coverage  running /www/sfpro/dev...tenerCachetaggableTest.php (7/13)
+            >> coverage  running /www/sfpro/dev...d/PartialTagHelperTest.php (8/13)
+            >> coverage  running /www/sfpro/dev...plateCachetaggableTest.php (9/13)
+            >> coverage  running /www/sfpro/dev.../actionWithLayoutTest.php (10/13)
+            >> coverage  running /www/sfpro/dev...tionWithoutLayoutTest.php (11/13)
+            >> coverage  running /www/sfpro/dev...cheTaggingToolkitTest.php (12/13)
+            >> coverage  running /www/sfpro/dev...enerCachetaggableTest.php (13/13)
+            plugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManager.class      75%
             plugins/sfCacheTaggingPlugin/lib/cache/sfTagCache.class                 73%
             lugins/sfCacheTaggingPlugin/lib/cache/extra/sfSQLiteTaggingCache.class 100%
             plugins/sfCacheTaggingPlugin/lib/cache/extra/sfFileTaggingCache.class  100%
@@ -596,13 +597,9 @@ are not (atomic counter).
             plugins/sfCacheTaggingPlugin/lib/helper/CacheTagHelper                  95%
             plugins/sfCacheTaggingPlugin/lib/helper/PartialTagHelper               100%
             ugins/sfCacheTaggingPlugin/lib/doctrine/collection/Cachetaggable.class 100%
-            plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class 100%
-            plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  97%
+            plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class  95%
+            plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  96%
             TOTAL COVERAGE:  84%
-
-
-
-
 
 Every combination is tested (data backend / locker backend) of listed below:
 

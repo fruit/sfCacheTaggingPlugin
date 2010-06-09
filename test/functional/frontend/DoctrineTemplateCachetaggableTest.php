@@ -16,8 +16,8 @@
 
   $t = new lime_test();
 
-  BookTable::getInstance()->findAll()->delete();
-  RepositoryTable::getInstance()->findAll()->delete();
+  BookTable::getInstance()->createQuery()->delete()->execute();
+  RepositoryTable::getInstance()->createQuery()->delete()->execute();
   
   $article = new Book();
   $article->setLang('fr');
@@ -29,21 +29,6 @@
   $t->isa_ok($article->getTagger(), 'sfTagCache', 'getTagger() returns a sfTagCache object');
 
   $t->is($article->getTagName(), 'Book_fr-foobarbaz', 'Multy unique column tables are compatible with tag names');
-
-  try
-  {
-    $repo = new Repository();
-    $repo->setHash(md5(microtime()));
-    $repo->setVersion(10);
-    $repo->save();
-
-    $t->fail('Config contains fake column name. Exception is not thrown');
-  }
-  catch (sfConfigurationException $e)
-  {
-    $t->pass($e->getMessage());
-  }
-
 
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();

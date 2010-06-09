@@ -23,5 +23,6 @@
   {
     $t->pass('cached "UnexpectedValueException" when there are no sfContenxt instances');
   }
+
   
 
