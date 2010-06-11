@@ -12,6 +12,8 @@
 
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
   
+  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
+  $cc->run();
 
   $sfViewCacheManager = sfContext::getInstance()->getViewCacheManager();
 
@@ -27,8 +29,3 @@
   $content = ob_get_clean();
 
   $t->ok(false !== strpos($content, '<h1>Post listing</h1>'), 'content is printed out');
-
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
-
-

@@ -12,6 +12,9 @@
 
   Doctrine::loadData(dirname(__FILE__) . '/../../data/fixtures/fixtures.yml');
 
+  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
+  $cc->run();
+
   $browser = new sfTestFunctional(new sfBrowser());
 
   $browser->getAndCheck('blog_post', 'actionWithLayout', '/blog_post/actionWithLayout', 200);
@@ -57,5 +60,3 @@
     ->checkElement('.posts a[id*="bar"]', 'BarBar')
     ->end();
 
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();

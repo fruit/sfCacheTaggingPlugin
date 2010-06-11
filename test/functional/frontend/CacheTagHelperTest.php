@@ -11,14 +11,15 @@
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
-  
+
+  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
+  $cc->run();
 
   $sfViewCacheManager = sfContext::getInstance()->getViewCacheManager();
 
   sfContext::getInstance()->getConfiguration()->loadHelpers(array('CacheTag'));
 
   $t = new lime_test();
-
 
   $t->ok(! sfConfig::get('symfony.cache.started'), 'session is not started');
   $t->ok(! sfConfig::get('symfony.cache.current_name'), 'session name is not set');
@@ -89,9 +90,3 @@
   $t->ok(! sfConfig::get('symfony.cache.started'), 'session is not started');
   $t->ok(! sfConfig::get('symfony.cache.current_name'), 'session name is not set');
   $t->ok(! sfConfig::get('symfony.cache.lifetime'), 'session lifetime is not set');
-
-
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
-
-
