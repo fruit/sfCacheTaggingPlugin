@@ -51,7 +51,7 @@
 
         if (null !== ($first = $collection->getFirst()))
         {
-          $tagger = sfContext::getInstance()->getViewCacheManager()->getTagger();
+          $tagger = sfContext::getInstance()->getViewCacheManager()->getTaggingCache();
 
           $lastSavedVersion = $tagger->getTag(get_class($first));
 
@@ -76,6 +76,11 @@
       return $tags;
     }
 
+    protected function choiceNewerTag ($a, $b)
+    {
+      return $a < $b;
+    }
+
     /**
      * Returns this collection and added tags
      *
@@ -83,7 +88,14 @@
      */
     public function getTags ()
     {
-      return array_merge($this->tags, $this->fetchTags());
+      $selfTags = $this->fetchTags();
+
+      return array_merge(
+        $selfTags,
+        $this->tags,
+        array_uintersect_assoc($selfTags, $this->tags, array($this, 'choiceNewerTag')),
+        array_uintersect_assoc($this->tags, $selfTags, array($this, 'choiceNewerTag'))
+      );
     }
 
     /**
@@ -126,6 +138,15 @@
       $this->tags = array();
 
       return;
+    }
+
+    public function delete (Doctrine_Connection $conn = null, $clearColl = true)
+    {
+      $returnValue = parent::delete($conn, $clearColl);
+
+      $this->removeTags();
+
+      return $returnValue;
     }
   }
 

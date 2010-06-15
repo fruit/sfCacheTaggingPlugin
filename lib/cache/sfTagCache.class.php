@@ -126,10 +126,8 @@ class sfTagCache extends sfCache
    */
   public function getCache ()
   {
-    trigger_error(
-      'sfTagCache::getCache() is depricated since v1.3.1. ' .
-        'Use sfTagCache::getDataCache().',
-      E_USER_DEPRECATED
+    sfCacheTaggingToolkit::triggerMethodIsDeprecated(
+      __METHOD__, 'sfTagCache::getDataCache', 'v1.3.1'
     );
 
     return $this->getDataCache();
@@ -152,10 +150,8 @@ class sfTagCache extends sfCache
    */
   public function getLocker ()
   {
-    trigger_error(
-      'sfTagCache::getLocker() is depricated since v1.3.1. ' .
-        'Use sfTagCache::getLockerCache().',
-      E_USER_DEPRECATED
+    sfCacheTaggingToolkit::triggerMethodIsDeprecated(
+      __METHOD__, 'sfTagCache::getLockerCache', 'v1.3.1'
     );
 
     return $this->getLockerCache();

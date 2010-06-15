@@ -43,11 +43,25 @@
     }
 
     /**
+     * previuos version support
+     * 
+     * @deprecated since v1.4.4 use Doctrine_Template_Listener_Cachetaggable::getTaggingCache()
+     */
+    public function getTagger ()
+    {
+      sfCacheTaggingToolkit::triggerMethodIsDeprecated(
+        __METHOD__, 'Doctrine_Template_Listener_Cachetaggable::getTaggingCache', 'v1.4.4'
+      );
+
+      return $this->getTaggingCache();
+    }
+
+    /**
      * Returns cache class to work with cache data, keys and locks
      *
      * @return sfTagCache
      */
-    public function getTagger ()
+    public function getTaggingCache ()
     {
       if (! sfContext::hasInstance())
       {
@@ -61,7 +75,7 @@
         throw new UnexpectedValueException('Application\'s sfViewManager should be the instance of sfViewCacheTagManager');
       }
 
-      return $manager->getTagger();
+      return $manager->getTaggingCache();
     }
 
     /**
@@ -84,9 +98,11 @@
     {
       try
       {
+        $taggingCache = $this->getTaggingCache();
+
         if (null !== $this->preDeleteTagName)
         {
-          $this->getTagger()->deleteTag($this->preDeleteTagName);
+          $taggingCache->deleteTag($this->preDeleteTagName);
         }
       }
       catch (UnexpectedValueException $e)
@@ -125,7 +141,7 @@
     {
       try
       {
-        $taggerCache = $this->getTagger();
+        $taggingCache = $this->getTaggingCache();
       }
       catch (UnexpectedValueException $e)
       {
@@ -155,11 +171,15 @@
         }
       }
 
+
       $tagLifetime = sfCacheTaggingToolkit::getTagLifetime();
 
-      $taggerCache->setTag($object->getTagName(), $object->getObjectVersion(), $tagLifetime);
+      $taggingCache->setTag($object->getTagName(), $object->getObjectVersion(), $tagLifetime);
+      $taggingCache->setTag(get_class($object), $object->getObjectVersion(), $tagLifetime);
 
-      $taggerCache->setTag(get_class($object), $object->getObjectVersion(), $tagLifetime);
+      # updating object tags
+      $object->addTag($object->getTagName(), $object->getObjectVersion());
+      $object->addTag(get_class($object), $object->getObjectVersion());
     }
 
     /**
@@ -172,7 +192,7 @@
     {
       try
       {
-        $taggerCache = $this->getTagger();
+        $taggingCache = $this->getTaggingCache();
       }
       catch (UnexpectedValueException $e)
       {
@@ -201,10 +221,10 @@
 
       foreach ($selectQuery->execute() as $object)
       {
-        $taggerCache->setTag($object->getTagName(), $updateVersion, $lifetime);
+        $taggingCache->setTag($object->getTagName(), $updateVersion, $lifetime);
       }
       
-      $taggerCache->setTag(get_class($object), $updateVersion, $lifetime);
+      $taggingCache->setTag(get_class($object), $updateVersion, $lifetime);
     }
 
     /**
@@ -217,7 +237,7 @@
     {
       try
       {
-        $cacheTagger = $this->getTagger();
+        $taggingCache = $this->getTaggingCache();
       }
       catch (UnexpectedValueException $e)
       {
@@ -240,7 +260,7 @@
 
       foreach ($q->select()->execute() as $object)
       {
-        $cacheTagger->deleteTag($object->getTagName());
+        $taggingCache->deleteTag($object->getTagName());
       }
     }
   }

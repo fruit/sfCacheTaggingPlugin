@@ -21,7 +21,7 @@
 
     <?php if (! cache_tag('name', 600)): ?>
 
-      ... HTML ...
+      … HTML …
 
       <?php cache_save(array('tag' => time()) ?>
     <?php endif; ?>
@@ -47,9 +47,7 @@
       throw new sfCacheException('Cache already started.');
     }
 
-    $viewCacheManager = sfContext::getInstance()->getViewCacheManager();
-
-    $data = $viewCacheManager->startWithTags($name);
+    $data = sfContext::getInstance()->getViewCacheManager()->startWithTags($name);
 
     if (null === $data)
     {
@@ -71,7 +69,7 @@
    *    array(
    *      #array("key: tag name" => "value: tag version"),
    *      array("user_comment_votes" => "12983219319283213"),
-   *      ...
+   *      …
    *
    * @throws sfCacheException
    * @return null|void null if cache is disable at all, otherwise void
@@ -88,14 +86,15 @@
       throw new sfCacheException('Cache not started.');
     }
 
-    $viewCacheManager = sfContext::getInstance()->getViewCacheManager();
-
+    $cacheManager = sfContext::getInstance()->getViewCacheManager();
+    $cacheManagerBridge = new sfViewCacheTagManagerBridge($cacheManager);
+      
     if (null !== $tags)
     {
-      $viewCacheManager->addTags($tags);
+      $cacheManagerBridge->addUserTags($tags);
     }
     
-    $data = $viewCacheManager->stopWithTags(
+    $data = $cacheManager->stopWithTags(
       sfConfig::get('symfony.cache.current_name', ''),
       sfConfig::get('symfony.cache.lifetime', null)
     );
@@ -104,7 +103,7 @@
     sfConfig::set('symfony.cache.current_name', null);
     sfConfig::set('symfony.cache.lifetime', null);
 
-    $viewCacheManager->clearTags();
+    $cacheManagerBridge->removeUserTags();
 
     return $data;
   }

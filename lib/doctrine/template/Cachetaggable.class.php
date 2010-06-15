@@ -183,8 +183,20 @@
      *
      * @return sfTagCache
      */
+    public function getTaggingCache ()
+    {
+      return sfContext::getInstance()->getViewCacheManager()->getTaggingCache();
+    }
+
+    /**
+     * @deprecated since v1.4.4 use Doctrine_Template_Cachetaggable::getTaggingCache
+     */
     public function getTagger ()
     {
-      return sfContext::getInstance()->getViewCacheManager()->getTagger();
+      sfCacheTaggingToolkit::triggerMethodIsDeprecated(
+        __METHOD__, 'Doctrine_Template_Cachetaggable::getTaggingCache', 'v1.4.4'
+      );
+
+      return $this->getTaggingCache();
     }
   }

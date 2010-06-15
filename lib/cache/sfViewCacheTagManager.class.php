@@ -28,26 +28,20 @@
     protected $taggingCache = null;
 
     /**
+     * Tag content handler with namespace holder (tag setting/adding/removing)
+     * 
+     * @var sfContentTagHandler
+     */
+    protected $contentTagHandler = null;
+
+    /**
      * sfViewCacheTagManager option holder
      *
      * @var array
      */
     protected $options = array();
 
-    /**
-     * Page tags
-     *
-     * @var array
-     */
-    protected $pageTags = array();
-
-    /**
-     * Action tags
-     *
-     * @var array
-     */
-    protected $actionTags = array();
-
+    
     /**
      * sfViewCacheTagManager options
      *
@@ -59,44 +53,21 @@
     }
 
     /**
-     * Declaring page tags in action
+     * Sets options to the sfTagCache
      *
-     * @author Martin Schnabel <mcnilz@gmail.com>
-     * @param array $pageTags
+     * @param array $options
      */
-    public function setPageTags ($pageTags)
+    public function setOptions (array $options)
     {
-      $this->pageTags = sfCacheTaggingToolkit::formatTags($pageTags);
+      $this->options = $options;
     }
 
     /**
-     * Returns added page tags
-     *
-     * @return array
+     * @return sfContentTagHandler
      */
-    public function getPageTags ()
+    public function getContentTagHandler ()
     {
-      return $this->pageTags;
-    }
-
-    /**
-     * Declaring action tags
-     *
-     * @param array $actionTags
-     */
-    public function setActionTags ($actionTags)
-    {
-      $this->actionTags = sfCacheTaggingToolkit::formatTags($actionTags);
-    }
-
-    /**
-     * Returns added action tags
-     *
-     * @return array
-     */
-    public function getActionTags ()
-    {
-      return $this->actionTags;
+      return $this->contentTagHandler;
     }
 
     /**
@@ -109,10 +80,13 @@
 
     /**
      * @param sfEventDispatcher $eventDispatcher
+     * @return sfViewCacheTagManager
      */
     protected function setEventDispatcher (sfEventDispatcher $eventDispatcher)
     {
       $this->dispatcher = $eventDispatcher;
+
+      return $this;
     }
 
     /**
@@ -136,15 +110,26 @@
         );
       }
 
-      $this->context    = $context;
-      $this->setEventDispatcher($context->getEventDispatcher());
-      $this->controller = $context->getController();
-      $this->request    = $context->getRequest();
+      $this->setTaggingCache($taggingCache);
+      $this->cache = $this->getTaggingCache()->getDataCache();
 
-      $this->options    = array_merge(array(
-        'cache_key_use_vary_headers' => true,
-        'cache_key_use_host_name'    => true,
-        ), $options);
+      $this->contentTagHandler = new sfContentTagHandler();
+
+      $this->setEventDispatcher($context->getEventDispatcher());
+
+      $this->context = $context;
+      $this->controller = $context->getController();
+      $this->request = $context->getRequest();
+      $this->routing = $context->getRouting();
+
+
+      $this->setOptions(array_merge(
+        array(
+          'cache_key_use_vary_headers' => true,
+          'cache_key_use_host_name'    => true,
+        ), 
+        $options
+      ));
 
       if (sfConfig::get('sf_web_debug'))
       {
@@ -156,13 +141,6 @@
 
       // empty configuration
       $this->cacheConfig = array();
-
-      $this->setTaggingCache($taggingCache);
-
-      $this->cache = $this->getTaggingCache()->getDataCache();
-
-      // routing instance
-      $this->routing = $context->getRouting();
     }
 
     /**
@@ -174,21 +152,28 @@
     }
 
     /**
-     * @deprecated use sfViewCacheTagManager::getTaggingCache()
+     * @deprecated use sfViewCacheTagManager::getTaggingCache() since v1.4.4
      *
      * @return sfTagCache
      */
     public function getTagger ()
     {
+      sfCacheTaggingToolkit::triggerMethodIsDeprecated(
+        __METHOD__, 'sfViewCacheTagManager::getTaggingCache', 'v1.4.4'
+      );
+
       return $this->getTaggingCache();
     }
 
     /**
      * @param sfTagCache $taggingCache
+     * @return sfViewCacheTagManager
      */
     protected function setTaggingCache (sfTagCache $taggingCache)
     {
       $this->taggingCache = $taggingCache;
+
+      return $this;
     }
 
     /**
@@ -222,7 +207,12 @@
     {
       $data = ob_get_clean();
 
-      $this->getTaggingCache()->set($key, $data, $lifetime, $this->getTags());
+      $this->getTaggingCache()->set(
+        $key,
+        $data,
+        $lifetime, 
+        $this->getContentTagHandler()->getContentTags(sfContentTagHandler::NAMESPACE_USER)
+      );
 
       return $data;
     }
@@ -231,43 +221,69 @@
      * Temporary stores tag keys, while buffer is writing
      *
      * @param array $tags
+     * @deprecated since v1.4.4
+     * @return sfViewCacheTagManager
      */
     public function setTags ($tags)
     {
-      sfConfig::set(
-        sfCacheTaggingToolkit::NAMESPACE_CACHE_TAGS,
-        sfCacheTaggingToolkit::formatTags($tags)
-      );
+      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
+
+      $this
+        ->getContentTagHandler()
+        ->setContentTags($tags, sfContentTagHandler::NAMESPACE_USER)
+      ;
+
+      return $this;
     }
 
     /**
      * Appends the tags
      *
      * @param array|Doctrine_Record|Doctrine_Collection_Cachetaggable|ArrayAccess $tags
+     * @deprecated since v1.4.4
+     * @return sfViewCacheTagManager
      */
     public function addTags ($tags)
     {
+      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
+
       $this->setTags(
         array_merge($this->getTags(), sfCacheTaggingToolkit::formatTags($tags))
       );
+
+      return $this;
     }
 
     /**
      * Returns added tags
      *
+     * @deprecated since v1.4.4
      * @return array
      */
     public function getTags ()
     {
-      return sfConfig::get(sfCacheTaggingToolkit::NAMESPACE_CACHE_TAGS, array());
+      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
+
+      return $this
+        ->getContentTagHandler()
+        ->getContentTags(sfContentTagHandler::NAMESPACE_USER);
     }
 
     /**
      * Clears the tags
+     *
+     * @deprecated since v1.4.4
+     * @return sfViewCacheTagManager
      */
     public function clearTags ()
     {
-      $this->setTags(array());
+      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
+
+      $this
+        ->getContentTagHandler()
+        ->removeContentTags(sfContentTagHandler::NAMESPACE_USER);
+
+      return $this;
     }
 
     /**
@@ -435,15 +451,19 @@
         return $content;
       }
 
-      $saved = $this->set(
-        array(
-          'content' => $content,
-          'decoratorTemplate' => $decoratorTemplate,
-          'response' => $this->context->getResponse()
-        ),
-        $uri,
-        $this->getActionTags()
+      $actionTags = $this
+        ->getContentTagHandler()
+        ->getContentTags(
+          sfContentTagHandler::NAMESPACE_ACTION
+        );
+
+      $actionCacheValue = array(
+        'content'           => $content,
+        'decoratorTemplate' => $decoratorTemplate,
+        'response'          => $this->context->getResponse()
       );
+
+      $saved = $this->set($actionCacheValue, $uri, $actionTags);
 
       if ($saved and sfConfig::get('sf_web_debug'))
       {
@@ -478,10 +498,14 @@
         return;
       }
 
+      $pageTags = $this
+        ->getContentTagHandler()
+        ->getContentTags(
+          sfContentTagHandler::NAMESPACE_PAGE
+        );
+
       // save content in cache
-      $saved = $this->set(
-        serialize($this->context->getResponse()), $uri, $this->getPageTags()
-      );
+      $saved = $this->set(serialize($this->context->getResponse()), $uri, $pageTags);
 
       if ($saved and sfConfig::get('sf_web_debug'))
       {
