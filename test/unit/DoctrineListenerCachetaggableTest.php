@@ -16,7 +16,7 @@
 
   try
   {
-    $lnr->getTagger();
+    $lnr->getTaggingCache();
     $t->fail('sfContext does not have instances');
   }
   catch (UnexpectedValueException $e)

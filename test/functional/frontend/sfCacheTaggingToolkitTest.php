@@ -11,12 +11,13 @@
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
-  
-  $sfViewCacheManager = sfContext::getInstance()->getViewCacheManager();
+
+  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
+  $cc->run();
+
+  $cacheManager = sfContext::getInstance()->getViewCacheManager();
 
   $t = new lime_test();
-
-
 
   try
   {
@@ -25,7 +26,7 @@
 
     sfCacheTaggingToolkit::formatTags($p);
 
-    $t->pass('sfCacheTaggingToolkit::formatTags() works for Doctrine_Record with Tagging template');
+    $t->pass('sfCacheTaggingToolkit::formatTags() works for Doctrine_Record with "Doctrine_Template_Cachetaggable" template');
   }
   catch (InvalidArgumentException $e)
   {
@@ -38,7 +39,7 @@
     $u->save();
     sfCacheTaggingToolkit::formatTags($u);
 
-    $t->fail('sfCacheTaggingToolkit::formatTags() works for Doctrine_Record');
+    $t->fail('sfCacheTaggingToolkit::formatTags() does not works for Doctrine_Record without "Doctrine_Template_Cachetaggable" template');
   } 
   catch (InvalidArgumentException $e)
   {
@@ -49,5 +50,55 @@
   UniversityTable::getInstance()->createQuery()->delete()->execute();
 
 
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
+  $precisionToTest = array(
+    array('value' => -1, 'throwException' => true),
+    array('value' =>  0, 'throwException' => false),
+    array('value' =>  3, 'throwException' => false),
+    array('value' =>  6, 'throwException' => false),
+    array('value' =>  7, 'throwException' => true),
+  );
+
+  # if precision approach to 0, unit tests will be failed
+  # (0 precision is too small for the current test)
+
+  foreach ($precisionToTest as $precisionTest)
+  {
+    try
+    {
+      sfConfig::set('app_sfcachetaggingplugin_microtime_precision', $precisionTest['value']);
+
+      sfCacheTaggingToolkit::getPrecision();
+
+      if ($precisionTest['throwException'])
+      {
+        $t->fail(sprintf(
+          'Should be thrown an OutOfRangeException value "%d" no in range 0…6',
+          $precisionTest['value']
+        ));
+      }
+      else
+      {
+        $t->pass(sprintf(
+          'Precision value "%d" in range 0…6, no exception was thrown',
+          $precisionTest['value']
+        ));
+      }
+    }
+    catch (OutOfRangeException $e)
+    {
+      if ($precisionTest['throwException'])
+      {
+        $t->pass(sprintf(
+          'OutOfRangeException catched value "%d" is not in range 0…6',
+          $precisionTest['value']
+        ));
+      }
+      else
+      {
+        $t->fail(sprintf(
+          'Precision value "%d" in range 0…6, exception was thrown',
+          $precisionTest['value']
+        ));
+      }
+    }
+  }

@@ -9,21 +9,25 @@
   */
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
-  require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
+  
+  $browser = new sfTestFunctional(new sfBrowser());
+
+  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
+  $cc->run();
+
 
   define('PLUGIN_DATA_DIR', realpath(dirname(__FILE__) . '/../../data'));
 
   define('SF_VIEW_CACHE_MANAGER_EVENT_NAME', 'view.cache.filter_content');
 
-  
   $sfContext = sfContext::getInstance();
 
   $sfContext->getConfiguration()->loadHelpers(array('Url'));
   
   $sfEventDispatcher = $sfContext->getEventDispatcher();
-  $sfViewCacheManager = $sfContext->getViewCacheManager();
+  $cacheManager = $sfContext->getViewCacheManager();
 
-  $sfTagger = $sfViewCacheManager->getTagger();
+  $sfTagger = $cacheManager->getTaggingCache();
 
   $dataCacheSetups = sfYaml::load(PLUGIN_DATA_DIR . '/config/cache_setup.yml');
   $lockCacheSetups = $dataCacheSetups;
@@ -31,7 +35,7 @@
   $count = count($dataCacheSetups);
 
   # $count - cache adapter count (cross chechs for tagger cache adapter and locker cache adapter)
-  $t = new lime_test();
+  $t = $browser->test();
 
   try
   {
@@ -60,15 +64,15 @@
 
 
 
-  $t->is($sfViewCacheManager->startWithTags('some_cache_key'), null, 'ob_start() on new key');
+  $t->is($cacheManager->startWithTags('some_cache_key'), null, 'ob_start() on new key');
   $t->diag('Output some content for testing ob_start() in sfViewCacheManager');
-  $t->isnt($content = $sfViewCacheManager->stopWithTags('some_cache_key', null), null, 'ob_get_clean() on key "some_cache_key"');
+  $t->isnt($content = $cacheManager->stopWithTags('some_cache_key', null), null, 'ob_get_clean() on key "some_cache_key"');
   print $content;
-  $t->isnt($sfViewCacheManager->startWithTags('some_cache_key'), '', 'ob_start() on old key');
+  $t->isnt($cacheManager->startWithTags('some_cache_key'), '', 'ob_start() on old key');
 
   try
   {
-    $sfViewCacheManager->initialize($sfContext, new sfAPCCache(), $options);
+    $cacheManager->initialize($sfContext, new sfAPCCache(), $options);
     $t->fail('Exception "InvalidArgumentException" was trigged');
   }
   catch (InvalidArgumentException $e)
@@ -79,163 +83,50 @@
     ));
   }
 
-  $precisionToTest = array(
-    array('value' => -1, 'throwException' => true),
-    array('value' =>  0, 'throwException' => false),
-    array('value' =>  3, 'throwException' => false),
-    array('value' =>  6, 'throwException' => false),
-    array('value' =>  7, 'throwException' => true),
-  );
-
-  # if precision approach to 0, unit tests will be failed
-  # (0 precision is too small for the current test)
-
-  foreach ($precisionToTest as $precisionTest)
-  {
-    try
-    {
-      sfConfig::set('app_sfcachetaggingplugin_microtime_precision', $precisionTest['value']);
-
-      sfCacheTaggingToolkit::getPrecision();
-
-      if ($precisionTest['throwException'])
-      {
-        $t->fail(sprintf(
-          'Should be thrown an OutOfRangeException value "%d" no in range 0…6',
-          $precisionTest['value']
-        ));
-      }
-      else
-      {
-        $t->pass(sprintf(
-          'Precision value "%d" in range 0…6, no exception was thrown',
-          $precisionTest['value']
-        ));
-      }
-    }
-    catch (OutOfRangeException $e)
-    {
-      if ($precisionTest['throwException'])
-      {
-        $t->pass(sprintf(
-          'OutOfRangeException catched value "%d" is not in range 0…6',
-          $precisionTest['value']
-        ));
-      }
-      else
-      {
-        $t->fail(sprintf(
-          'Precision value "%d" in range 0…6, exception was thrown',
-          $precisionTest['value']
-        ));
-      }
-    }
-  }
-
   sfConfig::set('app_sfcachetaggingplugin_microtime_precision', 5);
 
-  $posts = BlogPostTable::getInstance()->findAll();
-  $posts->delete();
 
-  $postComments = BlogPostCommentTable::getInstance()->findAll();
-  $postComments->delete();
-
-  $postTagKey = BlogPostTable::getInstance()->getClassnameToReturn();
-  $postCommentTagKey = BlogPostCommentTable::getInstance()->getClassnameToReturn();
-
-  $postCollectionTag = array("{$postTagKey}"   => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
-  $postCommentCollectionTag = array("{$postCommentTagKey}"   => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
-
-  $t->is(
-    $posts->getTags(),
-    $postCollectionTag,
-    'Doctrine_Collection returns 1 tag BlogPost as collection listener tag'
-  );
-
-  try
-  {
-    $posts->addTag(array('MyTag'), 28182);
-    $t->fail('Exception "InvalidArgumentException" was not thrown');
-  }
-  catch (InvalidArgumentException $e)
-  {
-    $t->pass(sprintf('Exception "%s" is thrown. (catched)', get_class($e)));
-  }
-
-  $posts->addTag('SomeTag', 1239218391283213);
-  $t->is(count($posts->getTags()), 2, 'Adding new tag.');
-  $posts->addTag('SomeTag', 40545945);
-  $t->is(count($posts->getTags()), 2, 'Adding tag with the same tag name "SomeTag".');
-  $posts->addTag('SomeTagNew', 1239218391283213);
-  $t->is(count($posts->getTags()), 3, 'Adding tag with new tag name "SomeTagNew".');
-
-  $tagsToAdd = array(
-    "{$postTagKey}_1" => 1238732512, "{$postTagKey}_2" => 4968984292,
-    "{$postTagKey}_3" => 3823394234, "{$postTagKey}_4" => 4989238912,
-  );
-
-  $tagsToReturn = array_merge($tagsToAdd, $postCollectionTag);
-
-  $posts->removeTags();
-  $t->is($posts->getTags(), $postCollectionTag, 'cleaned added tags');
-
-  $posts->addTags($tagsToAdd);
-  $t->is($posts->getTags(), $tagsToReturn, 'passed tags equals to added as "array"');
-
-  $posts->removeTags();
-  $posts->addTags(new ArrayIterator($tagsToAdd));
-  $t->is($posts->getTags(), $tagsToReturn, 'passed tags equals to added as "ArrayIterator"');
-
-  $posts->removeTags();
-  $posts->addTags(new ArrayObject($tagsToAdd));
-  $t->is($posts->getTags(), $tagsToReturn, 'passed tags equals to added as "ArrayObject"');
-
-
-
-  $posts->removeTags();
-  $posts->addTags($postComments);
-  $t->is($posts->getTags(), array_merge($postCollectionTag, $postCommentCollectionTag), 'passed tags equals to added as "Doctrine_Collection_Cachetaggable"');
-  $posts->removeTags();
-
-  try
-  {
-    $posts->addTags('someTag');
-    $t->fail('Exception "InvalidArgumentException" was NOT thrown');
-  }
-  catch (InvalidArgumentException $e)
-  {
-    $t->pass(sprintf(
-      'Exception "%s" is thrown (catched). String is not acceptable',
-      get_class($e)
-    ));
-  }
-
-  $posts = BlogPostTable::getInstance()->findAll();
-  $sfViewCacheManager->addTags($posts);
-  $t->is($sfViewCacheManager->getTags(), $postCollectionTag, 'Tags stored in manager are full/same');
-  $sfViewCacheManager->addTags(array('SomeTag' => 1234567890));
-  $t->is($sfViewCacheManager->getTags(), array_merge(array('SomeTag' => 1234567890), $postCollectionTag), 'Tags with new tag are successfully saved');
-  $sfViewCacheManager->clearTags();
-  $t->is($sfViewCacheManager->getTags(), array(), 'All tags are cleared');
+  Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml');
 
   foreach ($dataCacheSetups as $data)
   {
     foreach ($lockCacheSetups as $locker)
     {
-      Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml');
-      $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
+      $t->info(sprintf('Data/Locker - %s/%s combination', $data['class'], $locker['class']));
+      
+      $connection = Doctrine::getConnectionByTableName('BlogPost');
 
-      $sfTagger->initialize(array('logging' => true, 'cache' => $data, 'locker' => $locker));
-      $sfTagger->clean();
+      
+
+      
+
+      try
+      {
+        $sfTagger->initialize(array('logging' => true, 'cache' => $data, 'locker' => $locker));
+        $sfTagger->clean();
+
+      }
+      catch (sfInitializationException $e)
+      {
+        $t->comment(sprintf(
+          'Skipping combination %s/%s. %s.',
+          $data['class'],
+          $locker['class'],
+          $e->getMessage()
+        ));
+
+        continue;
+      }
 
 
+      
       $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
-      $sfViewCacheManager->initialize($sfContext, $sfTagger, $sfViewCacheManager->getOptions());
+      $cacheManager->initialize($sfContext, $sfTagger, $cacheManager->getOptions());
       $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
 
       $t->ok(
         $listenersCountAfter == $listenersCountBefore,
-        '"sf_web_debug" is disabled in test environment'
+        '"sf_web_debug" was disabled in test environment'
       );
 
       $sfWebDebug = sfConfig::get('sf_web_debug');
@@ -244,7 +135,7 @@
 
 
       $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
-      $sfViewCacheManager->initialize($sfContext, $sfTagger, $sfViewCacheManager->getOptions());
+      $cacheManager->initialize($sfContext, $sfTagger, $cacheManager->getOptions());
       $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
 
       $t->ok(
@@ -254,13 +145,11 @@
 
       sfConfig::set('sf_web_debug', $sfWebDebug);
 
-      $t->comment(sprintf(
-        'Setuping new configuration (data: "%s", locker: "%s")',
-        get_class($sfTagger->getDataCache()),
-        get_class($sfTagger->getLockerCache())
-      ));
-
+      $connection->beginTransaction();
+      
       $t->is($sfTagger->get('posts'), false, 'cache is NOT empty');
+
+      $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
       $t->is(
         $sfTagger->set('posts', $posts, null, $posts->getTags()),
@@ -397,8 +286,6 @@
 
       $t->is(null === ($sfTagger->get('posts+comments')), true, '"posts+comments" is expired, 3 fruit comment updated');
 
-      $t->diag('Empty Doctrine_Collection tests');
-
       BlogPostTable::getInstance()->createQuery()->delete()->execute();
       $emptyPosts = BlogPostTable::getInstance()->findAll();
 
@@ -475,8 +362,7 @@
       $newPostComment->save();
 
       $t->is(null === ($sfTagger->get('posts+comments')), true, '"posts+comments" are expired (first associated comment was saved)');
+
+      $connection->rollback();
     }
   }
-
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();

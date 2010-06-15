@@ -15,7 +15,8 @@
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
 
-  $sfViewCacheManager = sfContext::getInstance()->getViewCacheManager();
+  $cacheManager = sfContext::getInstance()->getViewCacheManager();
+  /* @var $cacheManager sfViewCacheTagManager */
 
   sfContext::getInstance()->getConfiguration()->loadHelpers(array('CacheTag'));
 
@@ -63,12 +64,12 @@
 
 
 
-  $tags = $sfViewCacheManager->getTags();
-
+//  $tags = $cacheManager->getTags();
+  $tags = $cacheManager->getContentTagHandler()->getContentTags(sfContentTagHandler::NAMESPACE_USER);
   # its removes permanently tags after function get_cache_tag_save is finished
   $content = get_cache_tag_save($newTags);
 
-  $t->is($sfViewCacheManager->getTags(), array(), 'Tags are removed after function get_cache_tag_save() is successfully runned');
+  $t->is($cacheManager->getContentTagHandler()->getContentTags(sfContentTagHandler::NAMESPACE_USER), array(), 'Tags are removed after function get_cache_tag_save() is successfully runned');
 
   print $content;
 

@@ -11,10 +11,13 @@
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
-  $sfContext = sfContext::getInstance();
-  $sfViewCacheManager = $sfContext->getViewCacheManager();
+  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
+  $cc->run();
 
-  $sfTagger = $sfViewCacheManager->getTagger();
+  $sfContext = sfContext::getInstance();
+  $cacheManager = $sfContext->getViewCacheManager();
+
+  $sfTagger = $cacheManager->getTaggingCache();
   
   $t = new lime_test();
 
@@ -150,6 +153,3 @@
   $t->ok($food->delete(), 'Food is "deleted" (really - NOT)');
 
   $t->ok(! $sfTagger->hasTag($bananasTagName), 'After SoftDelete "deletes" objects - tag cache is removed too');
-
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
