@@ -100,49 +100,65 @@
     /**
      * Format passed tags to the array
      *
-     * @param array|Doctrine_Record|Doctrine_Collection_Cachetaggable|ArrayAccess $tags
+     * @param array|Doctrine_Collection_Cachetaggable|Doctrine_Record|ArrayIterator|Iterator $tags
      * @throws InvalidArgumentException
      * @return array
      */
     public static function formatTags ($tags)
     {
+      $tagsToReturn = array();
+
       if (is_array($tags))
       {
-        $mergeWith = $tags;
+        $tagsToReturn = $tags;
       }
       elseif ($tags instanceof Doctrine_Collection_Cachetaggable)
       {
-        $mergeWith = $tags->getTags();
+        $tagsToReturn = $tags->getTags();
       }
       elseif ($tags instanceof Doctrine_Record)
       {
         if (! $tags->getTable()->hasTemplate('Doctrine_Template_Cachetaggable'))
         {
           throw new InvalidArgumentException(sprintf(
-            'Object "%s" should have a "%s" template',
+            'Object "%s" should have the "%s" template',
             $tags->getTable()->getClassnameToReturn(),
             'Doctrine_Template_Cachetaggable'
           ));
         }
 
-        $mergeWith = $tags->getTags();
+        $tagsToReturn = $tags->getTags();
       }
       # Doctrine_Collection_Cachetaggable and Doctrine_Record are instances of ArrayAccess
       # this check should be after them
-      elseif ($tags instanceof ArrayAccess)
+      elseif ($tags instanceof ArrayIterator or $tags instanceof ArrayObject)
       {
-        $mergeWith = $tags;
+        $tagsToReturn = $tags->getArrayCopy();
+      }
+      elseif ($tags instanceof IteratorAggregate)
+      {
+        foreach ($tags->getIterator() as $key => $value)
+        {
+          $tagsToReturn[$key] = $value;
+        }
+      }
+      elseif ($tags instanceof Iterator)
+      {
+        foreach ($tags as $key => $value)
+        {
+          $tagsToReturn[$key] = $value;
+        }
       }
       else
       {
         throw new InvalidArgumentException(sprintf(
-          'Invalid argument type "%s". Acceptable types are: "array|ArrayAccess|%s"',
-          gettype($tags),
-          __CLASS__
+          'Invalid argument type "%s". See acceptable types in the PHPDOC of "%s"',
+          sprintf('%s %s', gettype($tags), is_object($tags) ? get_class($tags) : '~'),
+          __METHOD__
         ));
       }
 
-      return $mergeWith;
+      return $tagsToReturn;
     }
 
     /**
@@ -164,5 +180,63 @@
       }
 
       $tags[$tagName] = (string) $tagVersion;
+    }
+
+    /**
+     *
+     * @param sfEvent $event
+     * @return <type>
+     */
+    public static function listenOnComponentMethodNotFoundEvent (sfEvent $event)
+    {
+      $event->setProcessed(false);
+
+      $viewCacheManager = $event->getSubject()->getContext()->getViewCacheManager();
+
+      if (! $viewCacheManager instanceof sfViewCacheTagManager)
+      {
+        return;
+      }
+      
+      try
+      {
+        $callable = array(
+          new sfViewCacheTagManagerBridge($viewCacheManager),
+          $event['method']
+        );
+
+        $event->setReturnValue(call_user_func_array($callable, $event['arguments']));
+      }
+      catch (BadMethodCallException $e)
+      {
+        return;
+      }
+
+      $event->setProcessed(true);
+    }
+
+    public static function triggerMethodIsDeprecated ($deprecatedMethod, $newMethod = null, $since = null)
+    {
+      $message = sprintf('Method "%s" is deprecated', $deprecatedMethod);
+
+      if (null !== $since)
+      {
+        $message .= sprintf(' since %s.', $since);
+      }
+      else
+      {
+        $message .= '.';
+      }
+
+      if (null !== $newMethod)
+      {
+        $message .= sprintf(' Use "%s".', $newMethod);
+      }
+      else
+      {
+        $message .= ' Method would be removed in next release.';
+      }
+
+      trigger_error($message, E_USER_DEPRECATED);
     }
   }
