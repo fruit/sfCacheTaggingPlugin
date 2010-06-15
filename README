@@ -392,9 +392,9 @@ are not (atomic counter).
                   ->limit(3)
                   ->execute();
 
-                $this->getContext()->getViewCacheManager()->setTags($posts->getTags());
+                $this->setUserTags($posts->getTags());
                 # or equivalent
-                # $this->getContext()->getViewCacheManager()->setTags($posts);
+                # $this->setUserTags($posts);
 
                 $this->posts = $posts;
               }
@@ -443,10 +443,10 @@ are not (atomic counter).
                 }
 
                 # after, we pass all tags to cache manager
-                $this->getContext()->getViewCacheManager()->setTags($posts->getTags());
+                $this->setUserTags($posts->getTags());
 
                 # or shorter
-                # $this->getContext()->getViewCacheManager()->setTags($posts);
+                # $this->setUserTags($posts);
 
                 $this->posts = $posts;
               }
@@ -454,29 +454,12 @@ are not (atomic counter).
 
 * ### Adding tags to the whole page (action with layout)
 
- * In your action you only have to tell the sfViewCacheManager which tags to use for
-   caching the action. It is useful to add a little helper function for that:
-
-            [php]
-            class carActions extends sfActions
-            {
-              public function setPageTags ($tags)
-              {
-                $viewCacheManager = $this->getContext()->getViewCacheManager();
-
-                if ($viewCacheManager instanceof sfViewCacheTagManager)
-                {
-                  $viewCacheManager->setPageTags($tags);
-                }
-              }
-            }
-
   * Use it in your action to set the tags:
 
             [php]
             class carActions extends sfActions
             {
-              # ... setPageTags()
+              # … setPageTags()
 
               public function executeShow (sfWebRequest $request)
               {
@@ -501,29 +484,12 @@ are not (atomic counter).
 
 * ### Adding tags to the specific action (action without layout)
 
- * In your action you only have to tell the sfViewCacheManager which tags to use for
-   caching the action. It is useful to add a little helper function for that:
-
-            [php]
-            class carActions extends sfActions
-            {
-              public function setActionTags ($tags)
-              {
-                $viewCacheManager = $this->getContext()->getViewCacheManager();
-
-                if ($viewCacheManager instanceof sfViewCacheTagManager)
-                {
-                  $viewCacheManager->setActionTags($tags);
-                }
-              }
-            }
-
   * Use it in your action to set the tags:
 
             [php]
             class carActions extends sfActions
             {
-              # ... setActionTags()
+              # … setActionTags()
 
               public function executeShow (sfWebRequest $request)
               {
