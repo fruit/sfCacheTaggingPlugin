@@ -17,6 +17,7 @@
    */
   class Doctrine_Collection_Cachetaggable extends Doctrine_Collection
   {
+        
     /**
      * Object tags
      *
@@ -24,6 +25,35 @@
      */
     protected $tags = array();
 
+    protected $namespace = null;
+
+    protected function getNamespace ()
+    {
+      return $this->namespace;
+    }
+
+    public function __construct($table, $keyColumn = null)
+    {
+      parent::__construct($table, $keyColumn);
+
+      $this->namespace = sprintf(
+        '%s/%s/%s',
+        get_class($this),
+        $this->getTable()->getClassnameToReturn(),
+        sfCacheTaggingToolkit::generateVersion()
+      );
+    }
+
+    /**
+     * @return sfContentTagHandler
+     */
+    protected function getContentTagHandler ()
+    {
+      return sfContext::getInstance()
+        ->getViewCacheManager()
+        ->getContentTagHandler()
+      ;
+    }
     /**
      * Collects collection tags keys with its versions
      *
@@ -76,10 +106,7 @@
       return $tags;
     }
 
-    protected function choiceNewerTag ($a, $b)
-    {
-      return $a < $b;
-    }
+    
 
     /**
      * Returns this collection and added tags
@@ -88,14 +115,9 @@
      */
     public function getTags ()
     {
-      $selfTags = $this->fetchTags();
+      $this->addTags($this->fetchTags());
 
-      return array_merge(
-        $selfTags,
-        $this->tags,
-        array_uintersect_assoc($selfTags, $this->tags, array($this, 'choiceNewerTag')),
-        array_uintersect_assoc($this->tags, $selfTags, array($this, 'choiceNewerTag'))
-      );
+      return $this->getContentTagHandler()->getContentTags($this->getNamespace());
     }
 
     /**
@@ -109,12 +131,7 @@
      */
     public function addTags ($tags)
     {
-      $formatedTags = sfCacheTaggingToolkit::formatTags($tags);
-
-      foreach ($formatedTags as $tagName => $tagVersion)
-      {
-        $this->addTag($tagName, $tagVersion);
-      }
+      $this->getContentTagHandler()->addContentTags($tags, $this->getNamespace());
     }
 
     /**
@@ -125,7 +142,9 @@
      */
     public function addTag ($tagName, $tagVersion)
     {
-      sfCacheTaggingToolkit::addTag($this->tags, $tagName, $tagVersion);
+      $this->getContentTagHandler()->setContentTag(
+        $tagName, $tagVersion, $this->getNamespace()
+      );
     }
 
     /**
@@ -135,9 +154,7 @@
      */
     public function removeTags ()
     {
-      $this->tags = array();
-
-      return;
+      $this->getContentTagHandler()->removeContentTags($this->getNamespace());
     }
 
     public function delete (Doctrine_Connection $conn = null, $clearColl = true)

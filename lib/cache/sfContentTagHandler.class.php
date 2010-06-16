@@ -100,6 +100,6 @@
 
     public function hasContentTag ($tagName, $namespace)
     {
-      return $this->getHolder()->has($name, $namespace);
+      return $this->getHolder()->has($tagName, $namespace);
     }
   }

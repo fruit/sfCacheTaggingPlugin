@@ -70,7 +70,9 @@
 
       if (! preg_match($pattern, $method, $matches))
       {
-        throw new BadMethodCallException();
+        throw new BadMethodCallException(sprintf(
+          'Method "%s" does not exists in %s', $method, get_class($this)
+        ));
       }
 
       $contentNamespace = $matches[1];
