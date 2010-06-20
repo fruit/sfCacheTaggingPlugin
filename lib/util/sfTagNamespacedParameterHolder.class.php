@@ -15,18 +15,6 @@
    */
   class sfTagNamespacedParameterHolder extends sfNamespacedParameterHolder
   {
-    /**
-     * Custom method to skip older tag versions before mergin two tag arrays
-     *
-     * @param string $a
-     * @param string $b
-     * @return boolean
-     */
-    protected function choiceNewerTag ($a, $b)
-    {
-      return $a < $b;
-    }
-
     public function setNamespace ($value, $ns = null)
     {
       $ns = ! $ns ? $this->default_namespace : $ns;
@@ -34,20 +22,38 @@
       $this->parameters[$ns] = $value;
     }
 
-    public function remove($name, $default = null, $ns = null)
+    public function remove($tagName, $default = null, $ns = null)
     {
-      if (gettype($name) !== 'string')
+      if (gettype($tagName) !== 'string')
       {
         throw new InvalidArgumentException(sprintf(
-          'Name should be typeof "string" (given "%s")', gettype($name)
+          'Name should be typeof "string" (given "%s")', gettype($tagName)
         ));
       }
 
-      parent::remove($name, $default, $ns);
+      parent::remove($tagName, $default, $ns);
     }
 
-    public function set($name, $value, $ns = null)
+    public function set ($tagName, $tagVersion, $ns = null)
     {
+      if (! is_string($tagName))
+      {
+        throw new InvalidArgumentException(sprintf(
+          'Called "%s" with invalid first argument type "%s". Acceptable type is: "string"',
+          __METHOD__,
+          gettype($tagName)
+        ));
+      }
+
+      if (! is_scalar($tagVersion))
+      {
+        throw new InvalidArgumentException(sprintf(
+          'Called "%s" with invalid second argument type "%s".  are scalars',
+          __METHOD__,
+          gettype($tagVersion)
+        ));
+      }
+
       if (! $ns)
       {
         $ns = $this->default_namespace;
@@ -58,39 +64,21 @@
         $this->parameters[$ns] = array();
       }
 
-      if (gettype($value) !== 'string')
+      # skip old tag versions
+      if (! isset($this->parameters[$ns][$tagName]) or ($tagVersion > $this->parameters[$ns][$tagName]))
       {
-        throw new InvalidArgumentException(sprintf(
-          'Value should be typeof "string" (given "%s")', gettype($value)
-        ));
-      }
-
-      if (! isset($this->parameters[$ns][$name]))
-      {
-        $this->parameters[$ns][$name] = $value;
-      }
-      elseif ($value > $this->parameters[$ns][$name])
-      {
-        $this->parameters[$ns][$name] = $value;
+        $this->parameters[$ns][$tagName] = $tagVersion;
       }
     }
 
+    /**
+     *
+     * @throws InvalidArgumentException
+     * @param mixed $parameters
+     * @param mixed $ns
+     */
     public function add ($parameters, $ns = null)
     {
-      if ($parameters === null)
-      {
-        throw new InvalidArgumentException(sprintf(
-          'parameters should be not null'
-        ));
-      }
-
-      if (is_scalar($parameters))
-      {
-        throw new InvalidArgumentException(sprintf(
-          'Parameters should be scalar (given "%s")', gettype($parameters)
-        ));
-      }
-
       if (! $ns)
       {
         $ns = $this->default_namespace;
@@ -103,11 +91,9 @@
 
       $parameters = sfCacheTaggingToolkit::formatTags($parameters);
 
-      $this->parameters[$ns] = array_merge(
-        $this->parameters[$ns],
-        $parameters,
-        array_uintersect_assoc($this->parameters[$ns], $parameters, array($this, 'choiceNewerTag')),
-        array_uintersect_assoc($parameters, $this->parameters[$ns], array($this, 'choiceNewerTag'))
-      );
+      foreach ($parameters as $name => $value)
+      {
+        $this->set($name, $value, $ns);
+      }
     }
   }

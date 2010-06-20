@@ -74,7 +74,6 @@
   print $content;
   $t->isnt($cacheManager->startWithTags('some_cache_key'), '', 'ob_start() on old key');
 
-//  return;
   try
   {
     $cacheManager->initialize($sfContext, new sfAPCCache(), array());

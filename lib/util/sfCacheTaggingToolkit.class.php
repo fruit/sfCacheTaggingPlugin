@@ -79,7 +79,7 @@
      * @throws  OutOfBoundsException
      * @return int
      */
-    protected static function validateLifetime($configRoute, $defaultValue)
+    protected static function validateLifetime ($configRoute, $defaultValue)
     {
       $lifetime = (int) sfConfig::get($configRoute, $defaultValue);
 
@@ -135,16 +135,11 @@
       {
         $tagsToReturn = $tags->getArrayCopy();
       }
-      elseif ($tags instanceof IteratorAggregate)
+      elseif ($tags instanceof IteratorAggregate or $tags instanceof Iterator)
       {
-        foreach ($tags->getIterator() as $key => $value)
-        {
-          $tagsToReturn[$key] = $value;
-        }
-      }
-      elseif ($tags instanceof Iterator)
-      {
-        foreach ($tags as $key => $value)
+        $iterator = $tags instanceof Iterator ? $tags : $tags->getIterator();
+
+        foreach ($iterator as $key => $value)
         {
           $tagsToReturn[$key] = $value;
         }
@@ -153,7 +148,7 @@
       {
         throw new InvalidArgumentException(sprintf(
           'Invalid argument type "%s". See acceptable types in the PHPDOC of "%s"',
-          sprintf('%s %s', gettype($tags), is_object($tags) ? get_class($tags) : '~'),
+          sprintf('%s %s', gettype($tags), is_object($tags) ? get_class($tags) : ''),
           __METHOD__
         ));
       }
@@ -168,9 +163,12 @@
      * @param array $tags
      * @param string $tagName
      * @param int|string $tagVersion
+     * @deprecated since v1.4.4
      */
     public static function addTag (array & $tags, $tagName, $tagVersion)
     {
+      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
+
       if (! is_string($tagName))
       {
         throw new InvalidArgumentException(sprintf(
