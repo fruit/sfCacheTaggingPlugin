@@ -23,7 +23,7 @@
 
   BookTable::getInstance()->createQuery()->delete()->execute();
   FoodTable::getInstance()->createQuery()->delete()->execute();
-  
+
   $book = new Book();
   $book->setLang('fr');
   $book->setSlug('foobarbaz');

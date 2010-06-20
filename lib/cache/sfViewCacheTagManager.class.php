@@ -9,7 +9,9 @@
    */
   
   /**
-   * This is extended cache manager with additional methods to work with cache tags.
+   * This is extended cache manager with additional methods to work
+   * with cache tags.
+   *
    * The most important difference from sfViewCacheManager is support to use
    * sepparate cache systems for data and locks (performance reasons).
    *
@@ -98,7 +100,10 @@
      *
      * @see sfViewCacheManager::initialize
      */
-    public function initialize ($context, sfCache $taggingCache, $options = array())
+    public function initialize ($context,
+                                sfCache $taggingCache,
+                                $options = array()
+    )
     {
       if (! $taggingCache instanceof sfTagCache)
       {
@@ -152,20 +157,6 @@
     }
 
     /**
-     * @deprecated use sfViewCacheTagManager::getTaggingCache() since v1.4.4
-     *
-     * @return sfTagCache
-     */
-    public function getTagger ()
-    {
-      sfCacheTaggingToolkit::triggerMethodIsDeprecated(
-        __METHOD__, 'sfViewCacheTagManager::getTaggingCache', 'v1.4.4'
-      );
-
-      return $this->getTaggingCache();
-    }
-
-    /**
      * @param sfTagCache $taggingCache
      * @return sfViewCacheTagManager
      */
@@ -207,83 +198,13 @@
     {
       $data = ob_get_clean();
 
-      $this->getTaggingCache()->set(
-        $key,
-        $data,
-        $lifetime, 
-        $this->getContentTagHandler()->getContentTags(sfContentTagHandler::NAMESPACE_USER)
-      );
-
-      return $data;
-    }
-
-    /**
-     * Temporary stores tag keys, while buffer is writing
-     *
-     * @param array $tags
-     * @deprecated since v1.4.4
-     * @return sfViewCacheTagManager
-     */
-    public function setTags ($tags)
-    {
-      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
-
-      $this
-        ->getContentTagHandler()
-        ->setContentTags($tags, sfContentTagHandler::NAMESPACE_USER)
-      ;
-
-      return $this;
-    }
-
-    /**
-     * Appends the tags
-     *
-     * @param array|Doctrine_Record|Doctrine_Collection_Cachetaggable|ArrayAccess $tags
-     * @deprecated since v1.4.4
-     * @return sfViewCacheTagManager
-     */
-    public function addTags ($tags)
-    {
-      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
-
-      $this->setTags(
-        array_merge($this->getTags(), sfCacheTaggingToolkit::formatTags($tags))
-      );
-
-      return $this;
-    }
-
-    /**
-     * Returns added tags
-     *
-     * @deprecated since v1.4.4
-     * @return array
-     */
-    public function getTags ()
-    {
-      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
-
-      return $this
+      $tags = $this
         ->getContentTagHandler()
         ->getContentTags(sfContentTagHandler::NAMESPACE_USER);
-    }
+      
+      $this->getTaggingCache()->set($key, $data, $lifetime, $tags);
 
-    /**
-     * Clears the tags
-     *
-     * @deprecated since v1.4.4
-     * @return sfViewCacheTagManager
-     */
-    public function clearTags ()
-    {
-      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
-
-      $this
-        ->getContentTagHandler()
-        ->removeContentTags(sfContentTagHandler::NAMESPACE_USER);
-
-      return $this;
+      return $data;
     }
 
     /**
@@ -393,7 +314,8 @@
      *
      * @param  string $uri  The internal URI
      *
-     * @return array  An array composed of the cached content and the view attribute holder
+     * @return array An array composed of the cached content and
+     *               the view attribute holder
      */
     public function getActionCache ($uri)
     {
@@ -505,7 +427,9 @@
         );
 
       // save content in cache
-      $saved = $this->set(serialize($this->context->getResponse()), $uri, $pageTags);
+      $saved = $this->set(
+        serialize($this->context->getResponse()), $uri, $pageTags
+      );
 
       if ($saved and sfConfig::get('sf_web_debug'))
       {

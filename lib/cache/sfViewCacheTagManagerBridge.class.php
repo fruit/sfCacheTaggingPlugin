@@ -51,7 +51,9 @@
      *    If user calls:
      *        $this->setActionTags($tags);
      *    transform it to:
-     *        $this->setContentTags($tags, sfContentTagHandler::NAMESPACE_ACTION);
+     *        $this->setContentTags(
+     *          $tags, sfContentTagHandler::NAMESPACE_ACTION
+     *        );
      *
      *    If user calls:
      *       $this->hasPageTag();
@@ -79,9 +81,11 @@
 
       array_push($arguments, $contentNamespace);
 
+      $nsLength = strlen($contentNamespace);
+      
       # transforms "getPageTag" to "getContentTag"
       $contentAbstractMethod = substr_replace(
-        $method, 'Content', strpos($method, $contentNamespace), strlen($contentNamespace)
+        $method, 'Content', strpos($method, $contentNamespace), $nsLength
       );
 
       try

@@ -15,14 +15,14 @@
    */
   class sfTagNamespacedParameterHolder extends sfNamespacedParameterHolder
   {
-    public function setNamespace ($value, $ns = null)
-    {
-      $ns = ! $ns ? $this->default_namespace : $ns;
-      
-      $this->parameters[$ns] = $value;
-    }
+//    public function setNamespace ($value, $ns = null)
+//    {
+//      $ns = null === $ns ? $this->default_namespace : $ns;
+//
+//      $this->parameters[$ns] = $value;
+//    }
 
-    public function remove($tagName, $default = null, $ns = null)
+    public function remove ($tagName, $default = null, $ns = null)
     {
       if (gettype($tagName) !== 'string')
       {
@@ -45,18 +45,13 @@
         ));
       }
 
-      if (! is_scalar($tagVersion))
+      if (null !== $tagVersion and ! is_scalar($tagVersion))
       {
         throw new InvalidArgumentException(sprintf(
           'Called "%s" with invalid second argument type "%s".  are scalars',
           __METHOD__,
           gettype($tagVersion)
         ));
-      }
-
-      if (! $ns)
-      {
-        $ns = $this->default_namespace;
       }
 
       if (! isset($this->parameters[$ns]))
@@ -79,11 +74,6 @@
      */
     public function add ($parameters, $ns = null)
     {
-      if (! $ns)
-      {
-        $ns = $this->default_namespace;
-      }
-
       if (! isset($this->parameters[$ns]))
       {
         $this->parameters[$ns] = array();

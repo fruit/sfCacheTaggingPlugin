@@ -28,7 +28,11 @@
       'versionColumn'   =>  'object_version',
     );
 
-    protected $tags = array();
+    /**
+     *
+     * @var string
+     */
+    protected $invokerNamespace = null;
 
     /**
      * __construct
@@ -38,7 +42,13 @@
      */
     public function __construct (array $options = array())
     {
-      $this->_options = Doctrine_Lib::arrayDeepMerge($this->getOptions(), $options);
+      $this->_options = Doctrine_Lib::arrayDeepMerge(
+        $this->getOptions(), $options
+      );
+
+      $this->invokerNamespace = sprintf(
+        '%s/%s', __CLASS__, sfCacheTaggingToolkit::generateVersion()
+      );
 
       $versionColumn = $this->getOption('versionColumn');
 
@@ -75,37 +85,46 @@
     }
 
     /**
-     * @return array assoc array as $objectClass => $objectVersion
+     * @return string Object namespace to store tags
      */
-    protected function fetchTags ()
+    protected function getInvokerNamespace ()
     {
-      return array(
-        $this->getTagName() => $this->getObjectVersion(),
-        get_class($this->getInvoker()) => $this->getObjectVersion(),
-      );
+      return $this->invokerNamespace;
     }
+
 
     /**
      * @return array object tags (self and external from ->addTags())
      */
     public function getTags ()
     {
-      return array_merge($this->tags, $this->fetchTags());
+      $this
+        ->getContentTagHandler()
+        ->addContentTags(
+          array(
+            $this->getTagName()             => $this->getObjectVersion(),
+            get_class($this->getInvoker())  => $this->getObjectVersion(),
+          ),
+          $this->getInvokerNamespace()
+        );
+
+      return $this
+        ->getContentTagHandler()
+        ->getContentTags($this->getInvokerNamespace());
     }
 
     /**
      * Adds many tags to the object
      *
-     * @param array|ArrayAccess|Doctrine_Collection_Cachetaggable|Doctrine_Record $tags
+     * @param mixed $tags Adds tags to current object.
+     *                    Supported types are: Doctrine_Record, ArrayAccess,
+     *                    Doctrine_Collection_Cachetaggable, array.
      */
     public function addTags ($tags)
     {
-      $tags = sfCacheTaggingToolkit::formatTags($tags);
-
-      foreach ($tags as $tagName => $tagVersion)
-      {
-        $this->addTag($tagName, $tagVersion);
-      }
+      $this
+        ->getContentTagHandler()
+        ->addContentTags($tags, $this->getInvokerNamespace());
     }
 
     /**
@@ -116,7 +135,9 @@
      */
     public function addTag ($tagName, $tagVersion)
     {
-      sfCacheTaggingToolkit::addTag($this->tags, $tagName, $tagVersion);
+      $this
+        ->getContentTagHandler()
+        ->setContentTag($tagName, $tagVersion, $this->getInvokerNamespace());
     }
 
     /**
@@ -163,7 +184,9 @@
      */
     public function setObjectVersion ($version)
     {
-      $this->getInvoker()->offsetSet($this->getOption('versionColumn'), $version);
+      $this
+        ->getInvoker()
+        ->offsetSet($this->getOption('versionColumn'), $version);
 
       return $this->getInvoker();
     }
@@ -185,18 +208,18 @@
      */
     public function getTaggingCache ()
     {
-      return sfContext::getInstance()->getViewCacheManager()->getTaggingCache();
+      return sfContext::getInstance()
+        ->getViewCacheManager()
+        ->getTaggingCache();
     }
 
     /**
-     * @deprecated since v1.4.4 use Doctrine_Template_Cachetaggable::getTaggingCache
+     * @return sfContentTagHandler
      */
-    public function getTagger ()
+    protected function getContentTagHandler ()
     {
-      sfCacheTaggingToolkit::triggerMethodIsDeprecated(
-        __METHOD__, 'Doctrine_Template_Cachetaggable::getTaggingCache', 'v1.4.4'
-      );
-
-      return $this->getTaggingCache();
+      return sfContext::getInstance()
+        ->getViewCacheManager()
+        ->getContentTagHandler();
     }
   }

@@ -9,12 +9,14 @@
    */
 
   /**
-   * Adds preSave, postSave, preDelete hocks to object version be valid and fresh
+   * Adds preSave, postSave, preDelete hocks to object
+   * version be valid and fresh
    *
    * @package sfCacheTaggingPlugin
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class Doctrine_Template_Listener_Cachetaggable extends Doctrine_Record_Listener
+  class Doctrine_Template_Listener_Cachetaggable
+    extends Doctrine_Record_Listener
   {
     /**
      * Array of sortable options
@@ -43,20 +45,6 @@
     }
 
     /**
-     * previuos version support
-     * 
-     * @deprecated since v1.4.4 use Doctrine_Template_Listener_Cachetaggable::getTaggingCache()
-     */
-    public function getTagger ()
-    {
-      sfCacheTaggingToolkit::triggerMethodIsDeprecated(
-        __METHOD__, 'Doctrine_Template_Listener_Cachetaggable::getTaggingCache', 'v1.4.4'
-      );
-
-      return $this->getTaggingCache();
-    }
-
-    /**
      * Returns cache class to work with cache data, keys and locks
      *
      * @return sfTagCache
@@ -65,14 +53,19 @@
     {
       if (! sfContext::hasInstance())
       {
-        throw new UnexpectedValueException('sfContext instance is not initialized');
+        throw new UnexpectedValueException(
+          'sfContext instance is not initialized'
+        );
       }
 
       $manager = sfContext::getInstance()->getViewCacheManager();
 
       if (! $manager instanceof sfViewCacheTagManager)
       {
-        throw new UnexpectedValueException('Application\'s sfViewManager should be the instance of sfViewCacheTagManager');
+        throw new UnexpectedValueException(
+          'Application\'s sfViewManager should be the instance ' .
+          'of sfViewCacheTagManager'
+        );
       }
 
       return $manager->getTaggingCache();
@@ -133,7 +126,8 @@
     }
 
     /**
-     * post saving hook - updates/creates the version tag (in the cache) of the stored object
+     * post saving hook - updates/creates the version tag (in the cache)
+     *  of the stored object
      *
      * @param Doctrine_Event $event
      */
@@ -163,8 +157,9 @@
       if ($object->getTable()->hasTemplate('SoftDelete'))
       {
         $softDeleteTemplate = $object->getTable()->getTemplate('SoftDelete');
-
-        if (array_key_exists($softDeleteTemplate->getOption('name'), $lastModifiedColumns))
+        $deleteAtField = $softDeleteTemplate->getOption('name');
+        
+        if (array_key_exists($deleteAtField, $lastModifiedColumns))
         {
           # skip if SoftDeletes sets deleted_at field
           return;
@@ -174,8 +169,13 @@
 
       $tagLifetime = sfCacheTaggingToolkit::getTagLifetime();
 
-      $taggingCache->setTag($object->getTagName(), $object->getObjectVersion(), $tagLifetime);
-      $taggingCache->setTag(get_class($object), $object->getObjectVersion(), $tagLifetime);
+      $taggingCache->setTag(
+        $object->getTagName(), $object->getObjectVersion(), $tagLifetime
+      );
+      
+      $taggingCache->setTag(
+        get_class($object), $object->getObjectVersion(), $tagLifetime
+      );
 
       # updating object tags
       $object->addTag($object->getTagName(), $object->getObjectVersion());

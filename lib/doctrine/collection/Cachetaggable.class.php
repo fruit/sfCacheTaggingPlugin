@@ -9,8 +9,9 @@
    */
 
   /**
-   * Adds functionality to fetch collection tags, also it stores other associated collection tags
-   * in the Doctrine_Collection_Cachetaggable instance
+   * Adds functionality to fetch collection tags, also it stores other
+   * associated collection tags in the Doctrine_Collection_Cachetaggable
+   * instance
    *
    * @package sfCacheTaggingPlugin
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
@@ -74,14 +75,17 @@
         {
           $tags[$object->getTagName()] = $object->getObjectVersion();
 
-          $latestFoundVersion = $latestFoundVersion < $object->getObjectVersion()
-            ? $object->getObjectVersion()
-            : $latestFoundVersion;
+          $latestFoundVersion =
+            $latestFoundVersion < $object->getObjectVersion()
+              ? $object->getObjectVersion()
+              : $latestFoundVersion;
         }
 
         if (null !== ($first = $collection->getFirst()))
         {
-          $tagger = sfContext::getInstance()->getViewCacheManager()->getTaggingCache();
+          $tagger = sfContext::getInstance()
+            ->getViewCacheManager()
+            ->getTaggingCache();
 
           $lastSavedVersion = $tagger->getTag(get_class($first));
 
@@ -93,11 +97,12 @@
       else
       {
         /**
-         * little hack, if collection is empty, emulate collection, without any tags
-         * but version should be staticaly fixed (in day range)
+         * little hack, if collection is empty, emulate collection,
+         * without any tags, but version should be staticaly
+         * fixed (in day range)
          *
          * repeating calls with relative microtime always refresh collection tag
-         * so, here is fixed value
+         * so, here is day-fixed value
          */
         $tags[$collection->getTable()->getClassnameToReturn()]
           = sfCacheTaggingToolkit::generateVersion(strtotime('today'));
@@ -105,8 +110,6 @@
 
       return $tags;
     }
-
-    
 
     /**
      * Returns this collection and added tags
@@ -117,7 +120,9 @@
     {
       $this->addTags($this->fetchTags());
 
-      return $this->getContentTagHandler()->getContentTags($this->getNamespace());
+      return $this
+        ->getContentTagHandler()
+        ->getContentTags($this->getNamespace());
     }
 
     /**
@@ -131,7 +136,9 @@
      */
     public function addTags ($tags)
     {
-      $this->getContentTagHandler()->addContentTags($tags, $this->getNamespace());
+      $this
+        ->getContentTagHandler()
+        ->addContentTags($tags, $this->getNamespace());
     }
 
     /**
@@ -157,6 +164,10 @@
       $this->getContentTagHandler()->removeContentTags($this->getNamespace());
     }
 
+    /**
+     * @see Doctrine_Collection::delete()
+     * @return Doctrine_Collection_Cachetaggable
+     */
     public function delete (Doctrine_Connection $conn = null, $clearColl = true)
     {
       $returnValue = parent::delete($conn, $clearColl);

@@ -20,7 +20,7 @@
     {
       if (! is_callable($this->getCallable()))
       {
-        call_user_func_array(array('parent', 'call'), $arguments);
+        return call_user_func_array(array($this, 'call'), $arguments);
       }
 
       return call_user_func_array($this->callable, $arguments);

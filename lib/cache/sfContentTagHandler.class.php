@@ -19,7 +19,8 @@
     /**
      * holder's namespaces
      * Namespace name should be "UpperCamelCased"
-     * This names is used in method patterns "call%sMethod", where %s is User/Page/Action
+     * This names is used in method patterns "call%sMethod",
+     * where %s is User/Page/Action
      */
     const
       NAMESPACE_USER   = 'User',

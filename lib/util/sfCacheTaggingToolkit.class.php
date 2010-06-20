@@ -157,30 +157,7 @@
     }
 
     /**
-     * Adds new tag to the tags with simple tag name check
-     *
-     * @throws InvalidArgumentException
-     * @param array $tags
-     * @param string $tagName
-     * @param int|string $tagVersion
-     * @deprecated since v1.4.4
-     */
-    public static function addTag (array & $tags, $tagName, $tagVersion)
-    {
-      sfCacheTaggingToolkit::triggerMethodIsDeprecated(__METHOD__, null, 'v1.4.4');
-
-      if (! is_string($tagName))
-      {
-        throw new InvalidArgumentException(sprintf(
-          'Invalid $tagName argument type "%s". Acceptable type is: "string"',
-          gettype($tagName)
-        ));
-      }
-
-      $tags[$tagName] = (string) $tagVersion;
-    }
-
-    /**
+     * Listens on "component.method_not_found"
      *
      * @param sfEvent $event
      * @return <type>
@@ -211,30 +188,5 @@
       }
 
       $event->setProcessed(true);
-    }
-
-    public static function triggerMethodIsDeprecated ($deprecatedMethod, $newMethod = null, $since = null)
-    {
-      $message = sprintf('Method "%s" is deprecated', $deprecatedMethod);
-
-      if (null !== $since)
-      {
-        $message .= sprintf(' since %s.', $since);
-      }
-      else
-      {
-        $message .= '.';
-      }
-
-      if (null !== $newMethod)
-      {
-        $message .= sprintf(' Use "%s".', $newMethod);
-      }
-      else
-      {
-        $message .= ' Method would be removed in next release.';
-      }
-
-      trigger_error($message, E_USER_DEPRECATED);
     }
   }

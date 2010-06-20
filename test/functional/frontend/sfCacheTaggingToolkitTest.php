@@ -22,8 +22,10 @@
   try
   {
     $p = new BlogPost();
+//    $p->setTitle('Blog post title "AAAA"');
     $p->save();
 
+//    print_r($p->getTags());
     sfCacheTaggingToolkit::formatTags($p);
 
     $t->pass('sfCacheTaggingToolkit::formatTags() works for Doctrine_Record with "Doctrine_Template_Cachetaggable" template');
@@ -102,3 +104,23 @@
       }
     }
   }
+
+  include_once sfConfig::get('sf_apps_dir') . '/frontend/modules/blog_post/actions/actions.class.php';
+
+  try
+  {
+    $e = new sfEvent(
+      new blog_postActions(sfContext::getInstance(), 'blog_post', 'run'),
+      'component.method_not_found',
+      array('method' => 'callMe', 'arguments' => array(1,2,3))
+    );
+
+    $v = sfCacheTaggingToolkit::listenOnComponentMethodNotFoundEvent($e);
+
+    $t->ok(null === $v, 'Return null if method does not exists');
+  }
+  catch (BadMethodCallException $e)
+  {
+    $t->pass($e->getMessage());
+  }
+

@@ -119,21 +119,6 @@ class sfTagCache extends sfCache
   }
 
   /**
-   * Returns cache class for data caching
-   * 
-   * @deprecated since v1.3.1 use sfTagCache::getDataCache()
-   * @return sfCache
-   */
-  public function getCache ()
-  {
-    sfCacheTaggingToolkit::triggerMethodIsDeprecated(
-      __METHOD__, 'sfTagCache::getDataCache', 'v1.3.1'
-    );
-
-    return $this->getDataCache();
-  }
-
-  /**
    * Returns cache class for locks
    *
    * @return sfCache
@@ -141,20 +126,6 @@ class sfTagCache extends sfCache
   public function getLockerCache ()
   {
     return $this->lockerCache;
-  }
-
-  /**
-   * @deprecated since v1.3.1 use sfTagCache::getLockerCache()
-   *
-   * @return sfCache
-   */
-  public function getLocker ()
-  {
-    sfCacheTaggingToolkit::triggerMethodIsDeprecated(
-      __METHOD__, 'sfTagCache::getLockerCache', 'v1.3.1'
-    );
-
-    return $this->getLockerCache();
   }
 
   /**
@@ -276,7 +247,9 @@ class sfTagCache extends sfCache
       {
         foreach ($extendedData->tags as $tagKey => $value)
         {
-          $this->setTag($tagKey, $value, sfCacheTaggingToolkit::getTagLifetime());
+          $this->setTag(
+            $tagKey, $value, sfCacheTaggingToolkit::getTagLifetime()
+          );
         }
       }
     }
@@ -323,7 +296,9 @@ class sfTagCache extends sfCache
   {
     $result = $this->getDataCache()->get($this->generateTagKey($tagKey));
 
-    $this->writeChar($result ? 'G' :'g', $this->generateTagKey($tagKey), $result);
+    $this->writeChar(
+      $result ? 'G' :'g', $this->generateTagKey($tagKey), $result
+    );
 
     return $result;
   }
@@ -532,7 +507,9 @@ class sfTagCache extends sfCache
       $memcache = $this->getLockerCache()->getBackend();
 
       $result = $memcache->add(
-        sprintf('%s%s', $this->getLockerCache()->getOption('prefix'), $lockKey),
+        sprintf(
+          '%s%s', $this->getLockerCache()->getOption('prefix'), $lockKey
+        ),
         1,
         $expire
       );
