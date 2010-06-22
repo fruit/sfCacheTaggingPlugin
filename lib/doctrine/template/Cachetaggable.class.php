@@ -204,7 +204,7 @@
     /**
      * Returns Cache manger tagger
      *
-     * @return sfTagCache
+     * @return sfTaggingCache
      */
     public function getTaggingCache ()
     {

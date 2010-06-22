@@ -29,6 +29,6 @@
 
   $t->isa_ok($article->setObjectVersion(213213213213), 'Book', 'setObjectVersion() returns self object');
 
-  $t->isa_ok($article->getTaggingCache(), 'sfTagCache', 'getTaggingCache() returns a sfTagCache object');
+  $t->isa_ok($article->getTaggingCache(), 'sfTaggingCache', 'getTaggingCache() returns a sfTaggingCache object');
 
   $t->is($article->getTagName(), 'Book_fr-foobarbaz', 'Multy unique column tables are compatible with tag names');

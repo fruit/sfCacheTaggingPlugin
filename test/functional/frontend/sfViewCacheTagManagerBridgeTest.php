@@ -95,8 +95,8 @@
 
   $t->isa_ok(
     $bridge->getTaggingCache(), 
-    'sfTagCache',
-    sprintf('"%s::getTaggingCache" returns sfTagCache object', get_class($bridge))
+    'sfTaggingCache',
+    sprintf('"%s::getTaggingCache" returns sfTaggingCache object', get_class($bridge))
   );
 
   

@@ -43,7 +43,7 @@
             <file name="sfFileTaggingCache.class.php" role="data" />
             <file name="sfSQLiteTaggingCache.class.php" role="data" />
           </dir>
-          <file name="sfTagCache.class.php" role="data" />
+          <file name="sfTaggingCache.class.php" role="data" />
           <file name="sfViewCacheTagManager.class.php" role="data" />
         </dir>
         <dir name="doctrine">

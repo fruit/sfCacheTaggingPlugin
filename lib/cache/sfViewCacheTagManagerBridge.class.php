@@ -105,7 +105,7 @@
 
     /**
      * @see sfViewCacheTagManager::getTaggingCache
-     * @return sfTagCache
+     * @return sfTaggingCache
      */
     public function getTaggingCache ()
     {

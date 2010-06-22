@@ -64,7 +64,7 @@ are not (atomic counter).
         [yml]
         all:
           view_cache:
-            class: sfTagCache
+            class: sfTaggingCache
             param:
               logging: true                 # logging is enabled ("false" to disable)
               cache:
@@ -555,7 +555,7 @@ are not (atomic counter).
             >> coverage  running /www/sfpro/dev...cheTaggingToolkitTest.php (12/13)
             >> coverage  running /www/sfpro/dev...enerCachetaggableTest.php (13/13)
             plugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManager.class      75%
-            plugins/sfCacheTaggingPlugin/lib/cache/sfTagCache.class                 73%
+            plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCache.class                 73%
             lugins/sfCacheTaggingPlugin/lib/cache/extra/sfSQLiteTaggingCache.class 100%
             plugins/sfCacheTaggingPlugin/lib/cache/extra/sfFileTaggingCache.class  100%
             plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class      100%

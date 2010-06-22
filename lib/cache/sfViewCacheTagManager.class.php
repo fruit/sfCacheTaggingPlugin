@@ -25,7 +25,7 @@
     /**
      * Data cache and locker cache container
      *
-     * @var sfTagCache
+     * @var sfTaggingCache
      */
     protected $taggingCache = null;
 
@@ -55,7 +55,7 @@
     }
 
     /**
-     * Sets options to the sfTagCache
+     * Sets options to the sfTaggingCache
      *
      * @param array $options
      */
@@ -105,11 +105,11 @@
                                 $options = array()
     )
     {
-      if (! $taggingCache instanceof sfTagCache)
+      if (! $taggingCache instanceof sfTaggingCache)
       {
         throw new InvalidArgumentException(
           sprintf(
-            'Cache "%s" is not instanceof sfTagCache',
+            'Cache "%s" is not instanceof sfTaggingCache',
             get_class($taggingCache)
           )
         );
@@ -149,7 +149,7 @@
     }
 
     /**
-     * @return sfTagCache
+     * @return sfTaggingCache
      */
     public function getTaggingCache ()
     {
@@ -157,10 +157,10 @@
     }
 
     /**
-     * @param sfTagCache $taggingCache
+     * @param sfTaggingCache $taggingCache
      * @return sfViewCacheTagManager
      */
-    protected function setTaggingCache (sfTagCache $taggingCache)
+    protected function setTaggingCache (sfTaggingCache $taggingCache)
     {
       $this->taggingCache = $taggingCache;
 

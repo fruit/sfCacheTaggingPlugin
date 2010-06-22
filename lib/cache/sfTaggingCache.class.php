@@ -15,7 +15,7 @@
  * @package sfCacheTaggingPlugin
  * @author Ilya Sabelnikov <fruit.dev@gmail.com>
  */
-class sfTagCache extends sfCache
+class sfTaggingCache extends sfCache
 {
   /**
    * This cache stores your data any instanceof sfCache

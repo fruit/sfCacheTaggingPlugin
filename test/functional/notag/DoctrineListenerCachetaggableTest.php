@@ -37,7 +37,7 @@
   try
   {
     $lnr->getTaggingCache();
-    $t->fail('pass on cache engine is not sfTagCache');
+    $t->fail('pass on cache engine is not sfTaggingCache');
   }
   catch (UnexpectedValueException $e)
   {

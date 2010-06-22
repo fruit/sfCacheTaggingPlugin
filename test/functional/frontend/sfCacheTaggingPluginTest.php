@@ -78,7 +78,7 @@
   catch (InvalidArgumentException $e)
   {
     $t->pass(sprintf(
-      'Exception "%s" cached - should be instance of sfTagCache',
+      'Exception "%s" cached - should be instance of sfTaggingCache',
       get_class($e)
     ));
   }

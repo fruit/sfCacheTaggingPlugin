@@ -47,7 +47,7 @@
     /**
      * Returns cache class to work with cache data, keys and locks
      *
-     * @return sfTagCache
+     * @return sfTaggingCache
      */
     public function getTaggingCache ()
     {
