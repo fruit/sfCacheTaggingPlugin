@@ -52,7 +52,7 @@
 
       $versionColumn = $this->getOption('versionColumn');
 
-      if (! is_string($versionColumn) or 0 >= strlen($versionColumn))
+      if (! is_string($versionColumn) || 0 >= strlen($versionColumn))
       {
         throw new sfConfigurationException(
           sprintf(

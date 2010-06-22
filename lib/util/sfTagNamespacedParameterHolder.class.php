@@ -45,7 +45,7 @@
         ));
       }
 
-      if (null !== $tagVersion and ! is_scalar($tagVersion))
+      if (null !== $tagVersion && ! is_scalar($tagVersion))
       {
         throw new InvalidArgumentException(sprintf(
           'Called "%s" with invalid second argument type "%s".  are scalars',
@@ -60,7 +60,7 @@
       }
 
       # skip old tag versions
-      if (! isset($this->parameters[$ns][$tagName]) or ($tagVersion > $this->parameters[$ns][$tagName]))
+      if (! isset($this->parameters[$ns][$tagName]) || ($tagVersion > $this->parameters[$ns][$tagName]))
       {
         $this->parameters[$ns][$tagName] = $tagVersion;
       }

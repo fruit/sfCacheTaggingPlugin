@@ -42,7 +42,7 @@
     {
       $presision = (int) sfConfig::get('app_sfcachetaggingplugin_microtime_precision', 5);
 
-      if (0 > $presision or 6 < $presision)
+      if (0 > $presision || 6 < $presision)
       {
         throw new OutOfRangeException(sprintf(
           'Value of "app_sfcachetaggingplugin_microtime_precision" is out of the range (0…6)'
@@ -131,11 +131,11 @@
       }
       # Doctrine_Collection_Cachetaggable and Doctrine_Record are instances of ArrayAccess
       # this check should be after them
-      elseif ($tags instanceof ArrayIterator or $tags instanceof ArrayObject)
+      elseif ($tags instanceof ArrayIterator || $tags instanceof ArrayObject)
       {
         $tagsToReturn = $tags->getArrayCopy();
       }
-      elseif ($tags instanceof IteratorAggregate or $tags instanceof Iterator)
+      elseif ($tags instanceof IteratorAggregate || $tags instanceof Iterator)
       {
         $iterator = $tags instanceof Iterator ? $tags : $tags->getIterator();
 

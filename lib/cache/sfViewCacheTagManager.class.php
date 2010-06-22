@@ -218,7 +218,7 @@
     public function get ($internalUri)
     {
       // no cache or no cache set for this action
-      if (! $this->isCacheable($internalUri) or $this->ignore())
+      if (! $this->isCacheable($internalUri) || $this->ignore())
       {
         return null;
       }
@@ -262,19 +262,12 @@
         return false;
       }
 
-      try
-      {
-        $this->getTaggingCache()->set(
-          $this->generateCacheKey($internalUri),
-          $data,
-          $this->getLifeTime($internalUri),
-          $tags
-        );
-      }
-      catch (Exception $e)
-      {
-        return false;
-      }
+      $this->getTaggingCache()->set(
+        $this->generateCacheKey($internalUri),
+        $data,
+        $this->getLifeTime($internalUri),
+        $tags
+      );
 
       if (sfConfig::get('sf_logging_enabled'))
       {
@@ -299,7 +292,7 @@
      */
     public function has ($internalUri)
     {
-      if (! $this->isCacheable($internalUri) or $this->ignore())
+      if (! $this->isCacheable($internalUri) || $this->ignore())
       {
         return null;
       }
@@ -319,7 +312,7 @@
      */
     public function getActionCache ($uri)
     {
-      if (! $this->isCacheable($uri) or $this->withLayout($uri))
+      if (! $this->isCacheable($uri) || $this->withLayout($uri))
       {
         return null;
       }
@@ -368,7 +361,7 @@
      */
     public function setActionCache ($uri, $content, $decoratorTemplate)
     {
-      if (! $this->isCacheable($uri) or $this->withLayout($uri))
+      if (! $this->isCacheable($uri) || $this->withLayout($uri))
       {
         return $content;
       }
@@ -387,7 +380,7 @@
 
       $saved = $this->set($actionCacheValue, $uri, $actionTags);
 
-      if ($saved and sfConfig::get('sf_web_debug'))
+      if ($saved && sfConfig::get('sf_web_debug'))
       {
         $content = $this->getEventDispatcher()
           ->filter(
@@ -431,7 +424,7 @@
         serialize($this->context->getResponse()), $uri, $pageTags
       );
 
-      if ($saved and sfConfig::get('sf_web_debug'))
+      if ($saved && sfConfig::get('sf_web_debug'))
       {
         $content = $this
           ->getEventDispatcher()
