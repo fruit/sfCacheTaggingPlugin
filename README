@@ -31,6 +31,10 @@ are not (atomic counter).
 
         $ ./symfony plugin:upgrade sfCacheTaggingPlugin
 
+## Release notes
+
+  * Plugin API is fully upgraded (v1.1.1 => v2.0.0)
+
 ## Setup ##
 
 1.  Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``)
@@ -340,7 +344,7 @@ are not (atomic counter).
 
             [php]
             # when you want to update Daylight content
-            $this->getContext()->getViewCacheManager()->getTaggingCache()->setTag('moon', time(), 60 * 60 * 24 * 7 /*1 week*/);
+            $this->getTaggingCache()->setTag('moon', time(), 60 * 60 * 24 * 7 /*1 week*/);
 
 </fieldset>
 
@@ -519,9 +523,9 @@ are not (atomic counter).
     "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
     behavior.
 
-## Unit/functional test ##
+## TDD ##
 
-  * Test report (tests: 1049):
+  * Unit/funcational tests report:
 
             [sfCacheTagging] functional/frontend/CacheTagHelperTest..............ok
             CacheTagging] functional/frontend/DoctrineListenerCachetaggableTest..ok
@@ -531,41 +535,40 @@ are not (atomic counter).
             [sfCacheTagging] functional/frontend/actionWithoutLayoutTest.........ok
             [sfCacheTagging] functional/frontend/sfCacheTaggingPluginTest........ok
             [sfCacheTagging] functional/frontend/sfCacheTaggingToolkitTest.......ok
+            [sfCacheTagging] functional/frontend/sfContentTagHandlerTest.........ok
+            [sfCacheTagging] functional/frontend/sfTaggingCacheTest..............ok
+            sfCacheTagging] functional/frontend/sfViewCacheTagManagerBridgeTest..ok
             [sfCacheTagging] functional/frontend/sfViewCacheTagManagerTest.......ok
             [sfCacheTagging] functional/notag/DoctrineListenerCachetaggableTest..ok
+            [sfCacheTagging] functional/notag/sfCacheTaggingToolkitTest..........ok
             [sfCacheTagging] unit/DoctrineListenerCachetaggableTest..............ok
             [sfCacheTagging] unit/DoctrineTemplateCachetaggableTest..............ok
             [sfCacheTagging] unit/sfCacheTaggingToolkitTest......................ok
+            [sfCacheTagging] unit/sfCallableArrayTest............................ok
+            [sfCacheTagging] unit/sfContentTagHandlerTest........................ok
              All tests successful.
-             Files=13, Tests=1049
+             Files=19, Tests=1278
 
-  * Coverage report (total: 84%):
+  * Coverage report:
 
-            >> coverage  running /www/sfpro/dev...tenerCachetaggableTest.php (1/13)
-            >> coverage  running /www/sfpro/dev...plateCachetaggableTest.php (2/13)
-            >> coverage  running /www/sfpro/dev...acheTaggingToolkitTest.php (3/13)
-            >> coverage  running /www/sfpro/dev...end/CacheTagHelperTest.php (4/13)
-            >> coverage  running /www/sfpro/dev...CacheTaggingPluginTest.php (5/13)
-            >> coverage  running /www/sfpro/dev...iewCacheTagManagerTest.php (6/13)
-            >> coverage  running /www/sfpro/dev...tenerCachetaggableTest.php (7/13)
-            >> coverage  running /www/sfpro/dev...d/PartialTagHelperTest.php (8/13)
-            >> coverage  running /www/sfpro/dev...plateCachetaggableTest.php (9/13)
-            >> coverage  running /www/sfpro/dev.../actionWithLayoutTest.php (10/13)
-            >> coverage  running /www/sfpro/dev...tionWithoutLayoutTest.php (11/13)
-            >> coverage  running /www/sfpro/dev...cheTaggingToolkitTest.php (12/13)
-            >> coverage  running /www/sfpro/dev...enerCachetaggableTest.php (13/13)
-            plugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManager.class      75%
-            plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCache.class                 73%
-            lugins/sfCacheTaggingPlugin/lib/cache/extra/sfSQLiteTaggingCache.class 100%
-            plugins/sfCacheTaggingPlugin/lib/cache/extra/sfFileTaggingCache.class  100%
-            plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class      100%
-            plugins/sfCacheTaggingPlugin/lib/view/sfPartialTagView.class            92%
-            plugins/sfCacheTaggingPlugin/lib/helper/CacheTagHelper                  95%
-            plugins/sfCacheTaggingPlugin/lib/helper/PartialTagHelper               100%
-            ugins/sfCacheTaggingPlugin/lib/doctrine/collection/Cachetaggable.class 100%
-            plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class  95%
-            plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  96%
-            TOTAL COVERAGE:  84%
+            ...ugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManagerBridge.class 100%
+            ...plugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManager.class      75%
+            ...plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCache.class             92%
+            ...lugins/sfCacheTaggingPlugin/lib/cache/extra/sfSQLiteTaggingCache.class 100%
+            ...plugins/sfCacheTaggingPlugin/lib/cache/extra/sfFileTaggingCache.class  100%
+            ...plugins/sfCacheTaggingPlugin/lib/cache/sfContentTagHandler.class       100%
+            ...plugins/sfCacheTaggingPlugin/lib/util/sfCallableArray.class            100%
+            ...plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class      100%
+            ...ins/sfCacheTaggingPlugin/lib/util/sfTagNamespacedParameterHolder.class 100%
+            ...plugins/sfCacheTaggingPlugin/lib/view/sfPartialTagView.class            92%
+            ...plugins/sfCacheTaggingPlugin/lib/helper/CacheTagHelper                  95%
+            ...plugins/sfCacheTaggingPlugin/lib/helper/PartialTagHelper               100%
+            ...ugins/sfCacheTaggingPlugin/lib/doctrine/collection/Cachetaggable.class 100%
+            ...plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class  96%
+            ...plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  95%
+
+            TOTAL COVERAGE:  91%
+
 
 Every combination is tested (data backend / locker backend) of listed below:
 

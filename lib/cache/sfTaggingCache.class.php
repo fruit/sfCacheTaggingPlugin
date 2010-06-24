@@ -38,25 +38,58 @@ class sfTaggingCache extends sfCache
    */
   protected $fileResource = null;
 
-  public function getOption ($name, $default = null)
+  /**
+   * Extended verion of default getOption method
+   * In case, options is array with sub arrays you could easy to get value
+   * by joining array key names with "."
+   *
+   * @example
+   *   # options array:
+   *    array(
+   *      'php' => array(
+   *        'frameworks' => array(
+   *          'ZF'  => 'Zend Framework',
+   *          'Yii' => 'Yii',
+   *          'sf'  => 'Symfony',
+   *        ),
+   *      ),
+   *    );
+   *
+   * "Symfony" will be accessed by $keyPath "php.frameworks.sf"
+   *
+   * @param string $name
+   * @param mixed $default
+   * @return mixed
+   */
+  protected function getArrayValueByKeyPath ($keyPath, $array, $default = null)
   {
-    $dotPosition = strpos($name, '.');
+    $dotPosition = strpos($keyPath, '.');
 
     if (0 < $dotPosition)
     {
-      list($firstKey, $secondKey) = explode('.', $name);
-      
-      $option = parent::getOption($firstKey, $default);
+      $firstKey = substr($keyPath, 0, $dotPosition);
+      $lastKeys = substr($keyPath, $dotPosition + 1);
 
-      if (is_array($option) && isset($option[$secondKey]))
+      if (isset($array[$firstKey]) && is_array($array[$firstKey]))
       {
-        return $option[$secondKey];
+        return $this->getArrayValueByKeyPath($lastKeys, $array[$firstKey]);
       }
-
-      return $default;
     }
 
-    return parent::getOption($name, $default);
+    return isset($array[$keyPath]) ? $array[$keyPath] : $default;
+  }
+
+  /**
+   * Returns option by key path
+   *
+   * @see PHPDOC of method self::getArrayValueByKeyPath
+   * @param string $name Array key, or key path joined by "."
+   * @param mixed [optional] $default
+   * @return mixed
+   */
+  public function getOption ($name, $default = null)
+  {
+    return $this->getArrayValueByKeyPath($name, $this->options, $default);
   }
 
   /**
