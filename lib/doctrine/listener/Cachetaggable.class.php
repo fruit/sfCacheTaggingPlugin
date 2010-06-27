@@ -166,7 +166,6 @@
         }
       }
 
-
       $tagLifetime = sfCacheTaggingToolkit::getTagLifetime();
 
       $taggingCache->setTag(

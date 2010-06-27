@@ -26,8 +26,18 @@
      */
     protected $tags = array();
 
+    /**
+     * Collection unique namespace to store collection's objects tags
+     *
+     * @var string
+     */
     protected $namespace = null;
 
+    /**
+     * Retrieve collection unique namespace name
+     *
+     * @return string
+     */
     protected function getNamespace ()
     {
       return $this->namespace;
@@ -55,6 +65,7 @@
         ->getContentTagHandler()
       ;
     }
+
     /**
      * Collects collection tags keys with its versions
      *
@@ -129,10 +140,8 @@
      * Adds additional tags to currect collection.
      * Acceptable array or Doctrine_Collection_Cachetaggable instance
      *
-     * @todo add Doctrine_Record as acceptable $tags type
-     * @todo implement sepparate addTags in plugin toolbox (DRY)
-     *
      * @param array|Doctrine_Collection_Cachetaggable|ArrayAccess $tags
+     * @return void
      */
     public function addTags ($tags)
     {
@@ -146,6 +155,7 @@
      *
      * @param string $tagName
      * @param string|int $tagVersion
+     * @return void
      */
     public function addTag ($tagName, $tagVersion)
     {

@@ -16,7 +16,6 @@
   $handler = new sfContentTagHandler();
 
   $methods = array(
-    'getNamespaces',
     'getContentTags',
     'setContentTags',
     'addContentTags',
@@ -28,8 +27,8 @@
 
   $t->can_ok($handler, $methods);
 
-  $t->isa_ok($handler->getNamespaces(), 'array');
-  $t->is(count($handler->getNamespaces()), 3);
+  $t->isa_ok(sfViewCacheTagManager::getNamespaces(), 'array');
+  $t->is(count(sfViewCacheTagManager::getNamespaces()), 3);
 
   $oldVersion = sfCacheTaggingToolkit::generateVersion();
   $tagsAB = array(
@@ -67,7 +66,10 @@
     'B'   => sfCacheTaggingToolkit::generateVersion(),
   );
 
-  $namespacesWithCustomOne = array_merge($handler->getNamespaces(), array('Custom'));
+  $namespacesWithCustomOne = array_merge(
+    sfViewCacheTagManager::getNamespaces(),
+    array('Custom')
+  );
 
   # default interface test
   foreach ($namespacesWithCustomOne as $namespace)

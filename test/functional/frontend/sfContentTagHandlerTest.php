@@ -8,11 +8,6 @@
    * file that was distributed with this source code.
    */
 
-  /**
-   * @todo rewrite this test
-   */
-
-  
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';

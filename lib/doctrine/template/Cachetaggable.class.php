@@ -29,6 +29,7 @@
     );
 
     /**
+     * Object unique namespace name to store Doctrine_Record's tags
      *
      * @var string
      */
@@ -94,6 +95,8 @@
 
 
     /**
+     * Retrieves object's tags and appended tags
+     *
      * @return array object tags (self and external from ->addTags())
      */
     public function getTags ()
@@ -141,6 +144,8 @@
     }
 
     /**
+     * Retrieves object unique tag name based on its class
+     *
      * @throws LogicException
      * @return string
      */
@@ -214,6 +219,8 @@
     }
 
     /**
+     * Retrieves handler to manage tags
+     *
      * @return sfContentTagHandler
      */
     protected function getContentTagHandler ()

@@ -45,7 +45,6 @@
     array('set%sTag', array(1)),
     array('set%sTag', array('MyTag', array())),
     array('set%sTag', array('MyTag', new stdClass())),
-//    array('set%sTag', array('Z', null)),
     array('remove%sTag', array()),
     array('remove%sTag', array(null)),
     array('remove%sTag', array(3)),
@@ -53,7 +52,7 @@
     array('callMe', array()),
   );
 
-  foreach ($holder->getNamespaces() as $namespace)
+  foreach (sfViewCacheTagManager::getNamespaces() as $namespace)
   {
     foreach ($validPatternMethods as $patternMethod => $arguments)
     {

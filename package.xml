@@ -15,7 +15,7 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-06-27</date>
+  <date>2010-06-28</date>
   <version>
     <release>1.5.0</release>
     <api>2.0.0</api>
@@ -26,7 +26,10 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    
+    * ilya: [added] all tags now stored in symfony build in holder
+    * ilya: [added] more coverage tests (91%)
+    * ilya: [removed] all deprecated methods
+    * ilya: [added] added listener on sfComponents to enable short-handed methods to set tags from action or component (see README)
   </notes>
   <contents>
     <dir name="/">
@@ -129,6 +132,24 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>1.5.0</release>
+        <api>2.0.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2010-06-28</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [added] all tags now stored in symfony build in holder
+        * ilya: [added] more coverage tests (91%)
+        * ilya: [removed] all deprecated methods
+        * ilya: [added] added listener on sfComponents to enable short-handed methods to set tags from action or component (see README)
+      </notes>
+    </release>
     <release>
       <version>
         <release>1.4.4</release>

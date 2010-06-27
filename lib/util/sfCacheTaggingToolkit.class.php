@@ -40,12 +40,15 @@
      */
     public static function getPrecision ()
     {
-      $presision = (int) sfConfig::get('app_sfcachetaggingplugin_microtime_precision', 5);
+      $presision = (int) sfConfig::get(
+        'app_sfcachetaggingplugin_microtime_precision', 5
+      );
 
       if (0 > $presision || 6 < $presision)
       {
         throw new OutOfRangeException(sprintf(
-          'Value of "app_sfcachetaggingplugin_microtime_precision" is out of the range (0…6)'
+          'Value of "app_sfcachetaggingplugin_microtime_precision" is ' .
+            'out of the range (0…6)'
         ));
       }
 
@@ -53,13 +56,16 @@
     }
 
     /**
-     * Returns app.yml tag lifetime, otherwise, return default value (86400 - 1 day)
+     * Returns app.yml tag lifetime, otherwise,
+     * return default value (86400 - 1 day)
      *
      * @return int
      */
     public static function getTagLifetime ()
     {
-      return self::validateLifetime('app_sfcachetaggingplugin_tag_lifetime', 86400);
+      return self::validateLifetime(
+        'app_sfcachetaggingplugin_tag_lifetime', 86400
+      );
     }
 
     /**
@@ -69,7 +75,9 @@
      */
     public static function getLockLifetime ()
     {
-      return self::validateLifetime('app_sfcachetaggingplugin_lock_lifetime', 2);
+      return self::validateLifetime(
+        'app_sfcachetaggingplugin_lock_lifetime', 2
+      );
     }
 
     /**
@@ -100,7 +108,8 @@
     /**
      * Format passed tags to the array
      *
-     * @param array|Doctrine_Collection_Cachetaggable|Doctrine_Record|ArrayIterator|Iterator $tags
+     * @param mixed $tags array|Doctrine_Collection_Cachetaggable|
+     *                    Doctrine_Record|ArrayIterator|Iterator
      * @throws InvalidArgumentException
      * @return array
      */
@@ -129,7 +138,8 @@
 
         $tagsToReturn = $tags->getTags();
       }
-      # Doctrine_Collection_Cachetaggable and Doctrine_Record are instances of ArrayAccess
+      # Doctrine_Collection_Cachetaggable and Doctrine_Record are
+      # instances of ArrayAccess
       # this check should be after them
       elseif ($tags instanceof ArrayIterator || $tags instanceof ArrayObject)
       {
@@ -146,11 +156,18 @@
       }
       else
       {
-        throw new InvalidArgumentException(sprintf(
-          'Invalid argument type "%s". See acceptable types in the PHPDOC of "%s"',
-          sprintf('%s %s', gettype($tags), is_object($tags) ? get_class($tags) : ''),
-          __METHOD__
-        ));
+        throw new InvalidArgumentException(
+          sprintf(
+            'Invalid argument\'s type "%s". ' .
+            'See acceptable types in the PHPDOC of "%s"',
+            sprintf(
+              '%s %s',
+              gettype($tags),
+              is_object($tags) ? get_class($tags) : ''
+            ),
+            __METHOD__
+          )
+        );
       }
 
       return $tagsToReturn;
@@ -166,7 +183,10 @@
     {
       $event->setProcessed(false);
 
-      $viewCacheManager = $event->getSubject()->getContext()->getViewCacheManager();
+      $viewCacheManager = $event
+        ->getSubject()
+        ->getContext()
+        ->getViewCacheManager();
 
       if (! $viewCacheManager instanceof sfViewCacheTagManager)
       {
@@ -180,7 +200,9 @@
           $event['method']
         );
 
-        $event->setReturnValue(call_user_func_array($callable, $event['arguments']));
+        $event->setReturnValue(
+          call_user_func_array($callable, $event['arguments'])
+        );
       }
       catch (BadMethodCallException $e)
       {

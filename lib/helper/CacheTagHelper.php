@@ -9,12 +9,11 @@
   */
 
   /**
-   * CacheHelper.
+   * CacheHelper
    *
    * @package    symfony
    * @subpackage helper
-   * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
-   * @version    SVN: $Id: CacheHelper.php 23810 2009-11-12 11:07:44Z Kris.Wallsmith $
+   * @author     Ilya Sabelnikov <fruit.dev@gmail.com>
    */
 
   /* Usage
@@ -33,7 +32,8 @@
    *
    * @param string $name Content cache name
    * @param integer[optional] $lifetime seconds to cache will live
-   * @return boolean true - cache expired/not yet saved, false - cache is up-to-date
+   * @return boolean true:  cache expired/not yet saved, 
+   *                 false: cache is up-to-date
    */
   function cache_tag ($name, $lifetime = null)
   {
@@ -47,7 +47,9 @@
       throw new sfCacheException('Cache already started.');
     }
 
-    $data = sfContext::getInstance()->getViewCacheManager()->startWithTags($name);
+    $data = sfContext::getInstance()
+      ->getViewCacheManager()
+      ->startWithTags($name);
 
     if (null === $data)
     {

@@ -230,9 +230,12 @@ class sfTaggingCache extends sfCache
 
     if (null !== $value)
     {
-      if (($value instanceof stdClass) &&
-        isset($value->tags) &&
-        is_array($value->tags)
+      if (
+          ($value instanceof stdClass)
+        &&
+          isset($value->tags)
+        &&
+          is_array($value->tags)
       )
       {
         foreach ($value->tags as $tagKey => $tagOldVersion)

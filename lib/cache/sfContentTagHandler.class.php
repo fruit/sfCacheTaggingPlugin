@@ -9,24 +9,13 @@
    */
 
   /**
-   * @todo PHPDOC
+   * Handler for managing tags with predefined namespace
    *
    * @package sfCacheTaggingPlugin
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfContentTagHandler
   {
-    /**
-     * holder's namespaces
-     * Namespace name should be "UpperCamelCased"
-     * This names is used in method patterns "call%sMethod",
-     * where %s is User/Page/Action
-     */
-    const
-      NAMESPACE_USER   = 'User',
-      NAMESPACE_PAGE   = 'Page',
-      NAMESPACE_ACTION = 'Action';
-
     /**
      * @var sfTagNamespacedParameterHolder
      */
@@ -35,25 +24,6 @@
     public function __construct()
     {
       $this->holder = new sfTagNamespacedParameterHolder();
-    }
-
-    /**
-     *
-     * @return array Array of declared content namespaces
-     */
-    public static function getNamespaces ()
-    {
-      /**
-       * return same result, but difficult to read code
-       */
-      # $reflection = new ReflectionClass(__CLASS__);
-      # return array_values($reflection->getConstants());
-
-      return array(
-        self::NAMESPACE_ACTION,
-        self::NAMESPACE_USER,
-        self::NAMESPACE_PAGE,
-      );
     }
 
     /**
@@ -67,6 +37,13 @@
       return $this->holder;
     }
 
+    /**
+     * Removes all namespace tags and then sets new tags
+     *
+     * @param mixed $tags
+     * @param string $namespace
+     * @return void
+     */
     public function setContentTags ($tags, $namespace)
     {
       $this->removeContentTags($namespace);
@@ -74,31 +51,72 @@
       $this->getHolder()->add($tags, $namespace);
     }
 
+    /**
+     * Appends tags to the existing
+     *
+     * @param mixed $tags
+     * @param string $namespace
+     * @return void
+     */
     public function addContentTags ($tags, $namespace)
     {
       $this->getHolder()->add($tags, $namespace);
     }
 
+    /**
+     * Retrieves tags by namespace
+     *
+     * @param string $namespace
+     * @return array
+     */
     public function getContentTags ($namespace)
     {
       return $this->getHolder()->getAll($namespace);
     }
 
+    /**
+     * Updates specific tag with new tag version
+     *
+     * @param string $tagName
+     * @param mixed $tagVersion
+     * @param string $namespace
+     * @return void
+     */
     public function setContentTag ($tagName, $tagVersion, $namespace)
     {
       $this->getHolder()->set($tagName, $tagVersion, $namespace);
     }
 
+    /**
+     * Remove specific tag by tag name
+     *
+     * @param string $tagName
+     * @param string $namespace
+     * @return void
+     */
     public function removeContentTag ($tagName, $namespace)
     {
       $this->getHolder()->remove($tagName, null, $namespace);
     }
 
+    /**
+     * Removes all namespace tags
+     *
+     * @param string $namespace
+     * @return void
+     */
     public function removeContentTags ($namespace)
     {
       $this->getHolder()->removeNamespace($namespace);
     }
 
+    /**
+     * Check, if specific tag exists
+     *
+     * @param string $tagName
+     * @param string $namespace
+     * @return boolean
+     */
     public function hasContentTag ($tagName, $namespace)
     {
       return $this->getHolder()->has($tagName, $namespace);

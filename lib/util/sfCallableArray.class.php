@@ -16,7 +16,13 @@
    */
   class sfCallableArray extends sfCallable
   {
-    public function callArray ($arguments)
+    /**
+     * Calls method with passed arguments
+     *
+     * @param array $arguments
+     * @return mixed
+     */
+    public function callArray (array $arguments)
     {
       if (! is_callable($this->getCallable()))
       {

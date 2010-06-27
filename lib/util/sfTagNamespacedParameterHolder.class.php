@@ -15,13 +15,15 @@
    */
   class sfTagNamespacedParameterHolder extends sfNamespacedParameterHolder
   {
-//    public function setNamespace ($value, $ns = null)
-//    {
-//      $ns = null === $ns ? $this->default_namespace : $ns;
-//
-//      $this->parameters[$ns] = $value;
-//    }
-
+    /**
+     * Removes tag from holder
+     *
+     * @see parent::remove()
+     *
+     * @param string $tagName
+     * @param mixed $default
+     * @param mixed $ns
+     */
     public function remove ($tagName, $default = null, $ns = null)
     {
       if (gettype($tagName) !== 'string')
@@ -34,12 +36,21 @@
       parent::remove($tagName, $default, $ns);
     }
 
+    /**
+     * Adds tag with its version to the holder
+     *
+     * @param string $tagName
+     * @param mixed $tagVersion
+     * @param mixed $ns
+     * @return void
+     */
     public function set ($tagName, $tagVersion, $ns = null)
     {
       if (! is_string($tagName))
       {
         throw new InvalidArgumentException(sprintf(
-          'Called "%s" with invalid first argument type "%s". Acceptable type is: "string"',
+          'Called "%s" with invalid first argument type "%s".' .
+            'Acceptable type is: "string"',
           __METHOD__,
           gettype($tagName)
         ));
@@ -60,15 +71,19 @@
       }
 
       # skip old tag versions
-      if (! isset($this->parameters[$ns][$tagName]) || ($tagVersion > $this->parameters[$ns][$tagName]))
+      if (
+          ! isset($this->parameters[$ns][$tagName])
+        ||
+          $tagVersion > $this->parameters[$ns][$tagName]
+      )
       {
         $this->parameters[$ns][$tagName] = $tagVersion;
       }
     }
 
     /**
+     * Adds parameters to the holder
      *
-     * @throws InvalidArgumentException
      * @param mixed $parameters
      * @param mixed $ns
      */

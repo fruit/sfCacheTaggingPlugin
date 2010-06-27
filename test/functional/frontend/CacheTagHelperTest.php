@@ -65,11 +65,11 @@
 
 
 //  $tags = $cacheManager->getTags();
-  $tags = $cacheManager->getContentTagHandler()->getContentTags(sfContentTagHandler::NAMESPACE_USER);
+  $tags = $cacheManager->getContentTagHandler()->getContentTags(sfViewCacheTagManager::NAMESPACE_USER);
   # its removes permanently tags after function get_cache_tag_save is finished
   $content = get_cache_tag_save($newTags);
 
-  $t->is($cacheManager->getContentTagHandler()->getContentTags(sfContentTagHandler::NAMESPACE_USER), array(), 'Tags are removed after function get_cache_tag_save() is successfully runned');
+  $t->is($cacheManager->getContentTagHandler()->getContentTags(sfViewCacheTagManager::NAMESPACE_USER), array(), 'Tags are removed after function get_cache_tag_save() is successfully runned');
 
   print $content;
 

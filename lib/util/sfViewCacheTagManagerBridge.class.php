@@ -25,7 +25,6 @@
   class sfViewCacheTagManagerBridge
   {
     /**
-     *
      * @var sfViewCacheTagManager
      */
     protected $manager = null;
@@ -52,14 +51,14 @@
      *        $this->setActionTags($tags);
      *    transform it to:
      *        $this->setContentTags(
-     *          $tags, sfContentTagHandler::NAMESPACE_ACTION
+     *          $tags, sfViewCacheTagManager::NAMESPACE_ACTION
      *        );
      *
      *    If user calls:
      *       $this->hasPageTag();
      *    transform it to:
-     *       $this->hasContentTag(sfContentTagHandler::NAMESPACE_PAGE);
-     *
+     *       $this->hasContentTag(sfViewCacheTagManager::NAMESPACE_PAGE);
+//     *
      * @param string $method
      * @param array $arguments
      * @throws BadMethodCallException
@@ -67,7 +66,7 @@
      */
     public function __call ($method,  $arguments)
     {
-      $orBlock = implode('|', sfContentTagHandler::getNamespaces());
+      $orBlock = implode('|', sfViewCacheTagManager::getNamespaces());
       $pattern = sprintf('/\w+(%s)Tags?/', $orBlock);
 
       if (! preg_match($pattern, $method, $matches))

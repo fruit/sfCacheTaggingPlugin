@@ -23,6 +23,17 @@
   class sfViewCacheTagManager extends sfViewCacheManager
   {
     /**
+     * holder's namespaces
+     * Namespace name should be "UpperCamelCased"
+     * This names is used in method patterns "call%sMethod",
+     * where %s is User/Page/Action
+     */
+    const
+      NAMESPACE_USER   = 'User',
+      NAMESPACE_PAGE   = 'Page',
+      NAMESPACE_ACTION = 'Action';
+
+    /**
      * Data cache and locker cache container
      *
      * @var sfTaggingCache
@@ -43,7 +54,20 @@
      */
     protected $options = array();
 
-    
+    /**
+     * Returns predefined namespaces
+     *
+     * @return array Array of declared content namespaces
+     */
+    public static function getNamespaces ()
+    {
+      return array(
+        self::NAMESPACE_ACTION,
+        self::NAMESPACE_USER,
+        self::NAMESPACE_PAGE,
+      );
+    }
+
     /**
      * sfViewCacheTagManager options
      *
@@ -149,6 +173,8 @@
     }
 
     /**
+     * Retrieves sfTaggingCache object
+     *
      * @return sfTaggingCache
      */
     public function getTaggingCache ()
@@ -157,6 +183,8 @@
     }
 
     /**
+     * Sets sfTaggingCache object
+     *
      * @param sfTaggingCache $taggingCache
      * @return sfViewCacheTagManager
      */
@@ -200,7 +228,7 @@
 
       $tags = $this
         ->getContentTagHandler()
-        ->getContentTags(sfContentTagHandler::NAMESPACE_USER);
+        ->getContentTags(self::NAMESPACE_USER);
       
       $this->getTaggingCache()->set($key, $data, $lifetime, $tags);
 
@@ -369,7 +397,7 @@
       $actionTags = $this
         ->getContentTagHandler()
         ->getContentTags(
-          sfContentTagHandler::NAMESPACE_ACTION
+          self::NAMESPACE_ACTION
         );
 
       $actionCacheValue = array(
@@ -416,7 +444,7 @@
       $pageTags = $this
         ->getContentTagHandler()
         ->getContentTags(
-          sfContentTagHandler::NAMESPACE_PAGE
+          self::NAMESPACE_PAGE
         );
 
       // save content in cache

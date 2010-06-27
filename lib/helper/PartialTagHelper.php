@@ -14,7 +14,8 @@
    *
    * @param  string $moduleName     module name
    * @param  string $componentName  component name
-   * @param  array  $vars           variables to be made accessible to the component
+   * @param  array  $vars           variables to be made accessible to
+   *                                the component
    * @return string|void Component content
    */
   function get_component_tag ($moduleName, $componentName, $vars = array())
@@ -45,7 +46,8 @@
    *
    * @param  string $moduleName     module name
    * @param  string $componentName  component name
-   * @param  array  $vars           variables to be made accessible to the component
+   * @param  array  $vars           variables to be made accessible
+   *                                to the component
    * @return string
    */
   function include_component_tag ($moduleName, $componentName, $vars = array())
