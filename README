@@ -249,7 +249,7 @@ are not (atomic counter).
 
 *    ### Native use
 
- * not recommended - use Doctrine_Cache_* to store Doctrine_Record and Doctrine_Collection objects
+ * use Doctrine_Cache_* to store Doctrine_Record and Doctrine_Collection objects
 
             [php]
             # Somewhere in the frontend, you need to print out latest posts
@@ -264,7 +264,7 @@ are not (atomic counter).
             $tagger = $this->getContext()->getViewCacheManager();
 
             # write data to the cache ($posts is instance of the Doctrine_Collection_Cachetaggable)
-            $tagger->set('my_posts', $posts, 60 * 60 * 24 * 30/* 1 month */, $posts->getTags());
+            $tagger->set('my_posts', $posts->toArray(), 60 * 60 * 24 * 30/* 1 month */, $posts->getTags());
 
             # fetch latest post to edit it
             $post = $posts->getFirst();
@@ -284,11 +284,11 @@ are not (atomic counter).
             # $post object was updated, so, all $posts in cache "my_posts” is invalidated automatically)
             if ($data = $tagger->get('my_posts'))
             {
-              # this block will not be executed
+              # this block never executed
             }
 
             # save new data to the cache
-            $tagger->set('my_posts', $posts, null, $posts->getTags());
+            $tagger->set('my_posts', $posts->toArray(), null, $posts->getTags());
 
             # will return data (objects are fresh)
             if ($data = $tagger->get('my_posts'))
@@ -313,7 +313,7 @@ are not (atomic counter).
               ->limit(3)
               ->execute();
 
-            $tagger->set('my_posts', $posts, null, $posts->getTags());
+            $tagger->set('my_posts', $posts->toArray(), null, $posts->getTags());
 
             # will return data
             if ($data = $tagger->get('my_posts'))
@@ -396,8 +396,12 @@ are not (atomic counter).
                   ->limit(3)
                   ->execute();
 
+                
+                # See more about all available methods in PHPDOC of file
+                # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
                 $this->setUserTags($posts->getTags());
-                # or equivalent
+
+                # or equivalent-shorter code
                 # $this->setUserTags($posts);
 
                 $this->posts = $posts;
@@ -447,6 +451,8 @@ are not (atomic counter).
                 }
 
                 # after, we pass all tags to cache manager
+                # See more about all available methods in PHPDOC of file
+                # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
                 $this->setUserTags($posts->getTags());
 
                 # or shorter
@@ -471,12 +477,16 @@ are not (atomic counter).
                 $this->car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
 
                 # set the tags for the action cache
+                # See more about all available methods in PHPDOC of file
+                # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
                 $this->setPageTags($this->car->getTags());
 
                 # or shorter
                 # $this->setPageTags($this->car);
               }
             }
+  
+~/plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
 
   * Of cause you have to enable the cache for that action in ``config/cache.yml``:
 
@@ -501,6 +511,8 @@ are not (atomic counter).
                 $this->car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
 
                 # set the tags for the action cache
+                # See more about all available methods in PHPDOC of file
+                # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
                 $this->setActionTags($this->car->getTags());
 
                 # or shorter

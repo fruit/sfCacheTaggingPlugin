@@ -15,10 +15,10 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-06-09</date>
+  <date>2010-06-27</date>
   <version>
-    <release>1.4.4</release>
-    <api>1.1.1</api>
+    <release>1.5.0</release>
+    <api>2.0.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -26,9 +26,7 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [fixed] resolved conflict with SoftDelete build-in Doctrine behavior
-    * ilya: [fixed] by saving not modified object, version was updated
-    * ilya: [added] new unit/functional tests
+    
   </notes>
   <contents>
     <dir name="/">
@@ -43,8 +41,8 @@
             <file name="sfFileTaggingCache.class.php" role="data" />
             <file name="sfSQLiteTaggingCache.class.php" role="data" />
           </dir>
+          <file name="sfContentTagHandler.class.php" role="data" />
           <file name="sfTaggingCache.class.php" role="data" />
-          <file name="sfViewCacheTagManager.class.php" role="data" />
         </dir>
         <dir name="doctrine">
           <dir name="collection">
@@ -63,9 +61,13 @@
         </dir>
         <dir name="util">
           <file name="sfCacheTaggingToolkit.class.php" role="data" />
+          <file name="sfCallableArray.class.php" role="data" />
+          <file name="sfTagNamespacedParameterHolder.class.php" role="data" />
+          <file name="sfViewCacheTagManagerBridge.class.php" role="data" />
         </dir>
         <dir name="view">
           <file name="sfPartialTagView.class.php" role="data" />
+          <file name="sfViewCacheTagManager.class.php" role="data" />
         </dir>
       </dir>
       <dir name="test">
@@ -87,16 +89,23 @@
             <file name="actionWithoutLayoutTest.php" role="data" />
             <file name="sfCacheTaggingPluginTest.php" role="data" />
             <file name="sfCacheTaggingToolkitTest.php" role="data" />
+            <file name="sfContentTagHandlerTest.php" role="data" />
+            <file name="sfTaggingCacheTest.php" role="data" />
+            <file name="sfViewCacheTagManagerBridgeTest.php" role="data" />
             <file name="sfViewCacheTagManagerTest.php" role="data" />
           </dir>
           <dir name="notag">
             <file name="DoctrineListenerCachetaggableTest.php" role="data" />
+            <file name="sfCacheTaggingToolkitTest.php" role="data" />
           </dir>
         </dir>
         <dir name="unit">
           <file name="DoctrineListenerCachetaggableTest.php" role="data" />
           <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
           <file name="sfCacheTaggingToolkitTest.php" role="data" />
+          <file name="sfCallableArrayTest.php" role="data" />
+          <file name="sfCallableArrayTest.php" role="data" />
+          <file name="sfContentTagHandlerTest.php" role="data" />
         </dir>
       </dir>
     </dir>
