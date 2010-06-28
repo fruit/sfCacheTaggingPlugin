@@ -31,6 +31,10 @@ are not (atomic counter).
 
         $ ./symfony plugin:upgrade sfCacheTaggingPlugin
 
+## Release notes
+
+  * Plugin API is fully upgraded (v1.1.1 => v2.0.0)
+
 ## Setup ##
 
 1.  Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``)
@@ -245,7 +249,7 @@ are not (atomic counter).
 
 *    ### Native use
 
- * not recommended - use Doctrine_Cache_* to store Doctrine_Record and Doctrine_Collection objects
+ * use Doctrine_Cache_* to store Doctrine_Record and Doctrine_Collection objects
 
             [php]
             # Somewhere in the frontend, you need to print out latest posts
@@ -260,7 +264,7 @@ are not (atomic counter).
             $tagger = $this->getContext()->getViewCacheManager();
 
             # write data to the cache ($posts is instance of the Doctrine_Collection_Cachetaggable)
-            $tagger->set('my_posts', $posts, 60 * 60 * 24 * 30/* 1 month */, $posts->getTags());
+            $tagger->set('my_posts', $posts->toArray(), 60 * 60 * 24 * 30/* 1 month */, $posts->getTags());
 
             # fetch latest post to edit it
             $post = $posts->getFirst();
@@ -280,11 +284,11 @@ are not (atomic counter).
             # $post object was updated, so, all $posts in cache "my_posts” is invalidated automatically)
             if ($data = $tagger->get('my_posts'))
             {
-              # this block will not be executed
+              # this block never executed
             }
 
             # save new data to the cache
-            $tagger->set('my_posts', $posts, null, $posts->getTags());
+            $tagger->set('my_posts', $posts->toArray(), null, $posts->getTags());
 
             # will return data (objects are fresh)
             if ($data = $tagger->get('my_posts'))
@@ -309,7 +313,7 @@ are not (atomic counter).
               ->limit(3)
               ->execute();
 
-            $tagger->set('my_posts', $posts, null, $posts->getTags());
+            $tagger->set('my_posts', $posts->toArray(), null, $posts->getTags());
 
             # will return data
             if ($data = $tagger->get('my_posts'))
@@ -340,7 +344,7 @@ are not (atomic counter).
 
             [php]
             # when you want to update Daylight content
-            $this->getContext()->getViewCacheManager()->getTaggingCache()->setTag('moon', time(), 60 * 60 * 24 * 7 /*1 week*/);
+            $this->getTaggingCache()->setTag('moon', time(), 60 * 60 * 24 * 7 /*1 week*/);
 
 </fieldset>
 
@@ -392,8 +396,12 @@ are not (atomic counter).
                   ->limit(3)
                   ->execute();
 
+
+                # See more about all available methods in PHPDOC of file
+                # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
                 $this->setUserTags($posts->getTags());
-                # or equivalent
+
+                # or equivalent-shorter code
                 # $this->setUserTags($posts);
 
                 $this->posts = $posts;
@@ -443,6 +451,8 @@ are not (atomic counter).
                 }
 
                 # after, we pass all tags to cache manager
+                # See more about all available methods in PHPDOC of file
+                # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
                 $this->setUserTags($posts->getTags());
 
                 # or shorter
@@ -467,12 +477,16 @@ are not (atomic counter).
                 $this->car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
 
                 # set the tags for the action cache
+                # See more about all available methods in PHPDOC of file
+                # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
                 $this->setPageTags($this->car->getTags());
 
                 # or shorter
                 # $this->setPageTags($this->car);
               }
             }
+
+~/plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
 
   * Of cause you have to enable the cache for that action in ``config/cache.yml``:
 
@@ -497,6 +511,8 @@ are not (atomic counter).
                 $this->car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
 
                 # set the tags for the action cache
+                # See more about all available methods in PHPDOC of file
+                # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
                 $this->setActionTags($this->car->getTags());
 
                 # or shorter
@@ -519,9 +535,9 @@ are not (atomic counter).
     "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
     behavior.
 
-## Unit/functional test ##
+## TDD ##
 
-  * Test report (tests: 1049):
+  * Unit/funcational tests report:
 
             [sfCacheTagging] functional/frontend/CacheTagHelperTest..............ok
             CacheTagging] functional/frontend/DoctrineListenerCachetaggableTest..ok
@@ -531,41 +547,40 @@ are not (atomic counter).
             [sfCacheTagging] functional/frontend/actionWithoutLayoutTest.........ok
             [sfCacheTagging] functional/frontend/sfCacheTaggingPluginTest........ok
             [sfCacheTagging] functional/frontend/sfCacheTaggingToolkitTest.......ok
+            [sfCacheTagging] functional/frontend/sfContentTagHandlerTest.........ok
+            [sfCacheTagging] functional/frontend/sfTaggingCacheTest..............ok
+            sfCacheTagging] functional/frontend/sfViewCacheTagManagerBridgeTest..ok
             [sfCacheTagging] functional/frontend/sfViewCacheTagManagerTest.......ok
             [sfCacheTagging] functional/notag/DoctrineListenerCachetaggableTest..ok
+            [sfCacheTagging] functional/notag/sfCacheTaggingToolkitTest..........ok
             [sfCacheTagging] unit/DoctrineListenerCachetaggableTest..............ok
             [sfCacheTagging] unit/DoctrineTemplateCachetaggableTest..............ok
             [sfCacheTagging] unit/sfCacheTaggingToolkitTest......................ok
+            [sfCacheTagging] unit/sfCallableArrayTest............................ok
+            [sfCacheTagging] unit/sfContentTagHandlerTest........................ok
              All tests successful.
-             Files=13, Tests=1049
+             Files=19, Tests=1278
 
-  * Coverage report (total: 84%):
+  * Coverage report:
 
-            >> coverage  running /www/sfpro/dev...tenerCachetaggableTest.php (1/13)
-            >> coverage  running /www/sfpro/dev...plateCachetaggableTest.php (2/13)
-            >> coverage  running /www/sfpro/dev...acheTaggingToolkitTest.php (3/13)
-            >> coverage  running /www/sfpro/dev...end/CacheTagHelperTest.php (4/13)
-            >> coverage  running /www/sfpro/dev...CacheTaggingPluginTest.php (5/13)
-            >> coverage  running /www/sfpro/dev...iewCacheTagManagerTest.php (6/13)
-            >> coverage  running /www/sfpro/dev...tenerCachetaggableTest.php (7/13)
-            >> coverage  running /www/sfpro/dev...d/PartialTagHelperTest.php (8/13)
-            >> coverage  running /www/sfpro/dev...plateCachetaggableTest.php (9/13)
-            >> coverage  running /www/sfpro/dev.../actionWithLayoutTest.php (10/13)
-            >> coverage  running /www/sfpro/dev...tionWithoutLayoutTest.php (11/13)
-            >> coverage  running /www/sfpro/dev...cheTaggingToolkitTest.php (12/13)
-            >> coverage  running /www/sfpro/dev...enerCachetaggableTest.php (13/13)
-            plugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManager.class      75%
-            plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCache.class                 73%
-            lugins/sfCacheTaggingPlugin/lib/cache/extra/sfSQLiteTaggingCache.class 100%
-            plugins/sfCacheTaggingPlugin/lib/cache/extra/sfFileTaggingCache.class  100%
-            plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class      100%
-            plugins/sfCacheTaggingPlugin/lib/view/sfPartialTagView.class            92%
-            plugins/sfCacheTaggingPlugin/lib/helper/CacheTagHelper                  95%
-            plugins/sfCacheTaggingPlugin/lib/helper/PartialTagHelper               100%
-            ugins/sfCacheTaggingPlugin/lib/doctrine/collection/Cachetaggable.class 100%
-            plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class  95%
-            plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  96%
-            TOTAL COVERAGE:  84%
+            ...ugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManagerBridge.class 100%
+            ...plugins/sfCacheTaggingPlugin/lib/cache/sfViewCacheTagManager.class      75%
+            ...plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCache.class             92%
+            ...lugins/sfCacheTaggingPlugin/lib/cache/extra/sfSQLiteTaggingCache.class 100%
+            ...plugins/sfCacheTaggingPlugin/lib/cache/extra/sfFileTaggingCache.class  100%
+            ...plugins/sfCacheTaggingPlugin/lib/cache/sfContentTagHandler.class       100%
+            ...plugins/sfCacheTaggingPlugin/lib/util/sfCallableArray.class            100%
+            ...plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class      100%
+            ...ins/sfCacheTaggingPlugin/lib/util/sfTagNamespacedParameterHolder.class 100%
+            ...plugins/sfCacheTaggingPlugin/lib/view/sfPartialTagView.class            92%
+            ...plugins/sfCacheTaggingPlugin/lib/helper/CacheTagHelper                  95%
+            ...plugins/sfCacheTaggingPlugin/lib/helper/PartialTagHelper               100%
+            ...ugins/sfCacheTaggingPlugin/lib/doctrine/collection/Cachetaggable.class 100%
+            ...plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class  96%
+            ...plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  95%
+
+            TOTAL COVERAGE:  91%
+
 
 Every combination is tested (data backend / locker backend) of listed below:
 
