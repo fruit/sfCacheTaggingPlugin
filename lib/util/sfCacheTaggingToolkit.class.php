@@ -190,13 +190,17 @@
 
       if (! $viewCacheManager instanceof sfViewCacheTagManager)
       {
-        return;
+        $taggingCache = new sfNoTaggingCache();
+      }
+      else
+      {
+        $taggingCache = $viewCacheManager->getTaggingCache();
       }
       
       try
       {
         $callable = array(
-          new sfViewCacheTagManagerBridge($viewCacheManager),
+          new sfViewCacheTagManagerBridge($taggingCache),
           $event['method']
         );
 
@@ -210,5 +214,19 @@
       }
 
       $event->setProcessed(true);
+    }
+
+    public static function getBaseClassName ($className)
+    {
+      $callableArray = sfConfig::get('app_sfcachetaggingplugin_object_class_tag_name_provider');
+
+      if (null !== $callableArray)
+      {
+        $callable = new sfCallable($callableArray);
+
+        return $callable->call($className);
+      }
+
+      return $className;
     }
   }

@@ -89,7 +89,17 @@
     }
 
     $cacheManager = sfContext::getInstance()->getViewCacheManager();
-    $cacheManagerBridge = new sfViewCacheTagManagerBridge($cacheManager);
+
+    if (! $cacheManager instanceof sfViewCacheManager)
+    {
+      $taggingCache = new sfNoTaggingCache();
+    }
+    else
+    {
+      $taggingCache = $cacheManager->getTaggingCache();
+    }
+
+    $cacheManagerBridge = new sfViewCacheTagManagerBridge($taggingCache);
       
     if (null !== $tags)
     {

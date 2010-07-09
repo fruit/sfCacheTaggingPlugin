@@ -25,23 +25,22 @@
   class sfViewCacheTagManagerBridge
   {
     /**
-     * @var sfViewCacheTagManager
+     * @var sfTaggingCache
      */
-    protected $manager = null;
+    protected $taggingCache = null;
 
-    public function __construct (sfViewCacheTagManager $viewCacheTagManager)
+    public function __construct (sfTaggingCache $taggingCache)
     {
-      $this->manager = $viewCacheTagManager;
+      $this->taggingCache = $taggingCache;
     }
 
     /**
-     * Returns a instance of sfViewCacheTagManager
-     *
-     * @return sfViewCacheTagManager
+     * @see sfViewCacheTagManager::getTaggingCache
+     * @return sfTaggingCache
      */
-    protected function getManager ()
+    protected function getTaggingCache ()
     {
-      return $this->manager;
+      return $this->taggingCache;
     }
 
     /**
@@ -58,7 +57,7 @@
      *       $this->hasPageTag();
      *    transform it to:
      *       $this->hasContentTag(sfViewCacheTagManager::NAMESPACE_PAGE);
-//     *
+     *
      * @param string $method
      * @param array $arguments
      * @throws BadMethodCallException
@@ -90,7 +89,7 @@
       try
       {
         $callable = new sfCallableArray(array(
-          $this->getManager()->getContentTagHandler(),
+          $this->getTaggingCache()->getContentTagHandler(),
           $contentAbstractMethod
         ));
 
@@ -103,11 +102,32 @@
     }
 
     /**
-     * @see sfViewCacheTagManager::getTaggingCache
-     * @return sfTaggingCache
+     * @param mixed $tags
+     * @param mixed $q Doctrine_Query or string
+     * @param array [optional] $params - params from $q->getParams()
      */
-    public function getTaggingCache ()
+    public function setDoctrineTags (array $tags, $q, array $params = array())
     {
-      return $this->getManager()->getTaggingCache();
+      $key = null;
+
+      if (is_string($q))
+      {
+        $key = $q;
+      }
+      elseif ($q instanceof Doctrine_Query)
+      {
+        $key = $q->getResultCacheHash($params);
+      }
+      else
+      {
+        throw new InvalidArgumentException('Invalid arguments are passed');
+      }
+
+      $this->getTaggingCache()->addTagsToCache(
+        $key, sfCacheTaggingToolkit::formatTags($tags)
+      );
+
+      return $this;
     }
+
   }

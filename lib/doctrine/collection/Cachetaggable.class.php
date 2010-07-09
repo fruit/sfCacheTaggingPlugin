@@ -14,6 +14,7 @@
    * instance
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage doctrine
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class Doctrine_Collection_Cachetaggable extends Doctrine_Collection
@@ -49,7 +50,7 @@
 
       $this->namespace = sprintf(
         '%s/%s/%s',
-        get_class($this),
+        sfCacheTaggingToolkit::getBaseClassName(get_class($this)),
         $this->getTable()->getClassnameToReturn(),
         sfCacheTaggingToolkit::generateVersion()
       );
@@ -98,9 +99,11 @@
             ->getViewCacheManager()
             ->getTaggingCache();
 
-          $lastSavedVersion = $tagger->getTag(get_class($first));
+          $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(get_class($first));
 
-          $tags[get_class($first)] = (null === $lastSavedVersion)
+          $lastSavedVersion = $tagger->getTag($formatedClassName);
+
+          $tags[$formatedClassName] = (null === $lastSavedVersion)
             ? $latestFoundVersion
             : $lastSavedVersion;
         }

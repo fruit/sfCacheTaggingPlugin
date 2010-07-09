@@ -13,6 +13,7 @@
    * Adds new table column "object_version" and one method to creates tag names
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage doctrine
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class Doctrine_Template_Cachetaggable extends Doctrine_Template
@@ -23,9 +24,9 @@
      * @var string
      */
     protected $_options = array(
-      'uniqueColumn'    =>  'id',
-      'uniqueKeyFormat' =>  '%d',
-      'versionColumn'   =>  'object_version',
+      'uniqueColumn'    => 'id',
+      'uniqueKeyFormat' => '%d',
+      'versionColumn'   => 'object_version',
     );
 
     /**
@@ -101,12 +102,16 @@
      */
     public function getTags ()
     {
+      $className = sfCacheTaggingToolkit::getBaseClassName(
+        get_class($this->getInvoker())
+      );
+
       $this
         ->getContentTagHandler()
         ->addContentTags(
           array(
-            $this->getTagName()             => $this->getObjectVersion(),
-            get_class($this->getInvoker())  => $this->getObjectVersion(),
+            $this->getTagName() => $this->getObjectVersion(),
+            $className          => $this->getObjectVersion(),
           ),
           $this->getInvokerNamespace()
         );
@@ -157,11 +162,16 @@
       if ($object->isNew())
       {
         throw new LogicException(
-          'To call ->getTagName() you should save it before'
+          sprintf(
+            'Method %s::getTagName() is allowed only for saved objects',
+            get_class($object)
+          )
         );
       }
 
-      $columnValues = array(get_class($object));
+      $columnValues = array(
+        sfCacheTaggingToolkit::getBaseClassName(get_class($object))
+      );
 
       foreach ((array) $this->getOption('uniqueColumn') as $columnName)
       {
@@ -207,15 +217,26 @@
     }
 
     /**
+     * Updates object version
+     *
+     */
+    public function updateObjectVersion ()
+    {
+      $this->setObjectVersion(sfCacheTaggingToolkit::generateVersion());
+    }
+
+    /**
      * Returns Cache manger tagger
      *
      * @return sfTaggingCache
      */
     public function getTaggingCache ()
     {
-      return sfContext::getInstance()
-        ->getViewCacheManager()
-        ->getTaggingCache();
+      $viewCacheManager = $this->getViewCacheManager();
+
+      return ! $viewCacheManager instanceof sfViewCacheTagManager
+        ? new sfNoTaggingCache()
+        : $viewCacheManager->getTaggingCache();
     }
 
     /**
@@ -225,8 +246,21 @@
      */
     protected function getContentTagHandler ()
     {
-      return sfContext::getInstance()
-        ->getViewCacheManager()
-        ->getContentTagHandler();
+      return $this->getTaggingCache()->getContentTagHandler();
+    }
+
+    /**
+     * @return mixed sfViewCacheManager or null
+     */
+    protected function getViewCacheManager ()
+    {
+      if (! sfContext::hasInstance())
+      {
+        throw new RuntimeException(
+          sprintf('Content is not initialized for "%s"', __CLASS__)
+        );
+      }
+
+      return sfContext::getInstance()->getViewCacheManager();
     }
   }

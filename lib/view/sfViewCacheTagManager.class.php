@@ -40,12 +40,6 @@
      */
     protected $taggingCache = null;
 
-    /**
-     * Tag content handler with namespace holder (tag setting/adding/removing)
-     * 
-     * @var sfContentTagHandler
-     */
-    protected $contentTagHandler = null;
 
     /**
      * sfViewCacheTagManager option holder
@@ -93,7 +87,7 @@
      */
     public function getContentTagHandler ()
     {
-      return $this->contentTagHandler;
+      return $this->getTaggingCache()->getContentTagHandler();
     }
 
     /**
@@ -139,10 +133,12 @@
         );
       }
 
+//      $taggingCache->setContentTagHandler();
+
       $this->setTaggingCache($taggingCache);
       $this->cache = $this->getTaggingCache()->getDataCache();
 
-      $this->contentTagHandler = new sfContentTagHandler();
+//      $this->contentTagHandler = ;
 
       $this->setEventDispatcher($context->getEventDispatcher());
 

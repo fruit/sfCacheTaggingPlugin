@@ -13,6 +13,7 @@
    * version be valid and fresh
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage doctrine
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class Doctrine_Template_Listener_Cachetaggable
@@ -171,14 +172,21 @@
       $taggingCache->setTag(
         $object->getTagName(), $object->getObjectVersion(), $tagLifetime
       );
-      
+
+      $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(get_class($object));
+
       $taggingCache->setTag(
-        get_class($object), $object->getObjectVersion(), $tagLifetime
+        $formatedClassName,
+        $object->getObjectVersion(),
+        $tagLifetime
       );
 
       # updating object tags
       $object->addTag($object->getTagName(), $object->getObjectVersion());
-      $object->addTag(get_class($object), $object->getObjectVersion());
+      $object->addTag(
+        $formatedClassName,
+        $object->getObjectVersion()
+      );
     }
 
     /**
@@ -223,7 +231,11 @@
         $taggingCache->setTag($object->getTagName(), $updateVersion, $lifetime);
       }
       
-      $taggingCache->setTag(get_class($object), $updateVersion, $lifetime);
+      $taggingCache->setTag(
+        sfCacheTaggingToolkit::getBaseClassName(get_class($object)),
+        $updateVersion,
+        $lifetime
+      );
     }
 
     /**

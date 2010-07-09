@@ -9,7 +9,7 @@
    */
 
   /**
-   * Handler for managing tags with predefined namespace
+   * Handler for managing tags
    *
    * @package sfCacheTaggingPlugin
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>

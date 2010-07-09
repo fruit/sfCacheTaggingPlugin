@@ -82,11 +82,21 @@ are not (atomic counter).
                   port: 11211
                   timeout: 5
                   lifetime: 86400           # default value is 1 day - 86400 for each sf*Cache mechanism
-              locker:
+
+              # place, where to store locks for data and tag cache
+              locker:                       # if "locker" not setted (is "~"), it will be the same as cache (e.i. sfMemcacheCache)
                 class: sfAPCCache           # Locks will be stored in APC
                                             # Here you can switch to any other backend sf*Cache
                                             # (see Restrictions block for more info)
                 param: {}
+
+              # stores Doctine_Records and Doctrine_Collection in cache
+              # by using build-in Doctrine mechanism
+              doctrine:                     # if "doctrine" not setted (is "~"), it will be the same as cache (e.i. sfMemcacheCache)
+                class: sfFileTaggingCache   # Here you can switch to any other backend sf*Cache
+                                            # (see Restrictions block for more info)
+                param:
+                  cacheDir: %SF_CACHE_DIR%/doctrine-results
 
           view_cache_manager:
             class: sfViewCacheTagManager          # Extended sfViewCacheManager class
@@ -94,8 +104,26 @@ are not (atomic counter).
               cache_key_use_vary_headers: true
               cache_key_use_host_name:    true
 
-    > **Easter eggs**: If you remove "``all_view_cache_param_locker``" section,
-      locker will be the same as section "``all_view_cache_param_cache``".
+    > ### Short working example to start caching with tags (file ``/config/factories.yml``)
+
+        [yml]
+        all:
+          view_cache:
+            class: sfTaggingCache
+            param:
+              logging: true
+              cache:
+                class: sfAPCCache
+                param: []
+              locker: ~
+              doctrine: ~
+
+          view_cache_manager:
+            class: sfViewCacheTagManager
+            param:
+              cache_key_use_vary_headers: true
+              cache_key_use_host_name:    true
+
 
     > **Restrictions**: Backend's class should be inheritable from ``sfCache``
       class. Also, it should support the caching of objects and/or arrays.
@@ -209,6 +237,7 @@ are not (atomic counter).
             [yml]
             all:
               sfcachetaggingplugin:
+
                 template_lock: "lock_%s"    # name for locks
                 template_tag: "tag_%s"      # name for tags
 
@@ -245,11 +274,27 @@ are not (atomic counter).
                                             # Chars in lower case indicate negative operation
                                             # Chars in upper case indicate positive operation
 
+                #object_class_tag_name_provider: # you can customize tag name naming
+                #  - ProjectToolkit              # useful for multi-environment models
+                #  - formatObjectClassName
+
+   1. Minified ``app.yml`` content:
+
+            [yml]
+            all:
+              sfcachetaggingplugin:
+                template_lock: "lock_%s"
+                template_tag: "tag_%s"
+                microtime_precision: 5
+                lock_lifetime: 2
+                tag_lifetime: 86400
+                log_format_extended: 0
+
 ## Using ##
 
-*    ### Native use
-
- * use Doctrine_Cache_* to store Doctrine_Record and Doctrine_Collection objects
+*   ### Native use
+    
+    * ``actions.class.php`` or ``components.class.php``
 
             [php]
             # Somewhere in the frontend, you need to print out latest posts
@@ -260,8 +305,8 @@ are not (atomic counter).
               ->limit(3)
               ->execute();
 
-            /* @var $tagger sfViewCacheTagManager */
-            $tagger = $this->getContext()->getViewCacheManager();
+            /* @var $tagger sfTaggingCache */
+            $tagger = $this->getContext()->getViewCacheManager()->getTaggingCache();
 
             # write data to the cache ($posts is instance of the Doctrine_Collection_Cachetaggable)
             $tagger->set('my_posts', $posts->toArray(), 60 * 60 * 24 * 30/* 1 month */, $posts->getTags());
@@ -486,11 +531,11 @@ are not (atomic counter).
               }
             }
 
-~/plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-
-  * Of cause you have to enable the cache for that action in ``config/cache.yml``:
+  * Without a doubt, you have to enable the cache for that action in ``config/cache.yml``:
 
             [yml]
+            # "show" is a word from action method "execiteShow"
+            # also you could name it as "showSuccess"
             show:
               with_layout: true
               enabled:     true
@@ -523,11 +568,65 @@ are not (atomic counter).
   * You have to disable "with_layout" and enable the cache for that action in ``config/cache.yml``:
 
             [yml]
+            # "show" is a word from action method "execiteShow"
+            # also you could name it as "showSuccess"
             show:
               with_layout: false
               enabled:     true
               lifetime:    360
 
+* ### Caching Doctrine_Records/Doctrine_Collections with its tags in action/component
+
+  * Running execute() WITHOUT passed "all together" params:
+
+            [php]
+            class carActions extends sfActions
+            {
+              # Somewhere in component/action, you need to print out latest posts
+              $posts = Doctrine::getTable('BlogPost')
+                ->createQuery()
+                ->useResultCache()
+                ->addWhere('lang = ?', 'en_GB')
+                ->addWhere('is_visible = ?', true)
+                ->limit(15)
+                ->execute();
+
+              $this->setDoctrineTags($posts->getTags(), $q);
+
+              # or shorter
+              # $this->setDoctrineTags($posts, $q);
+
+              $this->posts = $posts;
+            }
+
+
+  * Running execute() WITH passed "all together" params:
+
+            [php]
+            class carActions extends sfActions
+            {
+              # Somewhere in component/action, you need to print out latest posts
+              $posts = Doctrine::getTable('BlogPost')
+                ->createQuery()
+                ->useResultCache()
+                ->addWhere('lang = ?')
+                ->addWhere('is_visible = ?')
+                ->limit(15)
+                ->execute(array('en_GB', true));
+
+              # explained version
+              $this->setDoctrineTags($posts->getTags(), $q, $q->getParams());
+
+              # or
+              # same result
+              # $this->setDoctrineTags($posts->getTags(), $q->getResultCacheHash($q->getParams()));
+
+              # or
+              # same result and shorter
+              # $this->setDoctrineTags($posts, $q, $q->getParams());
+
+              $this->posts = $posts;
+            }
 
 ## Limitations / Peculiarities ##
 
