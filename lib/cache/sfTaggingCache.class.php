@@ -144,9 +144,43 @@
         );
       }
 
-      $this->initializeThematicCache('locker');
+      if (null === $this->getOption('locker'))
+      {
+        $this->lockerCache = $this->dataCache;
+      }
+      else
+      {
+        $lockerClassName = $this->getOption('locker.class');
 
-      $this->initializeThematicCache('doctrine');
+        if (! $lockerClassName)
+        {
+          throw new sfInitializationException(sprintf(
+            'You must pass a "locker.class" option to initialize a %s object.',
+            __CLASS__
+          ));
+        }
+
+        if (! class_exists($lockerClassName, true))
+        {
+          throw new sfInitializationException(
+            sprintf(
+              'sfCacheTaggingPlugin: Tagging locker class "%s" not found',
+              $lockerClassName
+            )
+          );
+        }
+
+        # check is valid class
+        $this->lockerCache = new $lockerClassName($options['locker']['param']);
+
+        if (! $this->lockerCache instanceof sfCache)
+        {
+          throw new sfInitializationException(
+          'sfCacheTaggingPlugin: Locker backend class is not instance ' .
+            'of sfCache.'
+          );
+        }
+      }
 
       if ($options['logging'])
       {
@@ -154,55 +188,6 @@
           sfConfig::get('sf_log_dir') . DIRECTORY_SEPARATOR .
           sprintf('cache_%s.log', sfConfig::get('sf_environment'))
         );
-      }
-    }
-
-    protected function initializeThematicCache ($cacheAlias)
-    {
-      $this->{"{$cacheAlias}Cache"} = null;
-
-      if (null === $this->getOption($cacheAlias))
-      {
-        $this->{"{$cacheAlias}Cache"} = $this->dataCache;
-      }
-      else
-      {
-        $cacheClassName = $this->getOption(sprintf('%s.class', $cacheAlias));
-
-        if (! $cacheClassName)
-        {
-          throw new sfInitializationException(sprintf(
-            'You must pass a "%s.class" option to initialize a %s object.',
-            $cacheAlias,
-            __CLASS__
-          ));
-        }
-
-        if (! class_exists($cacheClassName, true))
-        {
-          throw new sfInitializationException(
-            sprintf(
-              'sfCacheTaggingPlugin: Tagging alias "%s" (class "%s") not found',
-              $cacheAlias,
-              $cacheClassName
-            )
-          );
-        }
-
-        # check is valid class
-        $this->{"{$cacheAlias}Cache"} = new $cacheClassName(
-          $this->getOption(sprintf('%s.param', $cacheAlias))
-        );
-
-        if (! $this->{"{$cacheAlias}Cache"} instanceof sfCache)
-        {
-          throw new sfInitializationException(
-            sprintf(
-              'sfCacheTaggingPlugin: "%s" class is not instance of sfCache.',
-              $cacheClassName
-            )
-          );
-        }
       }
     }
 

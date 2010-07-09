@@ -90,14 +90,6 @@ are not (atomic counter).
                                             # (see Restrictions block for more info)
                 param: {}
 
-              # stores Doctine_Records and Doctrine_Collection in cache
-              # by using build-in Doctrine mechanism
-              doctrine:                     # if "doctrine" not setted (is "~"), it will be the same as cache (e.i. sfMemcacheCache)
-                class: sfFileTaggingCache   # Here you can switch to any other backend sf*Cache
-                                            # (see Restrictions block for more info)
-                param:
-                  cacheDir: %SF_CACHE_DIR%/doctrine-results
-
           view_cache_manager:
             class: sfViewCacheTagManager          # Extended sfViewCacheManager class
             param:
