@@ -106,7 +106,7 @@
      * @param mixed $q Doctrine_Query or string
      * @param array [optional] $params - params from $q->getParams()
      */
-    public function setDoctrineTags (array $tags, $q, array $params = array())
+    public function setDoctrineTags ($tags, $q, array $params = array())
     {
       $key = null;
 
