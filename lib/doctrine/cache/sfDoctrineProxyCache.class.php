@@ -17,7 +17,7 @@
    * @subpackage doctrine
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class Doctrine_Cache_Proxy extends Doctrine_Cache_Driver
+  class sfDoctrineProxyCache extends Doctrine_Cache_Driver
   {
     /**
      * @return sfTaggingCache

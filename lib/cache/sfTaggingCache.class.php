@@ -45,7 +45,7 @@
      * @var sfContentTagHandler
      */
     protected $contentTagHandler = null;
-    
+
     /**
      * Extended verion of default getOption method
      * In case, options is array with sub arrays you could easy to get value
@@ -190,7 +190,7 @@
         }
 
         # check is valid class
-        $this->{"{$cacheAlias}Cache"} = new $lockerClassName(
+        $this->{"{$cacheAlias}Cache"} = new $cacheClassName(
           $this->getOption(sprintf('%s.param', $cacheAlias))
         );
 
@@ -329,24 +329,24 @@
       {
         if ($append)
         {
-          foreach ($tags as $key => $value)
+          foreach ($tags as $addedTagKey => $addedTagValue)
           {
             if (
-                ! isset($value->tags[$key])
+                ! isset($value->tags[$addedTagKey])
               ||
                 (
-                  isset($value->tags[$key])
+                  isset($value->tags[$addedTagKey])
                 &&
-                  $value->tags[$key] < $value
+                  $value->tags[$addedTagKey] < $addedTagValue
                 )
             )
             {
-              $value->tags[$key] = $value;
+              $value->tags[$addedTagKey] = $addedTagValue;
             }
           }
         }
 
-        return $this->set($key, $value->data, $this->getTimeout($key), $tags);
+        return $this->set($key, $value->data, $this->getTimeout($key), $value->tags);
       }
 
       return false;
