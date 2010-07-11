@@ -49,7 +49,9 @@
     {
       try
       {
-        return $this->getTaggingCache()->set($id, $data, $lifeTime);
+        return $this->getTaggingCache()->set(
+          $id, $data, ! $lifeTime ? null : $lifeTime
+        );
       }
       catch (sfInitializationException $e)
       {
@@ -98,11 +100,6 @@
     {
       try
       {
-        if ( ! $this->getTaggingCache()->has($id))
-        {
-          return false;
-        }
-
         return $this->getTaggingCache()->has($id);
       }
       catch (sfInitializationException $e)
@@ -123,14 +120,12 @@
 
       try
       {
-        if ($this->getTaggingCache()->has($id))
-        {
-          $value = $this->getTaggingCache()->get($id);
-        }
+        $value = $this->getTaggingCache()->get($id);
+        $value = null === $value ? false : $value;
       }
       catch (sfInitializationException $e)
       {
-
+        
       }
 
       return $value;

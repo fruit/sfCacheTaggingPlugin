@@ -61,10 +61,21 @@
      */
     protected function getContentTagHandler ()
     {
-      return sfContext::getInstance()
-        ->getViewCacheManager()
-        ->getContentTagHandler()
-      ;
+      return $this->getViewCacheManger()->getContentTagHandler();
+    }
+
+    /**
+     * @return sfViewCacheTagManager
+     */
+    protected function getViewCacheManger ()
+    {
+      $manager = sfContext::getInstance()->getViewCacheManager();
+      if (! $manager instanceof sfViewCacheTagManager)
+      {
+        throw new sfInitializationException('view cache manager is not taggable');
+      }
+
+      return $manager;
     }
 
     /**
@@ -95,9 +106,7 @@
 
         if (null !== ($first = $collection->getFirst()))
         {
-          $tagger = sfContext::getInstance()
-            ->getViewCacheManager()
-            ->getTaggingCache();
+          $tagger = $this->getViewCacheManger()->getTaggingCache();
 
           $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(get_class($first));
 
@@ -132,11 +141,18 @@
      */
     public function getTags ()
     {
-      $this->addTags($this->fetchTags());
+      try
+      {
+        $this->addTags($this->fetchTags());
 
-      return $this
-        ->getContentTagHandler()
-        ->getContentTags($this->getNamespace());
+        return $this
+          ->getContentTagHandler()
+          ->getContentTags($this->getNamespace());
+      }
+      catch (sfInitializationException $e)
+      {
+        return array();
+      }
     }
 
     /**
@@ -148,9 +164,16 @@
      */
     public function addTags ($tags)
     {
-      $this
-        ->getContentTagHandler()
-        ->addContentTags($tags, $this->getNamespace());
+      try
+      {
+        $this
+          ->getContentTagHandler()
+          ->addContentTags($tags, $this->getNamespace());
+      }
+      catch (sfInitializationException $e)
+      {
+
+      }
     }
 
     /**
