@@ -87,7 +87,7 @@
     ));
   }
 
-  $bridge = new sfViewCacheTagManagerBridge($cacheManager);
+  $bridge = new sfViewCacheTagManagerBridge($cacheManager->getTaggingCache());
 
   $posts = BlogPostTable::getInstance()->findAll();
   $posts->delete();

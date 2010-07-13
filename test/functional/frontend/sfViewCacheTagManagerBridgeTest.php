@@ -14,9 +14,18 @@
 
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
   /* @var $cacheManager sfViewCacheTagManager */
-  
-  $bridge = new sfViewCacheTagManagerBridge($cacheManager);
-  
+
+  try
+  {
+    $bridge = new sfViewCacheTagManagerBridge($cacheManager->getTaggingCache());
+
+    $t->pass('Bridge initialized');
+  }
+  catch (Exception $e)
+  {
+    $t->fail($e->getMessage());
+  }
+
   $holder = $cacheManager->getContentTagHandler();
 
   $validPatternMethods = array(
@@ -92,10 +101,5 @@
     }
   }
 
-  $t->isa_ok(
-    $bridge->getTaggingCache(), 
-    'sfTaggingCache',
-    sprintf('"%s::getTaggingCache" returns sfTaggingCache object', get_class($bridge))
-  );
-
+  $t->todo('Add test on setDoctrineTags');
   
