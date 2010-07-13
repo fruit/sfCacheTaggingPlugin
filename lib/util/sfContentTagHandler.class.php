@@ -121,4 +121,32 @@
     {
       return $this->getHolder()->has($tagName, $namespace);
     }
+
+
+    /**
+     *
+     * @param array $references
+     * @param boolean $deep
+     * @param string $namespace
+     * @return void
+     */
+    public function addContentReferencesTags (array $references, $deep = false, $namespace)
+    {
+      /* @var $reference Doctrine_Record */
+      foreach ($references as $referenceName => $reference)
+      {
+        if ($reference instanceof Doctrine_Null)
+        {
+          continue;
+        }
+
+        $runRelatedRecursively = ! $reference->getTable()->hasTemplate('I18n') ? $deep : false;
+
+        $this
+          ->addContentTags(
+            $reference->getTags($runRelatedRecursively),
+            $namespace
+          );
+      }
+    }
   }

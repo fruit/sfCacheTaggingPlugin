@@ -82,13 +82,12 @@
      * Collects collection tags keys with its versions
      *
      * @param Doctrine_Collection_Cachetaggable $collection
+     * @param boolean $deep
      * @return array
      */
-    protected function fetchTags (self $collection = null)
+    protected function fetchTags (self $collection, $deep = false)
     {
       $tags = array();
-
-      $collection = null === $collection ? $this : $collection;
 
       $latestFoundVersion = 0;
 
@@ -96,6 +95,11 @@
       {
         foreach ($collection as $object)
         {
+          /**
+           * @todo fix this
+           */
+//          $tags = array_merge($tags, $object->getTags($deep));
+
           $tags[$object->getTagName()] = $object->getObjectVersion();
 
           $latestFoundVersion =
@@ -127,7 +131,11 @@
          * repeating calls with relative microtime always refresh collection tag
          * so, here is day-fixed value
          */
-        $tags[$collection->getTable()->getClassnameToReturn()]
+        $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
+          $collection->getTable()->getClassnameToReturn()
+        );
+
+        $tags[$formatedClassName]
           = sfCacheTaggingToolkit::generateVersion(strtotime('today'));
       }
 
@@ -137,13 +145,14 @@
     /**
      * Returns this collection and added tags
      *
+     * @param boolean $deep
      * @return array
      */
-    public function getTags ()
+    public function getTags ($deep = false)
     {
       try
       {
-        $this->addTags($this->fetchTags());
+        $this->addTags($this->fetchTags($this, $deep));
 
         return $this
           ->getContentTagHandler()

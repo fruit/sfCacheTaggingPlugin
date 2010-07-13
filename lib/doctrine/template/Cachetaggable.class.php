@@ -24,8 +24,8 @@
      * @var string
      */
     protected $_options = array(
-      'uniqueColumn'    => 'id',
-      'uniqueKeyFormat' => '%d',
+      'uniqueColumn'    => array(),
+      'uniqueKeyFormat' => '',
       'versionColumn'   => 'object_version',
     );
 
@@ -94,17 +94,16 @@
       return $this->invokerNamespace;
     }
 
-
     /**
      * Retrieves object's tags and appended tags
      *
+     * @param boolean [optional] $deep collect tags from joined related objects
      * @return array object tags (self and external from ->addTags())
      */
-    public function getTags ()
+    public function getTags ($deep = false)
     {
-      $className = sfCacheTaggingToolkit::getBaseClassName(
-        get_class($this->getInvoker())
-      );
+      $invoker = $this->getInvoker();
+      $className = sfCacheTaggingToolkit::getBaseClassName(get_class($invoker));
 
       $this
         ->getContentTagHandler()
@@ -115,6 +114,15 @@
           ),
           $this->getInvokerNamespace()
         );
+
+      if ($deep && ! $this->getTable()->hasTemplate('I18n'))
+      {
+        $this
+          ->getContentTagHandler()
+          ->addContentReferencesTags(
+            $invoker->getReferences(), $deep, $this->getInvokerNamespace()
+          );
+      }
 
       return $this
         ->getContentTagHandler()
@@ -173,7 +181,21 @@
         sfCacheTaggingToolkit::getBaseClassName(get_class($object))
       );
 
-      foreach ((array) $this->getOption('uniqueColumn') as $columnName)
+      $uniqueColumns = (array) $this->getOption('uniqueColumn');
+
+      
+      if (0 == count($uniqueColumns))
+      {
+        $uniqueColumns = $object->getTable()->getIdentifierColumnNames();
+
+        $keyFormat = implode('_', array_fill(0, count($uniqueColumns), '%s'));
+      }
+      else
+      {
+        $keyFormat = $this->getOption('uniqueKeyFormat');
+      }
+
+      foreach ($uniqueColumns as $columnName)
       {
         if ($object->getTable()->hasColumn($columnName))
         {
@@ -181,10 +203,17 @@
         }
       }
 
+      if (0 === count($columnValues))
+      {
+        throw new sfConfigurationException(
+          'Please setup column names to build tag name'
+        );
+      }
+
       return call_user_func_array(
         'sprintf',
         array_merge(
-          array("%s_{$this->getOption('uniqueKeyFormat')}"),
+          array("%s_{$keyFormat}"),
           $columnValues
         )
       );
