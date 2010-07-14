@@ -1,0 +1,98 @@
+<?php
+
+  /**
+   * execute
+   * executes the query and populates the data set
+   *
+   * @param array $params
+   * @return Doctrine_Collection            the root collection
+   */
+  class Cachetaggable_Doctrine_Query extends Doctrine_Query
+  {
+    public function execute($params = array(), $hydrationMode = null)
+    {
+      // Clean any possible processed params
+      $this->_execParams = array();
+
+      if (empty($this->_dqlParts['from']) && empty($this->_sqlParts['from']))
+      {
+        throw new Doctrine_Query_Exception('You must have at least one component specified in your from.');
+      }
+
+      $dqlParams = $this->getFlattenedParams($params);
+
+      $this->_preQuery($dqlParams);
+
+      if ($hydrationMode !== null)
+      {
+        $this->_hydrator->setHydrationMode($hydrationMode);
+      }
+
+      $hydrationMode = $this->_hydrator->getHydrationMode();
+
+      if ($this->_resultCache && $this->_type == self::SELECT)
+      {
+        $cacheDriver = $this->getResultCacheDriver();
+        $hash = $this->getResultCacheHash($params);
+        $cached = ($this->_expireResultCache) ? false : $cacheDriver->fetch($hash);
+
+        if ($cached === false)
+        {
+          // cache miss
+          $stmt = $this->_execute($params);
+          $this->_hydrator->setQueryComponents($this->_queryComponents);
+          $result = $this->_hydrator->hydrateResultSet($stmt, $this->_tableAliasMap);
+
+          $cached = $this->getCachedForm($result);
+
+          if (
+              $cacheDriver instanceof sfDoctrineProxyCache
+            &&
+              $result instanceof Doctrine_Collection_Cachetaggable)
+          {
+            $cacheDriver->saveWithTags(
+              $hash, $cached, $this->getResultCacheLifeSpan(), $result->getTags(true)
+            );
+          }
+          else
+          {
+            $cacheDriver->save($hash, $cached, $this->getResultCacheLifeSpan());
+          }
+        }
+        else
+        {
+          $result = $this->_constructQueryFromCache($cached);
+        }
+      }
+      else
+      {
+        $stmt = $this->_execute($params);
+
+        if (is_integer($stmt))
+        {
+          $result = $stmt;
+        }
+        else
+        {
+          $this->_hydrator->setQueryComponents($this->_queryComponents);
+          if ($this->_type == self::SELECT && $hydrationMode == Doctrine_Core::HYDRATE_ON_DEMAND)
+          {
+            $hydrationDriver = $this->_hydrator->getHydratorDriver($hydrationMode, $this->_tableAliasMap);
+            $result = new Doctrine_Collection_OnDemand($stmt, $hydrationDriver, $this->_tableAliasMap);
+          }
+          else
+          {
+            $result = $this->_hydrator->hydrateResultSet($stmt, $this->_tableAliasMap);
+          }
+        }
+      }
+
+      if ($this->getConnection()->getAttribute(Doctrine_Core::ATTR_AUTO_FREE_QUERY_OBJECTS))
+      {
+        $this->free();
+      }
+
+      return $result;
+    }
+  }
+

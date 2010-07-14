@@ -199,7 +199,7 @@
       {
         if ($object->getTable()->hasColumn($columnName))
         {
-          $columnValues[] = $object[$columnName];
+          $columnValues[] = $object->get($columnName);
         }
       }
 

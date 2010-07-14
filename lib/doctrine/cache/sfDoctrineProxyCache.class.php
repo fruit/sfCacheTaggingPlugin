@@ -62,6 +62,26 @@
     }
 
     /**
+     * @see parent::_doSave()
+     * @return boolean
+     */
+    protected function _doSaveWithTags ($id, $data, $lifeTime = false, array $tags = array())
+    {
+      try
+      {
+        return $this->getTaggingCache()->set(
+          $id, $data, ! $lifeTime ? null : $lifeTime, $tags
+        );
+      }
+      catch (sfInitializationException $e)
+      {
+
+      }
+
+      return false;
+    }
+
+    /**
      * @todo sf*Cache::getCacheInfo() is protected to use from outside
      *       base functionality works without this method implementation
      *
@@ -129,6 +149,13 @@
       }
 
       return $value;
+    }
+
+    public function saveWithTags($id, $data, $lifeTime = false, array $tags = array())
+    {
+      $key = $this->_getKey($id);
+
+      return $this->_doSaveWithTags($key, $data, $lifeTime, $tags);
     }
 
   }

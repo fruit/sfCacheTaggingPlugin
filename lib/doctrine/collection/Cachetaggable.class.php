@@ -91,27 +91,23 @@
 
       $latestFoundVersion = 0;
 
+      $tagger = $this->getViewCacheManger()->getTaggingCache();
+
       if ($collection->count())
       {
         foreach ($collection as $object)
         {
-          /**
-           * @todo fix this
-           */
-//          $tags = array_merge($tags, $object->getTags($deep));
+          $tags = array_merge($tags, $object->getTags($deep));
 
-          $tags[$object->getTagName()] = $object->getObjectVersion();
+          $objectVersion = $object->getObjectVersion();
 
-          $latestFoundVersion =
-            $latestFoundVersion < $object->getObjectVersion()
-              ? $object->getObjectVersion()
-              : $latestFoundVersion;
+          $latestFoundVersion = $latestFoundVersion < $objectVersion
+            ? $objectVersion
+            : $latestFoundVersion;
         }
 
         if (null !== ($first = $collection->getFirst()))
         {
-          $tagger = $this->getViewCacheManger()->getTaggingCache();
-
           $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(get_class($first));
 
           $lastSavedVersion = $tagger->getTag($formatedClassName);

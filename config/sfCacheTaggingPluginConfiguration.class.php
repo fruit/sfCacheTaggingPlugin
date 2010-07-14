@@ -42,6 +42,15 @@ class sfCacheTaggingPluginConfiguration extends sfPluginConfiguration
       Doctrine::ATTR_COLLECTION_CLASS, 'Doctrine_Collection_Cachetaggable'
     );
 
+    $manager->setAttribute(
+      Doctrine_Core::ATTR_RESULT_CACHE, new sfDoctrineProxyCache()
+    );
+
+    $manager->setAttribute(
+      Doctrine_Core::ATTR_QUERY_CLASS,
+      'Cachetaggable_Doctrine_Query'
+    );
+
     $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
 
     $this->getEventDispatcher()->notify(
