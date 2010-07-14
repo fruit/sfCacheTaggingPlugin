@@ -89,12 +89,15 @@
      */
     public function add ($parameters, $ns = null)
     {
+      if (! is_array($parameters))
+      {
+        throw new InvalidArgumentException('Parameters is not type of Array');
+      }
+
       if (! isset($this->parameters[$ns]))
       {
         $this->parameters[$ns] = array();
       }
-
-      $parameters = sfCacheTaggingToolkit::formatTags($parameters);
 
       foreach ($parameters as $name => $value)
       {

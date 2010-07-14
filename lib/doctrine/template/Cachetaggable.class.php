@@ -102,31 +102,35 @@
      */
     public function getTags ($deep = false)
     {
+      $tagHandler = $this->getContentTagHandler();
+
       $invoker = $this->getInvoker();
+
       $className = sfCacheTaggingToolkit::getBaseClassName(get_class($invoker));
 
-      $this
-        ->getContentTagHandler()
-        ->addContentTags(
-          array(
-            $this->getTagName() => $this->getObjectVersion(),
-            $className          => $this->getObjectVersion(),
-          ),
-          $this->getInvokerNamespace()
-        );
+      $objectVersion = $this->getObjectVersion();
+      
+      $tagHandler->addContentTags(
+        array(
+          $this->getTagName() => $objectVersion,
+          $className          => $objectVersion,
+        ),
+        $this->getInvokerNamespace()
+      );
 
-      if ($deep && ! $this->getTable()->hasTemplate('I18n'))
+      if ($deep)
       {
-        $this
-          ->getContentTagHandler()
+        $tagHandler
           ->addContentReferencesTags(
-            $invoker->getReferences(), $deep, $this->getInvokerNamespace()
+            $invoker, $this->getInvokerNamespace(), $deep
           );
       }
 
-      return $this
-        ->getContentTagHandler()
-        ->getContentTags($this->getInvokerNamespace());
+      $tags = $tagHandler->getContentTags($this->getInvokerNamespace());
+
+      $tagHandler->removeContentTags($this->getInvokerNamespace());
+
+      return $tags;
     }
 
     /**

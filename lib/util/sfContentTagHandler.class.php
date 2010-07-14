@@ -54,11 +54,11 @@
     /**
      * Appends tags to the existing
      *
-     * @param mixed $tags
+     * @param array $tags
      * @param string $namespace
      * @return void
      */
-    public function addContentTags ($tags, $namespace)
+    public function addContentTags (array $tags, $namespace)
     {
       $this->getHolder()->add($tags, $namespace);
     }
@@ -130,23 +130,40 @@
      * @param string $namespace
      * @return void
      */
-    public function addContentReferencesTags (array $references, $deep = false, $namespace)
+    public function addContentReferencesTags (Doctrine_Record $object, $namespace, $deep = false)
     {
-      /* @var $reference Doctrine_Record */
-      foreach ($references as $referenceName => $reference)
+      foreach ($object->getReferences() as $objectKey => $reference)
       {
         if ($reference instanceof Doctrine_Null)
         {
           continue;
         }
 
-        $runRelatedRecursively = ! $reference->getTable()->hasTemplate('I18n') ? $deep : false;
+        if ($reference instanceof Doctrine_Collection)
+        {
+          foreach ($reference as $referenceKey => $referenceObject)
+          {
+            if (! $referenceObject->getTable()->hasTemplate('Cachetaggable'))
+            {
+              continue;
+            }
 
-        $this
-          ->addContentTags(
-            $reference->getTags($runRelatedRecursively),
-            $namespace
-          );
+            $this->addContentTags($referenceObject->getTags(), $namespace, $deep);
+
+            if ($deep)
+            {
+              $this->addContentReferencesTags($referenceObject, $namespace, $deep);
+            }
+          }
+        }
+
+        if ($reference instanceof Doctrine_Record)
+        {
+          if ($reference->getTable()->hasTemplate('Cachetaggable'))
+          {
+            $this->addContentTags($reference->getTags(), $namespace, $deep);
+          }
+        }
       }
     }
   }

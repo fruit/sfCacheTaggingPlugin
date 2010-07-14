@@ -79,42 +79,52 @@
     }
 
     /**
-     * Collects collection tags keys with its versions
+     * Returns this collection and added tags
      *
-     * @param Doctrine_Collection_Cachetaggable $collection
+     * @param Doctrine_Collection_Cachetaggable $this
      * @param boolean $deep
      * @return array
      */
-    protected function fetchTags (self $collection, $deep = false)
+    public function getTags ($deep = false)
     {
-      $tags = array();
+      if (! $this->getTable()->hasTemplate('Cachetaggable'))
+      {
+        throw new LogicException(sprintf(
+          'Model "%s" has no "Cachetaggable" templates',
+          $this->getTable()->getClassnameToReturn()
+        ));
+      }
 
-      $latestFoundVersion = 0;
+      $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
+        $this->getTable()->getClassnameToReturn()
+      );
 
       $tagger = $this->getViewCacheManger()->getTaggingCache();
 
-      if ($collection->count())
+      if ($this->count())
       {
-        foreach ($collection as $object)
-        {
-          $tags = array_merge($tags, $object->getTags($deep));
+        $freshestVersion = 0;
 
+        foreach ($this as $object)
+        {
           $objectVersion = $object->getObjectVersion();
 
-          $latestFoundVersion = $latestFoundVersion < $objectVersion
+          $freshestVersion = $freshestVersion < $objectVersion
             ? $objectVersion
-            : $latestFoundVersion;
+            : $freshestVersion;
+
+          $this
+            ->getContentTagHandler()
+            ->addContentTags($object->getTags($deep), $this->getNamespace());
         }
 
-        if (null !== ($first = $collection->getFirst()))
+        $lastSavedVersion = $tagger->getTag($formatedClassName);
+
+        if ($lastSavedVersion && ($lastSavedVersion < $freshestVersion))
         {
-          $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(get_class($first));
-
-          $lastSavedVersion = $tagger->getTag($formatedClassName);
-
-          $tags[$formatedClassName] = (null === $lastSavedVersion)
-            ? $latestFoundVersion
-            : $lastSavedVersion;
+          $this->getContentTagHandler()->setContentTag(
+            $formatedClassName, $lastSavedVersion, $this->getNamespace()
+          );
         }
       }
       else
@@ -127,37 +137,18 @@
          * repeating calls with relative microtime always refresh collection tag
          * so, here is day-fixed value
          */
-        $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
-          $collection->getTable()->getClassnameToReturn()
+        $this->getContentTagHandler()->setContentTag(
+          $formatedClassName,
+          sfCacheTaggingToolkit::generateVersion(strtotime('today')),
+          $this->getNamespace()
         );
-
-        $tags[$formatedClassName]
-          = sfCacheTaggingToolkit::generateVersion(strtotime('today'));
       }
+
+      $tags = $this->getContentTagHandler()->getContentTags($this->getNamespace());
+
+      $this->getContentTagHandler()->removeContentTags($this->getNamespace());
 
       return $tags;
-    }
-
-    /**
-     * Returns this collection and added tags
-     *
-     * @param boolean $deep
-     * @return array
-     */
-    public function getTags ($deep = false)
-    {
-      try
-      {
-        $this->addTags($this->fetchTags($this, $deep));
-
-        return $this
-          ->getContentTagHandler()
-          ->getContentTags($this->getNamespace());
-      }
-      catch (sfInitializationException $e)
-      {
-        return array();
-      }
     }
 
     /**
