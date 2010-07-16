@@ -26,12 +26,7 @@
      */
     public function remove ($tagName, $default = null, $ns = null)
     {
-      if (gettype($tagName) !== 'string')
-      {
-        throw new InvalidArgumentException(sprintf(
-          'Name should be typeof "string" (given "%s")', gettype($tagName)
-        ));
-      }
+      $tagName = (string) $tagName;
 
       parent::remove($tagName, $default, $ns);
     }
@@ -46,30 +41,14 @@
      */
     public function set ($tagName, $tagVersion, $ns = null)
     {
-      if (! is_string($tagName))
-      {
-        throw new InvalidArgumentException(sprintf(
-          'Called "%s" with invalid first argument type "%s".' .
-            'Acceptable type is: "string"',
-          __METHOD__,
-          gettype($tagName)
-        ));
-      }
-
-      if (null !== $tagVersion && ! is_scalar($tagVersion))
-      {
-        throw new InvalidArgumentException(sprintf(
-          'Called "%s" with invalid second argument type "%s".  are scalars',
-          __METHOD__,
-          gettype($tagVersion)
-        ));
-      }
+      $tagName = (string) $tagName;
+      $tagVersion = (string) $tagVersion;
 
       if (! isset($this->parameters[$ns]))
       {
         $this->parameters[$ns] = array();
       }
-
+      
       # skip old tag versions
       if (
           ! isset($this->parameters[$ns][$tagName])
@@ -92,11 +71,6 @@
       if (! is_array($parameters))
       {
         throw new InvalidArgumentException('Parameters is not type of Array');
-      }
-
-      if (! isset($this->parameters[$ns]))
-      {
-        $this->parameters[$ns] = array();
       }
 
       foreach ($parameters as $name => $value)

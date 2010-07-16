@@ -29,6 +29,8 @@
       'versionColumn'   => 'object_version',
     );
 
+    protected $objectIdentifiers = array();
+
     /**
      * Object unique namespace name to store Doctrine_Record's tags
      *
@@ -171,41 +173,65 @@
       /* @var $object Doctrine_Record */
       $object = $this->getInvoker();
 
+      $objectClassName = get_class($object);
+
+      $objectTable = $object->getTable();
+
       if ($object->isNew())
       {
         throw new LogicException(
           sprintf(
             'Method %s::getTagName() is allowed only for saved objects',
-            get_class($object)
+            $objectClassName
           )
         );
       }
 
       $columnValues = array(
-        sfCacheTaggingToolkit::getBaseClassName(get_class($object))
+        sfCacheTaggingToolkit::getBaseClassName($objectClassName)
       );
 
       $uniqueColumns = (array) $this->getOption('uniqueColumn');
-
       
-      if (0 == count($uniqueColumns))
+      if (0 === count($uniqueColumns))
       {
-        $uniqueColumns = $object->getTable()->getIdentifierColumnNames();
+        if (! array_key_exists($objectClassName, $this->objectIdentifiers))
+        {
+          $uniqueColumns = $objectTable->getIdentifierColumnNames();
 
-        $keyFormat = implode('_', array_fill(0, count($uniqueColumns), '%s'));
+          $this->objectIdentifiers[$objectClassName] = array(
+            $uniqueColumns,
+            $keyFormat = implode('_', array_fill(0, count($uniqueColumns), '%s'))
+          );
+        }
+        else
+        {
+          list($uniqueColumns, $keyFormat) = $this->objectIdentifiers[$objectClassName];
+        }
       }
       else
       {
         $keyFormat = $this->getOption('uniqueKeyFormat');
       }
 
+      $accessorOverrideAttribute = $objectTable->getAttribute(
+        Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE
+      );
+
+      $objectTable->setAttribute(
+        Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE,
+        false
+      );
+
       foreach ($uniqueColumns as $columnName)
       {
-        if ($object->getTable()->hasColumn($columnName))
-        {
-          $columnValues[] = $object->get($columnName);
-        }
+        $columnValues[] = $object->get($columnName);
       }
+
+      $objectTable->setAttribute(
+        Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE,
+        $accessorOverrideAttribute
+      );
 
       if (0 === count($columnValues))
       {

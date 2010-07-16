@@ -218,13 +218,20 @@
 
     public static function getBaseClassName ($className)
     {
-      $callableArray = sfConfig::get('app_sfcachetaggingplugin_object_class_tag_name_provider');
+      static $classNames = array();
+
+      $callableArray = sfConfig::get(
+        'app_sfcachetaggingplugin_object_class_tag_name_provider'
+      );
 
       if (null !== $callableArray)
       {
-        $callable = new sfCallable($callableArray);
+        if (! array_key_exists($className, $classNames))
+        {
+          $classNames[$className] = call_user_func($callableArray, $className);
+        }
 
-        return $callable->call($className);
+        return $classNames[$className];
       }
 
       return $className;
