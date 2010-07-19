@@ -133,12 +133,13 @@
         );
       }
 
-//      $taggingCache->setContentTagHandler();
+      if (! sfConfig::get('sf_cache'))
+      {
+        $taggingCache = new sfNoTaggingCache();
+      }
 
       $this->setTaggingCache($taggingCache);
       $this->cache = $this->getTaggingCache()->getDataCache();
-
-//      $this->contentTagHandler = ;
 
       $this->setEventDispatcher($context->getEventDispatcher());
 

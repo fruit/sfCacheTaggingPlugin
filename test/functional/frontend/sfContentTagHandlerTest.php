@@ -67,12 +67,18 @@
     $t->pass(sprintf('Exception "%s" is thrown. (catched)', get_class($e)));
   }
 
+  print_r($posts->getTags());
   $posts->addTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getTags()), 2, 'Adding new tag.');
+
+  print_r($posts->getTags());
   $posts->addTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getTags()), 2, 'Adding tag with the same tag name "SomeTag".');
+  print_r($posts->getTags());
   $posts->addTag('SomeTagNew', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getTags()), 3, 'Adding tag with new tag name "SomeTagNew".');
+  print_r($posts->getTags());
+
 
   $tagsToAdd = array();
   for ($i = 0; $i < 10; $i ++, usleep(rand(1, 40000)))

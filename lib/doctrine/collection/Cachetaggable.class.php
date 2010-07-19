@@ -39,9 +39,9 @@
      *
      * @return string
      */
-    protected function getNamespace ()
+    protected function getNamespace ($isTagHolded = false)
     {
-      return $this->namespace;
+      return sprintf('%s%s', $this->namespace, $isTagHolded ? '_holded' : '');
     }
 
     public function __construct($table, $keyColumn = null)
@@ -70,6 +70,7 @@
     protected function getViewCacheManger ()
     {
       $manager = sfContext::getInstance()->getViewCacheManager();
+
       if (! $manager instanceof sfViewCacheTagManager)
       {
         throw new sfInitializationException('view cache manager is not taggable');
@@ -82,11 +83,13 @@
      * Returns this collection and added tags
      *
      * @param Doctrine_Collection_Cachetaggable $this
-     * @param boolean $deep
+     * @param boolean $isRecursively
      * @return array
      */
-    public function getTags ($deep = false)
+    public function getTags ($isRecursively = false)
     {
+      $tagHandler = $this->getContentTagHandler();
+
       if (! $this->getTable()->hasTemplate('Cachetaggable'))
       {
         throw new LogicException(sprintf(
@@ -99,7 +102,7 @@
         $this->getTable()->getClassnameToReturn()
       );
 
-      $tagger = $this->getViewCacheManger()->getTaggingCache();
+      $taggingCache = $this->getViewCacheManger()->getTaggingCache();
 
       if ($this->count())
       {
@@ -113,16 +116,18 @@
             ? $objectVersion
             : $freshestVersion;
 
+          $tags = $isRecursively ? $object->getTags(true) : $object->getTags();
+
           $this
             ->getContentTagHandler()
-            ->addContentTags($object->getTags($deep), $this->getNamespace());
+            ->addContentTags($tags, $this->getNamespace());
         }
 
-        $lastSavedVersion = $tagger->getTag($formatedClassName);
+        $lastSavedVersion = $taggingCache->getTag($formatedClassName);
 
         if ($lastSavedVersion && ($lastSavedVersion < $freshestVersion))
         {
-          $this->getContentTagHandler()->setContentTag(
+          $tagHandler->setContentTag(
             $formatedClassName, $lastSavedVersion, $this->getNamespace()
           );
         }
@@ -137,16 +142,21 @@
          * repeating calls with relative microtime always refresh collection tag
          * so, here is day-fixed value
          */
-        $this->getContentTagHandler()->setContentTag(
+        $tagHandler->setContentTag(
           $formatedClassName,
           sfCacheTaggingToolkit::generateVersion(strtotime('today')),
           $this->getNamespace()
         );
       }
 
-      $tags = $this->getContentTagHandler()->getContentTags($this->getNamespace());
+      $tags = $tagHandler->addContentTags(
+        $tagHandler->getContentTags($this->getNamespace(true)),
+        $this->getNamespace()
+      );
 
-      $this->getContentTagHandler()->removeContentTags($this->getNamespace());
+      $tags = $tagHandler->getContentTags($this->getNamespace());
+
+      $tagHandler->removeContentTags($this->getNamespace());
 
       return $tags;
     }
@@ -160,16 +170,9 @@
      */
     public function addTags ($tags)
     {
-      try
-      {
-        $this
-          ->getContentTagHandler()
-          ->addContentTags($tags, $this->getNamespace());
-      }
-      catch (sfInitializationException $e)
-      {
-
-      }
+      $this
+        ->getContentTagHandler()
+        ->addContentTags($tags, $this->getNamespace(true));
     }
 
     /**
@@ -182,7 +185,7 @@
     public function addTag ($tagName, $tagVersion)
     {
       $this->getContentTagHandler()->setContentTag(
-        $tagName, $tagVersion, $this->getNamespace()
+        $tagName, $tagVersion, $this->getNamespace(true)
       );
     }
 
@@ -193,7 +196,9 @@
      */
     public function removeTags ()
     {
-      $this->getContentTagHandler()->removeContentTags($this->getNamespace());
+      $this->getContentTagHandler()->removeContentTags(
+        $this->getNamespace(true)
+      );
     }
 
     /**

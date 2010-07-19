@@ -99,10 +99,10 @@
     /**
      * Retrieves object's tags and appended tags
      *
-     * @param boolean [optional] $deep collect tags from joined related objects
+     * @param boolean [optional] $isRecursively collect tags from joined related objects
      * @return array object tags (self and external from ->addTags())
      */
-    public function getTags ($deep = false)
+    public function getTags ($isRecursively = false)
     {
       $tagHandler = $this->getContentTagHandler();
 
@@ -119,13 +119,12 @@
         ),
         $this->getInvokerNamespace()
       );
-
-      if ($deep)
+      
+      if ($isRecursively)
       {
-        $tagHandler
-          ->addContentReferencesTags(
-            $invoker, $this->getInvokerNamespace(), $deep
-          );
+        $tagHandler->addContentReferencedTags(
+          $invoker, $this->getInvokerNamespace(), $isRecursively
+        );
       }
 
       $tags = $tagHandler->getContentTags($this->getInvokerNamespace());
@@ -192,7 +191,7 @@
       );
 
       $uniqueColumns = (array) $this->getOption('uniqueColumn');
-      
+
       if (0 === count($uniqueColumns))
       {
         if (! array_key_exists($objectClassName, $this->objectIdentifiers))
@@ -212,6 +211,11 @@
       else
       {
         $keyFormat = $this->getOption('uniqueKeyFormat');
+
+        if (! $keyFormat)
+        {
+          $keyFormat = implode('_', array_fill(0, count($uniqueColumns), '%s'));
+        }
       }
 
       $accessorOverrideAttribute = $objectTable->getAttribute(

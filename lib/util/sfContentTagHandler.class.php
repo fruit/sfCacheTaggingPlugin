@@ -48,19 +48,22 @@
     {
       $this->removeContentTags($namespace);
 
-      $this->getHolder()->add($tags, $namespace);
+      $this->addContentTags($tags, $namespace);
     }
 
     /**
      * Appends tags to the existing
      *
-     * @param array $tags
+     * @param mixed $tags
      * @param string $namespace
      * @return void
      */
-    public function addContentTags (array $tags, $namespace)
+    public function addContentTags ($tags, $namespace)
     {
-      $this->getHolder()->add($tags, $namespace);
+      $this->getHolder()->add(
+        sfCacheTaggingToolkit::formatTags($tags),
+        $namespace
+      );
     }
 
     /**
@@ -122,17 +125,16 @@
       return $this->getHolder()->has($tagName, $namespace);
     }
 
-
     /**
      *
      * @param array $references
-     * @param boolean $deep
+     * @param boolean $isRecursively
      * @param string $namespace
      * @return void
      */
-    public function addContentReferencesTags (Doctrine_Record $object, $namespace, $deep = false)
+    public function addContentReferencedTags (Doctrine_Record $object, $namespace, $isRecursively = false)
     {
-      foreach ($object->getReferences() as $objectKey => $reference)
+      foreach ($object->getReferences() as $reference)
       {
         if ($reference instanceof Doctrine_Null)
         {
@@ -148,12 +150,10 @@
               continue;
             }
 
-            $this->addContentTags($referenceObject->getTags(), $namespace, $deep);
-
-            if ($deep)
-            {
-              $this->addContentReferencesTags($referenceObject, $namespace, $deep);
-            }
+            $this->addContentTags(
+              $referenceObject->getTags($isRecursively),
+              $namespace
+            );
           }
         }
 
@@ -161,7 +161,7 @@
         {
           if ($reference->getTable()->hasTemplate('Cachetaggable'))
           {
-            $this->addContentTags($reference->getTags(), $namespace, $deep);
+            $this->addContentTags($reference->getTags(), $namespace, $isRecursively);
           }
         }
       }

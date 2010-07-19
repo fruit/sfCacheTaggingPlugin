@@ -26,7 +26,12 @@
      */
     public function remove ($tagName, $default = null, $ns = null)
     {
-      $tagName = (string) $tagName;
+      if (gettype($tagName) !== 'string')
+      {
+        throw new InvalidArgumentException(sprintf(
+          'Name should be typeof "string" (given "%s")', gettype($tagName)
+        ));
+      }
 
       parent::remove($tagName, $default, $ns);
     }
@@ -41,8 +46,23 @@
      */
     public function set ($tagName, $tagVersion, $ns = null)
     {
-      $tagName = (string) $tagName;
-      $tagVersion = (string) $tagVersion;
+      if (! is_string($tagName))
+      {
+        throw new InvalidArgumentException(sprintf(
+          'Called "%s" with invalid first argument type "%s". Acceptable type is: "string"',
+          __METHOD__,
+          gettype($tagName)
+        ));
+      }
+
+      if (null !== $tagVersion && ! is_scalar($tagVersion))
+      {
+        throw new InvalidArgumentException(sprintf(
+          'Called "%s" with invalid second argument type "%s".  are scalars',
+          __METHOD__,
+          gettype($tagVersion)
+        ));
+      }
 
       if (! isset($this->parameters[$ns]))
       {
