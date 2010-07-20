@@ -25,7 +25,6 @@
 //    $p->setTitle('Blog post title "AAAA"');
     $p->save();
 
-//    print_r($p->getTags());
     sfCacheTaggingToolkit::formatTags($p);
 
     $t->pass('sfCacheTaggingToolkit::formatTags() works for Doctrine_Record with "Doctrine_Template_Cachetaggable" template');
