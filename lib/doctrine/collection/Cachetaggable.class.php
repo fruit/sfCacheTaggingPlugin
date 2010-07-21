@@ -19,14 +19,6 @@
    */
   class Doctrine_Collection_Cachetaggable extends Doctrine_Collection
   {
-        
-    /**
-     * Object tags
-     *
-     * @var array assoc array ("key" - tag key, "value" - tag version)
-     */
-    protected $tags = array();
-
     /**
      * Collection unique namespace to store collection's objects tags
      *
@@ -44,6 +36,11 @@
       return sprintf('%s%s', $this->namespace, $isTagHolded ? '_holded' : '');
     }
 
+    /**
+     * @param Doctrine_Table|string $table
+     * @param unknown $keyColumn
+     * @see Doctrine_Collection::__construct()
+     */
     public function __construct($table, $keyColumn = null)
     {
       parent::__construct($table, $keyColumn);
@@ -66,6 +63,8 @@
 
     /**
      * @return sfViewCacheTagManager
+     * @throws sfCacheException when sf_cache is disabled or manager is
+     *                          not type of sfViewCacheTagManager
      */
     protected function getViewCacheManger ()
     {
@@ -73,7 +72,7 @@
 
       if (! $manager instanceof sfViewCacheTagManager)
       {
-        throw new sfInitializationException('view cache manager is not taggable');
+        throw new sfCacheException('view cache manager is not taggable');
       }
 
       return $manager;
@@ -88,7 +87,14 @@
      */
     public function getTags ($isRecursively = false)
     {
-      $tagHandler = $this->getContentTagHandler();
+      try
+      {
+        $tagHandler = $this->getContentTagHandler();
+      }
+      catch (sfCacheException $e)
+      {
+        return array();
+      }
 
       if (! $this->getTable()->hasTemplate('Cachetaggable'))
       {
@@ -170,9 +176,16 @@
      */
     public function addTags ($tags)
     {
-      $this
-        ->getContentTagHandler()
-        ->addContentTags($tags, $this->getNamespace(true));
+      try
+      {
+        $this
+          ->getContentTagHandler()
+          ->addContentTags($tags, $this->getNamespace(true));
+      }
+      catch (sfCacheException $e)
+      {
+
+      }
     }
 
     /**
@@ -184,9 +197,16 @@
      */
     public function addTag ($tagName, $tagVersion)
     {
-      $this->getContentTagHandler()->setContentTag(
-        $tagName, $tagVersion, $this->getNamespace(true)
-      );
+      try
+      {
+        $this->getContentTagHandler()->setContentTag(
+          $tagName, $tagVersion, $this->getNamespace(true)
+        );
+      }
+      catch (sfCacheException $e)
+      {
+
+      }
     }
 
     /**
@@ -194,11 +214,18 @@
      *
      * @return void
      */
-    public function removeTags ()
+    public function removeAddedTags ()
     {
-      $this->getContentTagHandler()->removeContentTags(
-        $this->getNamespace(true)
-      );
+      try
+      {
+        $this->getContentTagHandler()->removeContentTags(
+          $this->getNamespace(true)
+        );
+      }
+      catch (sfCacheException $e)
+      {
+
+      }
     }
 
     /**
@@ -209,7 +236,14 @@
     {
       $returnValue = parent::delete($conn, $clearColl);
 
-      $this->removeTags();
+      try
+      {
+        $this->removeAddedTags();
+      }
+      catch (sfCacheException $e)
+      {
+
+      }
 
       return $returnValue;
     }

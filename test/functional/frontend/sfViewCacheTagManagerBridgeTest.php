@@ -101,5 +101,5 @@
     }
   }
 
-  $t->todo('Add test on setDoctrineTags');
+  $t->todo('Add test on addDoctrineTags');
   

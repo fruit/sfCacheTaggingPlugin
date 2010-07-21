@@ -583,10 +583,10 @@ are not (atomic counter).
                 ->limit(15)
                 ->execute();
 
-              $this->setDoctrineTags($posts->getTags(), $q);
+              $this->addDoctrineTags($posts->getTags(), $q);
 
               # or shorter
-              # $this->setDoctrineTags($posts, $q);
+              # $this->addDoctrineTags($posts, $q);
 
               $this->posts = $posts;
             }
@@ -607,15 +607,15 @@ are not (atomic counter).
                 ->execute(array('en_GB', true));
 
               # explained version
-              $this->setDoctrineTags($posts->getTags(), $q, $q->getParams());
+              $this->addDoctrineTags($posts->getTags(), $q, $q->getParams());
 
               # or
               # same result
-              # $this->setDoctrineTags($posts->getTags(), $q->getResultCacheHash($q->getParams()));
+              # $this->addDoctrineTags($posts->getTags(), $q->getResultCacheHash($q->getParams()));
 
               # or
               # same result and shorter
-              # $this->setDoctrineTags($posts, $q, $q->getParams());
+              # $this->addDoctrineTags($posts, $q, $q->getParams());
 
               $this->posts = $posts;
             }
