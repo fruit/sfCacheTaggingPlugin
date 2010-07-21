@@ -14,6 +14,7 @@
    * Added opportunity to store objects via serialization/unserialization
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfFileTaggingCache extends sfFileCache

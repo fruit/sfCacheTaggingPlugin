@@ -9,8 +9,10 @@
    */
 
   /**
-   * 
+   * Tag holder to set only newest tags if same tag already exists.
+   *
    * @package sfCacheTaggingPlugin
+   * @subpackage util
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfTagNamespacedParameterHolder extends sfNamespacedParameterHolder
@@ -49,7 +51,8 @@
       if (! is_string($tagName))
       {
         throw new InvalidArgumentException(sprintf(
-          'Called "%s" with invalid first argument type "%s". Acceptable type is: "string"',
+          'Called "%s" with invalid first argument type "%s". ' .
+            'Acceptable type is: "string"',
           __METHOD__,
           gettype($tagName)
         ));

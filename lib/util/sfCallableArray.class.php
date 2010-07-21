@@ -12,6 +12,7 @@
    * Added callArray method to pass arguments not separatly, but as array
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage util
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfCallableArray extends sfCallable

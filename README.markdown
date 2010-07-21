@@ -315,7 +315,7 @@ are not (atomic counter).
             $post->save();
 
             # prints something like "126072290862231" (new version of the tag)
-            print $post->getObjectVersion();
+            echo $post->getObjectVersion();
 
             # will return null
             # $post object was updated, so, all $posts in cache "my_posts” is invalidated automatically)

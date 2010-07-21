@@ -18,6 +18,7 @@
    * By default data and lock cache system is same.
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage view
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfViewCacheTagManager extends sfViewCacheManager
@@ -26,12 +27,12 @@
      * holder's namespaces
      * Namespace name should be "UpperCamelCased"
      * This names is used in method patterns "call%sMethod",
-     * where %s is User/Page/Action
+     * where %s is Page/Action/Partial
      */
     const
-      NAMESPACE_USER   = 'User',
-      NAMESPACE_PAGE   = 'Page',
-      NAMESPACE_ACTION = 'Action';
+      NAMESPACE_PAGE    = 'Page',
+      NAMESPACE_ACTION  = 'Action',
+      NAMESPACE_PARTIAL = 'Partial';
 
     /**
      * Data cache and locker cache container
@@ -56,9 +57,9 @@
     public static function getNamespaces ()
     {
       return array(
-        self::NAMESPACE_ACTION,
-        self::NAMESPACE_USER,
         self::NAMESPACE_PAGE,
+        self::NAMESPACE_ACTION,
+        self::NAMESPACE_PARTIAL,
       );
     }
 
@@ -225,7 +226,7 @@
 
       $tags = $this
         ->getContentTagHandler()
-        ->getContentTags(self::NAMESPACE_USER);
+        ->getContentTags(self::NAMESPACE_PARTIAL);
       
       $this->getTaggingCache()->set($key, $data, $lifetime, $tags);
 
@@ -469,5 +470,62 @@
 
         $this->context->getResponse()->setContent($content);
       }
+    }
+
+    /**
+     * Sets partial content with associated tags
+     * 
+     * @see parent::setPartialCache()
+     * 
+     * @param string $module
+     * @param string $action
+     * @param string $cacheKey
+     * @param string $content
+     * @return string
+     */
+    public function setPartialCache($module, $action, $cacheKey, $content)
+    {
+      $uri = $this->getPartialUri($module, $action, $cacheKey);
+      
+      if (! $this->isCacheable($uri))
+      {
+        return $content;
+      }
+
+      $partialTags = $this
+        ->getContentTagHandler()
+        ->getContentTags(
+          self::NAMESPACE_PARTIAL
+        );
+
+      $saved = $this->set(
+        serialize(array(
+          'content' => $content,
+          'response' => $this->context->getResponse())
+        ),
+        $uri,
+        $partialTags
+      );
+
+      if ($saved && sfConfig::get('sf_web_debug'))
+      {
+        $content = $this
+          ->getEventDispatcher()
+          ->filter(
+            new sfEvent(
+              $this,
+              'view.cache.filter_content',
+              array(
+                'response' => $this->context->getResponse(),
+                'uri' => $uri,
+                'new' => true,
+              )
+            ),
+            $content
+          )
+          ->getReturnValue();
+      }
+
+      return $content;
     }
   }

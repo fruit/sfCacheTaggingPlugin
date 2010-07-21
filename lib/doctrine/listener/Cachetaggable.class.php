@@ -173,7 +173,9 @@
         $object->getTagName(), $object->getObjectVersion(), $tagLifetime
       );
 
-      $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(get_class($object));
+      $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
+        get_class($object)
+      );
 
       $taggingCache->setTag(
         $formatedClassName,

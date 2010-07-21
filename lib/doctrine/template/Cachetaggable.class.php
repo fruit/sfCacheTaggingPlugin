@@ -60,8 +60,9 @@
       {
         throw new sfConfigurationException(
           sprintf(
-            'sfCacheTaggingPlugin: "Cachetaggable" behaviors "versionColumn" ' .
+            'sfCacheTaggingPlugin: "%s" behaviors "versionColumn" ' .
               'should be string and not empty, passed "%s"',
+            sfCacheTaggingToolkit::TEMPLATE_NAME,
             (string) $versionColumn
           )
         );
@@ -99,7 +100,8 @@
     /**
      * Retrieves object's tags and appended tags
      *
-     * @param boolean [optional] $isRecursively collect tags from joined related objects
+     * @param boolean [optional] $isRecursively collect tags from
+     *                                          joined related objects
      * @return array object tags (self and external from ->addTags())
      */
     public function getTags ($isRecursively = false)
@@ -198,14 +200,17 @@
         {
           $uniqueColumns = $objectTable->getIdentifierColumnNames();
 
+          $keyFormat = implode('_', array_fill(0, count($uniqueColumns), '%s'));
+
           $this->objectIdentifiers[$objectClassName] = array(
             $uniqueColumns,
-            $keyFormat = implode('_', array_fill(0, count($uniqueColumns), '%s'))
+            $keyFormat
           );
         }
         else
         {
-          list($uniqueColumns, $keyFormat) = $this->objectIdentifiers[$objectClassName];
+          list($uniqueColumns, $keyFormat)
+            = $this->objectIdentifiers[$objectClassName];
         }
       }
       else
@@ -218,6 +223,9 @@
         }
       }
 
+      /**
+       * Hack to speed-up Doctrine_Record::get()
+       */
       $accessorOverrideAttribute = $objectTable->getAttribute(
         Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE
       );
@@ -245,11 +253,7 @@
       }
 
       return call_user_func_array(
-        'sprintf',
-        array_merge(
-          array("%s_{$keyFormat}"),
-          $columnValues
-        )
+        'sprintf', array_merge(array("%s_{$keyFormat}"), $columnValues)
       );
     }
 

@@ -11,14 +11,14 @@
   /**
    * Toolkit with frequently used methods.
    *
-   *
    * @package sfCacheTaggingPlugin
+   * @subpackage util
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-
   class sfCacheTaggingToolkit
   {
     const NAMESPACE_CACHE_TAGS = 'symfony.cache.tags';
+    const TEMPLATE_NAME = 'Cachetaggable';
 
     /**
      * Build version base on currenct microtime
@@ -127,12 +127,14 @@
       }
       elseif ($tags instanceof Doctrine_Record)
       {
-        if (! $tags->getTable()->hasTemplate('Doctrine_Template_Cachetaggable'))
+        if (! $tags->getTable()->hasTemplate(
+          sfCacheTaggingToolkit::TEMPLATE_NAME
+        ))
         {
           throw new InvalidArgumentException(sprintf(
             'Object "%s" should have the "%s" template',
             $tags->getTable()->getClassnameToReturn(),
-            'Doctrine_Template_Cachetaggable'
+            sfCacheTaggingToolkit::TEMPLATE_NAME
           ));
         }
 
@@ -177,11 +179,18 @@
      * Listens on "component.method_not_found"
      *
      * @param sfEvent $event
-     * @return <type>
+     * @return void
      */
     public static function listenOnComponentMethodNotFoundEvent (sfEvent $event)
     {
       $event->setProcessed(false);
+
+      if (! sfConfig::get('sf_cache'))
+      {
+        $event->setProcessed(true);
+        
+        return;
+      }
 
       $viewCacheManager = $event
         ->getSubject()
@@ -190,17 +199,13 @@
 
       if (! $viewCacheManager instanceof sfViewCacheTagManager)
       {
-        $taggingCache = new sfNoTaggingCache();
-      }
-      else
-      {
-        $taggingCache = $viewCacheManager->getTaggingCache();
+        return;
       }
       
       try
       {
         $callable = array(
-          new sfViewCacheTagManagerBridge($taggingCache),
+          new sfViewCacheTagManagerBridge($viewCacheManager->getTaggingCache()),
           $event['method']
         );
 
@@ -216,6 +221,17 @@
       $event->setProcessed(true);
     }
 
+    /**
+     * If tag name provider is registerd, then it passes object class name
+     * to it.
+     *
+     * Useful, when backend works with classes prefixed by "Backend*Models"
+     * and frontend with "Frontend*Models", and tags should be equal to "Models"
+     *
+     * @staticvar array $classNames stores function calls results
+     * @param string $className get_class of Doctrine_Record's model
+     * @return string
+     */
     public static function getBaseClassName ($className)
     {
       static $classNames = array();

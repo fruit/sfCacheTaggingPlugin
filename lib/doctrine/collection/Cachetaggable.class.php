@@ -96,11 +96,14 @@
         return array();
       }
 
-      if (! $this->getTable()->hasTemplate('Cachetaggable'))
+      if (! $this->getTable()->hasTemplate(
+        sfCacheTaggingToolkit::TEMPLATE_NAME
+      ))
       {
         throw new LogicException(sprintf(
-          'Model "%s" has no "Cachetaggable" templates',
-          $this->getTable()->getClassnameToReturn()
+          'Model "%s" has no "%s" templates',
+          $this->getTable()->getClassnameToReturn(),
+          sfCacheTaggingToolkit::TEMPLATE_NAME
         ));
       }
 
@@ -214,7 +217,7 @@
      *
      * @return void
      */
-    public function removeAddedTags ()
+    public function removeTags ()
     {
       try
       {
@@ -238,7 +241,7 @@
 
       try
       {
-        $this->removeAddedTags();
+        $this->removeTags();
       }
       catch (sfCacheException $e)
       {

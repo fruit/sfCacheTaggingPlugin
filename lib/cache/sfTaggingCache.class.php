@@ -13,6 +13,7 @@
    * work with cache tags and locks
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfTaggingCache extends sfCache

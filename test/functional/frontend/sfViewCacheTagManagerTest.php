@@ -71,7 +71,7 @@
   $t->diag('Output some content for testing ob_start() in sfViewCacheManager');
   $t->isnt($content = $cacheManager->stopWithTags('some_cache_key'), null, 'ob_get_clean() on key "some_cache_key"');
   
-  print $content;
+  echo $content;
   $t->isnt($cacheManager->startWithTags('some_cache_key'), '', 'ob_start() on old key');
 
   try
@@ -93,23 +93,23 @@
   $posts->delete();
 
   $posts = BlogPostTable::getInstance()->findAll();
-  $bridge->addUserTags($posts);
+  $bridge->addPartialTags($posts);
 
   $postTagKey = BlogPostTable::getInstance()->getClassnameToReturn();
   $postCollectionTag = array("{$postTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
 
   $t->is(
-    $bridge->getUserTags(),
+    $bridge->getPartialTags(),
     $postCollectionTag,
     'Tags stored in manager are full/same'
   );
 
-  $bridge->addUserTags(
+  $bridge->addPartialTags(
     array('SomeTag' => 1234567890)
   );
 
   $t->is(
-    $bridge->getUserTags(),
+    $bridge->getPartialTags(),
     array_merge(
       array('SomeTag' => 1234567890),
       $postCollectionTag
@@ -117,10 +117,10 @@
     'Tags with new tag are successfully saved'
   );
 
-  $bridge->removeUserTags();
+  $bridge->removePartialTags();
 
   $t->is(
-    $bridge->getUserTags(),
+    $bridge->getPartialTags(),
     array(),
     'All tags are cleared'
   );

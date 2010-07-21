@@ -12,6 +12,7 @@
    * Handler for managing tags
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage util
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfContentTagHandler
@@ -132,7 +133,9 @@
      * @param string $namespace
      * @return void
      */
-    public function addContentReferencedTags (Doctrine_Record $object, $namespace, $isRecursively = false)
+    public function addContentReferencedTags (Doctrine_Record $object, 
+      $namespace, $isRecursively = false
+    )
     {
       foreach ($object->getReferences() as $reference)
       {
@@ -145,7 +148,9 @@
         {
           foreach ($reference as $referenceKey => $referenceObject)
           {
-            if (! $referenceObject->getTable()->hasTemplate('Cachetaggable'))
+            if (! $referenceObject->getTable()->hasTemplate(
+              sfCacheTaggingToolkit::TEMPLATE_NAME
+            ))
             {
               continue;
             }
@@ -159,9 +164,13 @@
 
         if ($reference instanceof Doctrine_Record)
         {
-          if ($reference->getTable()->hasTemplate('Cachetaggable'))
+          if ($reference->getTable()->hasTemplate(
+            sfCacheTaggingToolkit::TEMPLATE_NAME
+          ))
           {
-            $this->addContentTags($reference->getTags(), $namespace, $isRecursively);
+            $this->addContentTags(
+              $reference->getTags(), $namespace, $isRecursively
+            );
           }
         }
       }

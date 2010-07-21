@@ -1,9 +1,22 @@
 <?php
 
+  /*
+   * This file is part of the sfCacheTaggingPlugin package.
+   * (c) 2009-2010 Ilya Sabelnikov <fruit.dev@gmail.com>
+   *
+   * For the full copyright and license information, please view the LICENSE
+   * file that was distributed with this source code.
+   */
+
   /**
    * execute
    * executes the query and populates the data set
    *
+   * Copy&pasted from Doctrine_Query::execute() with small changes
+   *
+   * @package sfCacheTaggingPlugin
+   * @subpackage doctrine
+   * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    * @param array $params
    * @return Doctrine_Collection            the root collection
    */
@@ -16,7 +29,9 @@
 
       if (empty($this->_dqlParts['from']) && empty($this->_sqlParts['from']))
       {
-        throw new Doctrine_Query_Exception('You must have at least one component specified in your from.');
+        throw new Doctrine_Query_Exception(
+          'You must have at least one component specified in your from.'
+        );
       }
 
       $dqlParams = $this->getFlattenedParams($params);
@@ -34,14 +49,18 @@
       {
         $cacheDriver = $this->getResultCacheDriver();
         $hash = $this->getResultCacheHash($params);
-        $cached = ($this->_expireResultCache) ? false : $cacheDriver->fetch($hash);
+        $cached = ($this->_expireResultCache) 
+          ? false
+          : $cacheDriver->fetch($hash);
 
         if ($cached === false)
         {
           // cache miss
           $stmt = $this->_execute($params);
           $this->_hydrator->setQueryComponents($this->_queryComponents);
-          $result = $this->_hydrator->hydrateResultSet($stmt, $this->_tableAliasMap);
+          $result = $this->_hydrator->hydrateResultSet(
+            $stmt, $this->_tableAliasMap
+          );
 
           $cached = $this->getCachedForm($result);
 
@@ -51,7 +70,10 @@
               $result instanceof Doctrine_Collection_Cachetaggable)
           {
             $cacheDriver->saveWithTags(
-              $hash, $cached, $this->getResultCacheLifeSpan(), $result->getTags(true)
+              $hash,
+              $cached,
+              $this->getResultCacheLifeSpan(),
+              $result->getTags(true)
             );
           }
           else
@@ -75,19 +97,31 @@
         else
         {
           $this->_hydrator->setQueryComponents($this->_queryComponents);
-          if ($this->_type == self::SELECT && $hydrationMode == Doctrine_Core::HYDRATE_ON_DEMAND)
+          if (
+              $this->_type == self::SELECT
+            &&
+              $hydrationMode == Doctrine_Core::HYDRATE_ON_DEMAND
+          )
           {
-            $hydrationDriver = $this->_hydrator->getHydratorDriver($hydrationMode, $this->_tableAliasMap);
-            $result = new Doctrine_Collection_OnDemand($stmt, $hydrationDriver, $this->_tableAliasMap);
+            $hydrationDriver = $this->_hydrator->getHydratorDriver(
+              $hydrationMode, $this->_tableAliasMap
+            );
+            $result = new Doctrine_Collection_OnDemand(
+              $stmt, $hydrationDriver, $this->_tableAliasMap
+            );
           }
           else
           {
-            $result = $this->_hydrator->hydrateResultSet($stmt, $this->_tableAliasMap);
+            $result = $this->_hydrator->hydrateResultSet(
+              $stmt, $this->_tableAliasMap
+            );
           }
         }
       }
 
-      if ($this->getConnection()->getAttribute(Doctrine_Core::ATTR_AUTO_FREE_QUERY_OBJECTS))
+      if ($this->getConnection()->getAttribute(
+        Doctrine_Core::ATTR_AUTO_FREE_QUERY_OBJECTS
+      ))
       {
         $this->free();
       }

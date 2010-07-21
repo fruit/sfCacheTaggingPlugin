@@ -13,6 +13,7 @@
    * if you have disabled "cache" in settings.yml
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfNoTaggingCache extends sfTaggingCache

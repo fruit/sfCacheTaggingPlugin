@@ -65,7 +65,9 @@
      * @see parent::_doSave()
      * @return boolean
      */
-    protected function _doSaveWithTags ($id, $data, $lifeTime = false, array $tags = array())
+    protected function _doSaveWithTags ($id, $data, $lifeTime = false, 
+      array $tags = array()
+    )
     {
       try
       {
@@ -151,7 +153,9 @@
       return $value;
     }
 
-    public function saveWithTags($id, $data, $lifeTime = false, array $tags = array())
+    public function saveWithTags ($id, $data, $lifeTime = false,
+      array $tags = array()
+    )
     {
       $key = $this->_getKey($id);
 

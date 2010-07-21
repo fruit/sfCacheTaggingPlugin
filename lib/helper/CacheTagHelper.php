@@ -14,18 +14,18 @@
    * @package    symfony
    * @subpackage helper
    * @author     Ilya Sabelnikov <fruit.dev@gmail.com>
+   *
+   * @example
+   *
+   * <code>
+   *
+   *  <?php if (! cache_tag('name', 600)): ?>
+   *    … HTML …
+   *    <?php cache_save(array('tag' => time()) ?>
+   *  <?php endif; ?>
+   *
+   * </code>
    */
-
-  /* Usage
-
-    <?php if (! cache_tag('name', 600)): ?>
-
-      … HTML …
-
-      <?php cache_save(array('tag' => time()) ?>
-    <?php endif; ?>
-
-  */
 
   /**
    * Starts caching process or fetch up-to-date content from the cache
@@ -66,6 +66,7 @@
   }
 
   /**
+   * Returns cached content via string
    *
    * @param array $tags assoc array with content tags
    *    array(
@@ -90,20 +91,20 @@
 
     $cacheManager = sfContext::getInstance()->getViewCacheManager();
 
+    /* @var $cacheManager sfViewCacheTagManager */
     if (! $cacheManager instanceof sfViewCacheManager)
     {
-      $taggingCache = new sfNoTaggingCache();
-    }
-    else
-    {
-      $taggingCache = $cacheManager->getTaggingCache();
+      return null;
     }
 
-    $cacheManagerBridge = new sfViewCacheTagManagerBridge($taggingCache);
-      
+    $contentTagHandler = $cacheManager->getTaggingCache()->getContentTagHandler();
+    /* @var $contentTagHandler sfContentTagHandler */
+
     if (null !== $tags)
     {
-      $cacheManagerBridge->addUserTags($tags);
+      $contentTagHandler->setContentTags(
+        $tags, sfViewCacheTagManager::NAMESPACE_PARTIAL
+      );
     }
     
     $data = $cacheManager->stopWithTags(
@@ -115,13 +116,15 @@
     sfConfig::set('symfony.cache.current_name', null);
     sfConfig::set('symfony.cache.lifetime', null);
 
-    $cacheManagerBridge->removeUserTags();
+    $contentTagHandler->removeContentTags(
+      sfViewCacheTagManager::NAMESPACE_PARTIAL
+    );
 
     return $data;
   }
 
   /**
-   * Prints the cache content
+   * Prints the cache content to the output
    *
    * @see get_cache_tag_save()
    * @param array $tags
@@ -129,5 +132,5 @@
    */
   function cache_tag_save (array $tags = null)
   {
-    print get_cache_tag_save($tags);
+    echo get_cache_tag_save($tags);
   }

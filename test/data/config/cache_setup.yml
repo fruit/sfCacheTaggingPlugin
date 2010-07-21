@@ -15,7 +15,7 @@
 -
   class: sfSQLiteTaggingCache
   param:
-    database: <?php print sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite.db
+    database: <?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite.db
 -
   class: sfSQLiteTaggingCache
   param:
@@ -23,7 +23,7 @@
 -
   class: sfFileTaggingCache
   param:
-    cache_dir: <?php print sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/file
+    cache_dir: <?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/file
 -
   class: sfEAcceleratorCache
   param: {}

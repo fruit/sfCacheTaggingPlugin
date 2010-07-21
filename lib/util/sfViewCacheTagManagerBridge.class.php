@@ -9,7 +9,7 @@
    */
 
   /**
-   * Asteric (*) desribes place where you pass values: User/Action/Page
+   * Asteric (*) desribes place where you pass values: Partial/Action/Page
    *
    * @method null set*Tags set*Tags(mixed $tags)
    * @method null add*Tags add*Tags(mixed $tags)
@@ -20,6 +20,7 @@
    * @method null remove*Tag remove*Tag(string $tagName)
    *
    * @package sfCacheTaggingPlugin
+   * @subpackage util
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfViewCacheTagManagerBridge
@@ -131,5 +132,4 @@
 
       return $this;
     }
-
   }
