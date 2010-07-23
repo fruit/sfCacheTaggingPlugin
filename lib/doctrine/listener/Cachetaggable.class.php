@@ -50,26 +50,9 @@
      *
      * @return sfTaggingCache
      */
-    public function getTaggingCache ()
+    protected function getTaggingCache ()
     {
-      if (! sfContext::hasInstance())
-      {
-        throw new UnexpectedValueException(
-          'sfContext instance is not initialized'
-        );
-      }
-
-      $manager = sfContext::getInstance()->getViewCacheManager();
-
-      if (! $manager instanceof sfViewCacheTagManager)
-      {
-        throw new UnexpectedValueException(
-          'Application\'s sfViewManager should be the instance ' .
-          'of sfViewCacheTagManager'
-        );
-      }
-
-      return $manager->getTaggingCache();
+      return sfCacheTaggingToolkit::getTaggingCache();
     }
 
     /**
@@ -99,7 +82,7 @@
           $taggingCache->deleteTag($this->preDeleteTagName);
         }
       }
-      catch (UnexpectedValueException $e)
+      catch (sfCacheDisabledException $e)
       {
 
       }
@@ -131,6 +114,7 @@
      *  of the stored object
      *
      * @param Doctrine_Event $event
+     * @return void
      */
     public function postSave (Doctrine_Event $event)
     {
@@ -138,7 +122,7 @@
       {
         $taggingCache = $this->getTaggingCache();
       }
-      catch (UnexpectedValueException $e)
+      catch (sfCacheDisabledException $e)
       {
         return;
       }
@@ -203,7 +187,7 @@
       {
         $taggingCache = $this->getTaggingCache();
       }
-      catch (UnexpectedValueException $e)
+      catch (sfCacheDisabledException $e)
       {
         return;
       }
@@ -252,7 +236,7 @@
       {
         $taggingCache = $this->getTaggingCache();
       }
-      catch (UnexpectedValueException $e)
+      catch (sfCacheDisabledException $e)
       {
         return;
       }

@@ -38,7 +38,7 @@
 
     /**
      * @param Doctrine_Table|string $table
-     * @param unknown $keyColumn
+     * @param string $keyColumn
      * @see Doctrine_Collection::__construct()
      */
     public function __construct($table, $keyColumn = null)
@@ -58,44 +58,25 @@
      */
     protected function getContentTagHandler ()
     {
-      return $this->getViewCacheManger()->getContentTagHandler();
+      return $this->getTaggingCache()->getContentTagHandler();
     }
 
     /**
-     * @return sfViewCacheTagManager
-     * @throws sfCacheException when sf_cache is disabled or manager is
-     *                          not type of sfViewCacheTagManager
+     * @return sfTaggingCache
      */
-    protected function getViewCacheManger ()
+    protected function getTaggingCache()
     {
-      $manager = sfContext::getInstance()->getViewCacheManager();
-
-      if (! $manager instanceof sfViewCacheTagManager)
-      {
-        throw new sfCacheException('view cache manager is not taggable');
-      }
-
-      return $manager;
+      return sfCacheTaggingToolkit::getTaggingCache();
     }
 
     /**
      * Returns this collection and added tags
      *
-     * @param Doctrine_Collection_Cachetaggable $this
      * @param boolean $isRecursively
      * @return array
      */
     public function getTags ($isRecursively = false)
     {
-      try
-      {
-        $tagHandler = $this->getContentTagHandler();
-      }
-      catch (sfCacheException $e)
-      {
-        return array();
-      }
-
       if (! $this->getTable()->hasTemplate(
         sfCacheTaggingToolkit::TEMPLATE_NAME
       ))
@@ -107,11 +88,20 @@
         ));
       }
 
+      try
+      {
+        $taggingCache = $this->getTaggingCache();
+
+        $tagHandler = $taggingCache->getContentTagHandler();
+      }
+      catch (sfCacheDisabledException $e)
+      {
+        return array();
+      }
+
       $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
         $this->getTable()->getClassnameToReturn()
       );
-
-      $taggingCache = $this->getViewCacheManger()->getTaggingCache();
 
       if ($this->count())
       {
@@ -185,7 +175,7 @@
           ->getContentTagHandler()
           ->addContentTags($tags, $this->getNamespace(true));
       }
-      catch (sfCacheException $e)
+      catch (sfCacheDisabledException $e)
       {
 
       }
@@ -206,7 +196,7 @@
           $tagName, $tagVersion, $this->getNamespace(true)
         );
       }
-      catch (sfCacheException $e)
+      catch (sfCacheDisabledException $e)
       {
 
       }
@@ -225,7 +215,7 @@
           $this->getNamespace(true)
         );
       }
-      catch (sfCacheException $e)
+      catch (sfCacheDisabledException $e)
       {
 
       }
@@ -243,7 +233,7 @@
       {
         $this->removeTags();
       }
-      catch (sfCacheException $e)
+      catch (sfCacheDisabledException $e)
       {
 
       }

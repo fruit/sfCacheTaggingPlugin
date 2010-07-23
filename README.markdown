@@ -33,7 +33,7 @@ are not (atomic counter).
 
 ## Release notes
 
-  * Plugin API is fully upgraded (v1.1.1 => v2.0.0)
+  * Plugin API is fully upgraded (v2.0.0 => v3.0.0)
 
 ## Setup ##
 
@@ -42,7 +42,7 @@ are not (atomic counter).
         [php]
         class ProjectConfiguration extends sfProjectConfiguration
         {
-          public function setup()
+          public function setup ()
           {
             # … other plugins
             $this->enablePlugins('sfCacheTaggingPlugin');
@@ -91,7 +91,7 @@ are not (atomic counter).
                 param: {}
 
           view_cache_manager:
-            class: sfViewCacheTagManager          # Extended sfViewCacheManager class
+            class: sfViewCacheTagManager    # Extended sfViewCacheManager class
             param:
               cache_key_use_vary_headers: true
               cache_key_use_host_name:    true
@@ -108,7 +108,6 @@ are not (atomic counter).
                 class: sfAPCCache
                 param: []
               locker: ~
-              doctrine: ~
 
           view_cache_manager:
             class: sfViewCacheTagManager
@@ -145,7 +144,7 @@ are not (atomic counter).
               actAs:
                 Cachetaggable: ~
                 #Cachetaggable:
-                #  uniqueColumn: id               # you can customize unique column name (default is "id")
+                #  uniqueColumn: id               # you can customize unique column name (default is all table primary keys)
                 #  versionColumn: object_version  # you can customize version column name (default is "object_version")
                 #  uniqueKeyFormat: '%d'          # you can customize key format (default is "%d")
                 #

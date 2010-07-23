@@ -18,11 +18,17 @@
    * @subpackage doctrine
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    * @param array $params
-   * @return Doctrine_Collection            the root collection
+   * @return Doctrine_Collection the root collection
    */
   class Cachetaggable_Doctrine_Query extends Doctrine_Query
   {
-    public function execute($params = array(), $hydrationMode = null)
+    /**
+     * @see Doctrine_Query::execute()
+     * @param array $params
+     * @param int   $hydrationMode
+     * @return mixed
+     */
+    public function execute ($params = array(), $hydrationMode = null)
     {
       // Clean any possible processed params
       $this->_execParams = array();

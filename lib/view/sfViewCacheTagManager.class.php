@@ -114,10 +114,10 @@
      * Initialize cache manager
      *
      * @param sfContext $context
-     * @param sfCache $taggingCache
-     * @param array $options
+     * @param sfCache   $taggingCache
+     * @param array     $options
      *
-     * @see sfViewCacheManager::initialize
+     * @see sfViewCacheManager::initialize()
      */
     public function initialize ($context,
                                 sfCache $taggingCache,
@@ -197,8 +197,8 @@
      * Initializes ouput buffering
      *
      * @param string $key This is Your cache key
-     * @return null|mixed if cache exists and it is not expired,
-     *                    returns cache data, in other case null
+     * @return mixed string: cache exists and not expired - returns cache data
+     *               null: in all other cases
      */
     public function startWithTags ($key)
     {
@@ -216,8 +216,8 @@
     /**
      * Determinates output buffering
      *
-     * @param string $key Cache key
-     * @param integer [optional] $lifeTime Time to live in seconds
+     * @param string  $key      Cache key
+     * @param int     $lifeTime optional time to live in seconds
      * @return mixed cache data
      */
     public function stopWithTags ($key, $lifetime = null)
@@ -238,8 +238,8 @@
      *
      * Match duplicated as a parent::get()
      *
-     * @param string $internalUri  Internal uniform resource identifier
-     * @return null|mixed The content in the cache
+     * @param string $internalUri Internal uniform resource identifier
+     * @return mixed The content in the cache
      */
     public function get ($internalUri)
     {
@@ -279,7 +279,7 @@
      * @author Martin Schnabel <mcnilz@gmail.com>
      * @author Ilya Sabelnikov <fruit.dev@gmail.com>
      * @param string $internalUri
-     * @return null|mixed
+     * @return mixed
      */
     public function set ($data, $internalUri, $tags = array())
     {

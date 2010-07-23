@@ -90,7 +90,7 @@
     }
 
     /**
-     * @return string Object namespace to store tags
+     * @return string Object's namespace to store tags
      */
     protected function getInvokerNamespace ()
     {
@@ -100,8 +100,7 @@
     /**
      * Retrieves object's tags and appended tags
      *
-     * @param boolean [optional] $isRecursively collect tags from
-     *                                          joined related objects
+     * @param boolean $isRecursively collect tags from joined related objects
      * @return array object tags (self and external from ->addTags())
      */
     public function getTags ($isRecursively = false)
@@ -153,8 +152,8 @@
     /**
      * Adds new tag to the object
      *
-     * @param string $tagName
-     * @param int|string $tagVersion
+     * @param string      $tagName
+     * @param int|string  $tagVersion
      */
     public function addTag ($tagName, $tagVersion)
     {
@@ -176,8 +175,6 @@
 
       $objectClassName = get_class($object);
 
-      $objectTable = $object->getTable();
-
       if ($object->isNew())
       {
         throw new LogicException(
@@ -187,6 +184,8 @@
           )
         );
       }
+
+      $objectTable = $object->getTable();
 
       $columnValues = array(
         sfCacheTaggingToolkit::getBaseClassName($objectClassName)
@@ -257,7 +256,6 @@
       );
     }
 
-
     /**
      * Updates version of the object
      *
@@ -266,11 +264,11 @@
      */
     public function setObjectVersion ($version)
     {
-      $this
-        ->getInvoker()
-        ->offsetSet($this->getOption('versionColumn'), $version);
+      $invoker = $this->getInvoker();
 
-      return $this->getInvoker();
+      $invoker->set($this->getOption('versionColumn'), $version);
+
+      return $invoker;
     }
 
     /**
@@ -293,41 +291,12 @@
     }
 
     /**
-     * Returns Cache manger tagger
-     *
-     * @return sfTaggingCache
-     */
-    public function getTaggingCache ()
-    {
-      $viewCacheManager = $this->getViewCacheManager();
-
-      return ! $viewCacheManager instanceof sfViewCacheTagManager
-        ? new sfNoTaggingCache()
-        : $viewCacheManager->getTaggingCache();
-    }
-
-    /**
      * Retrieves handler to manage tags
      *
      * @return sfContentTagHandler
      */
     protected function getContentTagHandler ()
     {
-      return $this->getTaggingCache()->getContentTagHandler();
-    }
-
-    /**
-     * @return mixed sfViewCacheManager or null
-     */
-    protected function getViewCacheManager ()
-    {
-      if (! sfContext::hasInstance())
-      {
-        throw new RuntimeException(
-          sprintf('Content is not initialized for "%s"', __CLASS__)
-        );
-      }
-
-      return sfContext::getInstance()->getViewCacheManager();
+      return sfCacheTaggingToolkit::getTaggingCache()->getContentTagHandler();
     }
   }

@@ -41,8 +41,9 @@
     /**
      * Removes all namespace tags and then sets new tags
      *
-     * @param mixed $tags
-     * @param string $namespace
+     * @param mixed   $tags
+     * @param string  $namespace
+     *
      * @return void
      */
     public function setContentTags ($tags, $namespace)
@@ -81,9 +82,9 @@
     /**
      * Updates specific tag with new tag version
      *
-     * @param string $tagName
-     * @param mixed $tagVersion
-     * @param string $namespace
+     * @param string  $tagName
+     * @param mixed   $tagVersion
+     * @param string  $namespace
      * @return void
      */
     public function setContentTag ($tagName, $tagVersion, $namespace)
@@ -107,6 +108,7 @@
      * Removes all namespace tags
      *
      * @param string $namespace
+     *
      * @return void
      */
     public function removeContentTags ($namespace)
@@ -119,6 +121,7 @@
      *
      * @param string $tagName
      * @param string $namespace
+     *
      * @return boolean
      */
     public function hasContentTag ($tagName, $namespace)
@@ -128,9 +131,10 @@
 
     /**
      *
-     * @param array $references
+     * @param array   $references
      * @param boolean $isRecursively
-     * @param string $namespace
+     * @param string  $namespace
+     *
      * @return void
      */
     public function addContentReferencedTags (Doctrine_Record $object, 

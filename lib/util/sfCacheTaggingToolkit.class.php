@@ -21,6 +21,44 @@
     const TEMPLATE_NAME = 'Cachetaggable';
 
     /**
+     * @throws sfCacheDisabledException   when "sf_cache" is OFF
+     * @throws sfInitializationException  if context is not initialized
+     * @throws sfConfigurationException   on plugin configuration issues
+     * 
+     * @return sfCacheTagging
+     */
+    public static function getTaggingCache ()
+    {
+      if (! sfConfig::get('sf_cache'))
+      {
+        throw new sfCacheDisabledException('Cache "sf_cache" is disabled');
+      }
+
+      if (! sfContext::hasInstance())
+      {
+        throw new sfInitializationException(
+          sprintf('Content is not initialized for "%s"', __CLASS__)
+        );
+      }
+
+      $viewCacheManager = sfContext::getInstance()->getViewCacheManager();
+
+      if (null === $viewCacheManager)
+      {
+        throw new sfCacheDisabledException('View manager is disabled');
+      }
+
+      if (! $viewCacheManager instanceof sfViewCacheTagManager)
+      {
+        throw new sfConfigurationException(
+          'sfCacheTaggingPlugin is not properly configured'
+        );
+      }
+
+      return $viewCacheManager->getTaggingCache();
+    }
+
+    /**
      * Build version base on currenct microtime
      *
      * @param double|int $microtime

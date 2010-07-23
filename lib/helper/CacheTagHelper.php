@@ -30,10 +30,12 @@
   /**
    * Starts caching process or fetch up-to-date content from the cache
    *
-   * @param string $name Content cache name
-   * @param integer[optional] $lifetime seconds to cache will live
-   * @return boolean true:  cache expired/not yet saved, 
-   *                 false: cache is up-to-date
+   * @param string  $name     Content cache name
+   * @param int     $lifetime optional seconds to cache will live
+   *
+   * @return null|boolean     true:  cache expired/not yet saved,
+   *                          false: cache is up-to-date
+   *                          null:  cache is disabled
    */
   function cache_tag ($name, $lifetime = null)
   {
@@ -75,7 +77,7 @@
    *      …
    *
    * @throws sfCacheException
-   * @return null|void null if cache is disable at all, otherwise void
+   * @return void
    */
   function get_cache_tag_save (array $tags = null)
   {
@@ -128,7 +130,7 @@
    *
    * @see get_cache_tag_save()
    * @param array $tags
-   * @return string
+   * @return void
    */
   function cache_tag_save (array $tags = null)
   {

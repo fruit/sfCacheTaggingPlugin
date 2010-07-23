@@ -14,33 +14,31 @@
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
 
-
   $sfContext = sfContext::getInstance();
+
   $cacheManager = $sfContext->getViewCacheManager();
 
   $t = new lime_test();
 
   $lnr = new Doctrine_Template_Listener_Cachetaggable(array());
 
-  try
-  {
-    $lnr->getTaggingCache();
-    $t->fail('pass on taggable view manager is disabled');
-  }
-  catch (UnexpectedValueException $e)
-  {
-    $t->pass('cached "UnexpectedValueException" on disabled taggable view manager');
-  }
+  $con = BlogPostTable::getInstance()->getConnection();
 
-  $cacheManager->initialize($sfContext, new sfAPCCache());
+  $con->beginTransaction();
 
   try
   {
-    $lnr->getTaggingCache();
-    $t->fail('pass on cache engine is not sfTaggingCache');
+    $p = new BlogPost();
+    $p->setTitle('no-cached');
+    $p->save();
+
+    print $p->getTagName() . ' / ' . $p->getObjectVersion() . "\n";
+
+    $t->pass('no exception throw with disabled sf_cache');
   }
-  catch (UnexpectedValueException $e)
+  catch (Exception $e)
   {
-    $t->pass('cached "UnexpectedValueException" on incompatible sfCache mechanism');
+    $t->fail($e->getMessage());
   }
 
+  $con->rollback();

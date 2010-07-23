@@ -11,13 +11,13 @@
   /**
    * Asteric (*) desribes place where you pass values: Partial/Action/Page
    *
-   * @method null set*Tags set*Tags(mixed $tags)
-   * @method null add*Tags add*Tags(mixed $tags)
-   * @method array get*Tags get*Tags()
-   * @method null remove*Tags remove*Tags()
-   * @method null set*Tag set*Tag(string $tagName, string $tagVersion)
-   * @method boolean has*Tag has*Tag(string $tagName)
-   * @method null remove*Tag remove*Tag(string $tagName)
+   * @method null     set*Tags    set*Tags (mixed $tags)
+   * @method null     add*Tags    add*Tags (mixed $tags)
+   * @method array    get*Tags    get*Tags ()
+   * @method null     remove*Tags remove*Tags ()
+   * @method null     set*Tag     set*Tag (string $tagName, string $tagVersion)
+   * @method boolean  has*Tag     has*Tag (string $tagName)
+   * @method null     remove*Tag  remove*Tag (string $tagName)
    *
    * @package sfCacheTaggingPlugin
    * @subpackage util
@@ -30,6 +30,9 @@
      */
     protected $taggingCache = null;
 
+    /**
+     * @param sfTaggingCache $taggingCache
+     */
     public function __construct (sfTaggingCache $taggingCache)
     {
       $this->taggingCache = $taggingCache;
@@ -59,10 +62,10 @@
      *    transform it to:
      *       $this->hasContentTag(sfViewCacheTagManager::NAMESPACE_PAGE);
      *
-     * @param string $method
-     * @param array $arguments
+     * @param string  $method
+     * @param array   $arguments
      * @throws BadMethodCallException
-     * @return null|array|boolean
+     * @return void|array|boolean
      */
     public function __call ($method,  $arguments)
     {
@@ -106,8 +109,8 @@
      * Appends tags to doctrine result cache
      *
      * @param mixed $tags
-     * @param mixed $q Doctrine_Query or string
-     * @param array [optional] $params - params from $q->getParams()
+     * @param mixed $q        Doctrine_Query or string
+     * @param array $params   params from $q->getParams()
      */
     public function addDoctrineTags ($tags, $q, array $params = array())
     {

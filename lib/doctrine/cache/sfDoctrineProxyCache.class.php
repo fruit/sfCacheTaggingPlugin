@@ -20,25 +20,14 @@
   class sfDoctrineProxyCache extends Doctrine_Cache_Driver
   {
     /**
+     * Short method to retrieve sfTaggingCache for internal use
+     *
+     * @throws sfCacheDisabledException when some mandatory objects are missing
      * @return sfTaggingCache
      */
-    private function getTaggingCache ()
+    protected function getTaggingCache ()
     {
-      if ( ! sfContext::hasInstance())
-      {
-        throw new sfInitializationException('Context is not initialized');
-      }
-
-      $manager = sfContext::getInstance()->getViewCacheManager();
-
-      if ( ! $manager instanceof sfViewCacheTagManager)
-      {
-        throw new sfInitializationException(
-          'sfCacheTaggingPlugin is not properly configured'
-        );
-      }
-
-      return $manager->getTaggingCache();
+      return sfCacheTaggingToolkit::getTaggingCache();
     }
 
     /**
@@ -53,9 +42,9 @@
           $id, $data, ! $lifeTime ? null : $lifeTime
         );
       }
-      catch (sfInitializationException $e)
+      catch (sfCacheDisabledException $e)
       {
-
+        # be silent - sf_cache is disabled for this environment
       }
 
       return false;
@@ -75,9 +64,9 @@
           $id, $data, ! $lifeTime ? null : $lifeTime, $tags
         );
       }
-      catch (sfInitializationException $e)
+      catch (sfCacheDisabledException $e)
       {
-
+        # be silent - sf_cache is disabled for this environment
       }
 
       return false;
@@ -106,9 +95,9 @@
 
         return $this->getTaggingCache()->remove($id);
       }
-      catch (sfInitializationException $e)
+      catch (sfCacheDisabledException $e)
       {
-
+        # be silent - sf_cache is disabled for this environment
       }
 
       return false;
@@ -124,9 +113,9 @@
       {
         return $this->getTaggingCache()->has($id);
       }
-      catch (sfInitializationException $e)
+      catch (sfCacheDisabledException $e)
       {
-
+        # be silent - sf_cache is disabled for this environment
       }
 
       return false;
@@ -145,9 +134,9 @@
         $value = $this->getTaggingCache()->get($id);
         $value = null === $value ? false : $value;
       }
-      catch (sfInitializationException $e)
+      catch (sfCacheDisabledException $e)
       {
-        
+        # be silent - sf_cache is disabled for this environment
       }
 
       return $value;
@@ -157,9 +146,9 @@
       array $tags = array()
     )
     {
-      $key = $this->_getKey($id);
-
-      return $this->_doSaveWithTags($key, $data, $lifeTime, $tags);
+      return $this->_doSaveWithTags(
+        $this->_getKey($id), $data, $lifeTime, $tags
+      );
     }
 
   }

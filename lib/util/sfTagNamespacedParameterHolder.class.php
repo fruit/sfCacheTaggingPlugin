@@ -22,9 +22,11 @@
      *
      * @see parent::remove()
      *
-     * @param string $tagName
-     * @param mixed $default
-     * @param mixed $ns
+     * @param string  $tagName
+     * @param mixed   $default
+     * @param mixed   $ns
+     *
+     * @return void
      */
     public function remove ($tagName, $default = null, $ns = null)
     {
@@ -41,9 +43,10 @@
     /**
      * Adds tag with its version to the holder
      *
-     * @param string $tagName
-     * @param mixed $tagVersion
-     * @param mixed $ns
+     * @param string  $tagName
+     * @param mixed   $tagVersion
+     * @param mixed   $ns
+     *
      * @return void
      */
     public function set ($tagName, $tagVersion, $ns = null)
@@ -88,6 +91,8 @@
      *
      * @param mixed $parameters
      * @param mixed $ns
+     *
+     * @return void
      */
     public function add ($parameters, $ns = null)
     {

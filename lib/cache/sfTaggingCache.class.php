@@ -66,8 +66,8 @@
      *
      * "Symfony" will be accessed by $keyPath "php.frameworks.sf"
      *
-     * @param string $name
-     * @param mixed $default
+     * @param string  $name
+     * @param mixed   $default
      * @return mixed
      */
     protected function getArrayValueByKeyPath ($keyPath, $array, $default = null)
@@ -92,8 +92,8 @@
      * Returns option by key path
      *
      * @see PHPDOC of method self::getArrayValueByKeyPath
-     * @param string $name Array key, or key path joined by "."
-     * @param mixed [optional] $default
+     * @param string  $name     Array key, or key path joined by "."
+     * @param mixed   $default  optional on unsuccess return default value
      * @return mixed
      */
     public function getOption ($name, $default = null)
@@ -301,8 +301,8 @@
      * If appending tag already exists, we will compare version to save
      * tag with newest one
      *
-     * @param string $key
-     * @param array $tags
+     * @param string  $key
+     * @param array   $tags
      * @param boolean $append To combine new tags with existing use "true"
      *                        To replace existing tags with new one use "false"
      * @return boolean
@@ -342,12 +342,12 @@
      * Sets data into the cache with related tags
      *
      * @see sfCache::set
-     * @param string $key
-     * @param mixed $data
-     * @param string $timeout optional
-     * @param array $tags optional
-     * @return mixed|false false - when cache expired/not valid
-     *                     mixed - in other case
+     * @param string  $key
+     * @param mixed   $data
+     * @param string  $timeout optional
+     * @param array   $tags    optional
+     * @return mixed  false - when cache expired/not valid
+     *                mixed - in other case
      */
     public function set ($key, $data, $timeout = null, array $tags = null)
     {
@@ -392,9 +392,9 @@
     /**
      * Saves tag with its version
      *
-     * @param string $tagKey tag key
-     * @param string $tagValue tag version
-     * @param int $lifetime optional tag time to live
+     * @param string  $tagKey     tag key
+     * @param string  $tagValue   tag version
+     * @param int     $lifetime   optional tag time to live
      * @return boolean
      */
     public function setTag ($tagKey, $tagValue, $lifetime = null)
@@ -415,9 +415,8 @@
     /**
      * Saves tags with its version
      *
-     * @todo add PHPDOC
      * @param array $tags
-     * @param int [optional] $lifetime
+     * @param int   $lifetime optional
      */
     public function setTags ($tags, $lifetime = null)
     {
@@ -459,7 +458,7 @@
      * Returns associated cache tags
      *
      * @param string $key
-     * @return array|null
+     * @return array|void
      */
     public function getTags ($key)
     {
@@ -501,9 +500,9 @@
      * Also, it checks all related tags for expiration/version-up.
      *
      * @see sfCache::get
-     * @param string $key
-     * @param mixed $default returned back if result is false
-     * @return mixed|$default
+     * @param string  $key
+     * @param mixed   $default returned back if result is false
+     * @return mixed
      */
     public function get ($key, $default = null)
     {
@@ -573,7 +572,7 @@
      * Defines log file
      *
      * @param string $statsFilename
-     * @return MemcacheLock
+     * @return sfTaggingCache
      */
     protected function setStatsFilename ($statsFilename)
     {
@@ -615,9 +614,10 @@
 
     /**
      * Closes file log resource
+     *
      * @return void
      */
-    private function tryToCloseStatsFileResource ()
+    protected function tryToCloseStatsFileResource ()
     {
       if (null !== $this->fileResource)
       {
@@ -631,12 +631,12 @@
     }
 
     /**
-     * Writes $char to log file
+     * Appends $char to log file
      *
      * @param string $char
      * @return void
      */
-    private function writeChar ($char, $key, $info = null)
+    protected function writeChar ($char, $key, $info = null)
     {
       if (is_resource($this->fileResource))
       {
@@ -663,9 +663,10 @@
     /**
      * Set lock on $key on $expire seconds
      *
-     * @param string $key
-     * @param int $expire expire time in seconds
-     * @return boolean locked - true, could not lock - false
+     * @param string  $key
+     * @param int     $expire expire time in seconds
+     * @return boolean true: was locked
+     *                 false: could not lock
      */
     public function lock ($key, $expire = 2)
     {
@@ -725,7 +726,7 @@
 
     /**
      * @see sfCache::clean
-     * @param int $mode One of sfCache::ALL, sfCache::OLD params
+     * @param int   $mode   One of sfCache::ALL, sfCache::OLD params
      * @return void
      */
     public function clean ($mode = sfCache::ALL)
@@ -744,7 +745,7 @@
      * @param string $key
      * @return string
      */
-    private function generateLockKey ($key)
+    protected function generateLockKey ($key)
     {
       return sprintf(
         sfConfig::get('app_sfcachetaggingplugin_template_lock', 'lock_%s'), $key
@@ -754,10 +755,10 @@
     /**
      * Creates name for tag key
      *
-     * @param <type> $key
-     * @return <type>
+     * @param string $key
+     * @return string
      */
-    private function generateTagKey ($key)
+    protected function generateTagKey ($key)
     {
       return sprintf(
         sfConfig::get('app_sfcachetaggingplugin_template_tag', 'tag_%s'), $key
