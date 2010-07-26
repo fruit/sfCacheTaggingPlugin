@@ -105,7 +105,14 @@
      */
     public function getTags ($isRecursively = false)
     {
-      $tagHandler = $this->getContentTagHandler();
+      try
+      {
+        $tagHandler = $this->getContentTagHandler();
+      }
+      catch (sfCacheDisabledException $e)
+      {
+        return array();
+      }
 
       $invoker = $this->getInvoker();
 
@@ -144,9 +151,16 @@
      */
     public function addTags ($tags)
     {
-      $this
-        ->getContentTagHandler()
-        ->addContentTags($tags, $this->getInvokerNamespace());
+      try
+      {
+        $this
+          ->getContentTagHandler()
+          ->addContentTags($tags, $this->getInvokerNamespace());
+      }
+      catch (sfCacheDisabledException $e)
+      {
+        
+      }
     }
 
     /**
