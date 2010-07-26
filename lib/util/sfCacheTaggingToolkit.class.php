@@ -36,17 +36,12 @@
 
       if (! sfContext::hasInstance())
       {
-        throw new sfInitializationException(
+        throw new sfCacheContextMissingException(
           sprintf('Content is not initialized for "%s"', __CLASS__)
         );
       }
 
       $viewCacheManager = sfContext::getInstance()->getViewCacheManager();
-
-      if (null === $viewCacheManager)
-      {
-        throw new sfCacheDisabledException('View manager is disabled');
-      }
 
       if (! $viewCacheManager instanceof sfViewCacheTagManager)
       {

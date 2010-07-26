@@ -22,9 +22,9 @@
 
   $lnr = new Doctrine_Template_Listener_Cachetaggable(array());
 
-  $con = BlogPostTable::getInstance()->getConnection();
+  $connection = BlogPostTable::getInstance()->getConnection();
 
-  $con->beginTransaction();
+  $connection->beginTransaction();
 
   try
   {
@@ -41,4 +41,4 @@
     $t->fail($e->getMessage());
   }
 
-  $con->rollback();
+  $connection->rollback();

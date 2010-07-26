@@ -17,6 +17,9 @@
 
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
 
+  $connection = Doctrine::getConnectionByTableName('BlogPost');
+  $connection->beginTransaction();
+
   $t = new lime_test();
 
   try
@@ -123,3 +126,5 @@
     $t->pass($e->getMessage());
   }
 
+
+  $connection->rollback();

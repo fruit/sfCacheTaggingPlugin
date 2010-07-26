@@ -30,6 +30,8 @@
     }
   }
   
+  $connection = Doctrine::getConnectionByTableName('BlogPost');
+  $connection->beginTransaction();
 
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
 

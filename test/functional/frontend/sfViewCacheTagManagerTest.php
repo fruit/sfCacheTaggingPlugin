@@ -11,7 +11,9 @@
 
   $browser = new sfTestFunctional(new sfBrowser());
 
-  
+  $connection = Doctrine::getConnectionByTableName('BlogPost');
+  $connection->beginTransaction();
+
   define('SF_VIEW_CACHE_MANAGER_EVENT_NAME', 'view.cache.filter_content');
 
   $sfContext = sfContext::getInstance();
@@ -149,3 +151,5 @@
 
   sfConfig::set('sf_web_debug', $sfWebDebug);
 
+
+  $connection->rollback();

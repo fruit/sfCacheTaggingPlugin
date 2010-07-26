@@ -27,6 +27,9 @@
   $sfEventDispatcher = $sfContext->getEventDispatcher();
   $cacheManager = $sfContext->getViewCacheManager();
 
+  $connection = Doctrine::getConnectionByTableName('BlogPost');
+  $connection->beginTransaction();
+
   $taggingCache = $cacheManager->getTaggingCache();
 
   $dataCacheSetups = sfYaml::load(PLUGIN_DATA_DIR . '/config/cache_setup.yml');
@@ -62,7 +65,7 @@
     $t->fail('could not call ->getTagName() on saved object');
   }
 
-
+  $connection->rollback();
 
   $t->is($cacheManager->startWithTags('some_cache_key'), null, 'ob_start() on new key');
   $t->diag('Output some content for testing ob_start() in sfViewCacheManager');
@@ -94,12 +97,6 @@
     {
       $t->info(sprintf('Data/Locker - %s/%s combination', $data['class'], $locker['class']));
       
-      $connection = Doctrine::getConnectionByTableName('BlogPost');
-
-      
-
-      
-
       try
       {
         $taggingCache->initialize(array('logging' => true, 'cache' => $data, 'locker' => $locker));
@@ -117,8 +114,6 @@
 
         continue;
       }
-
-
       
       $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
       $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());

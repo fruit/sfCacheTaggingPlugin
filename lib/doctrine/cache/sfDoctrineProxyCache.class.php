@@ -142,6 +142,15 @@
       return $value;
     }
 
+    /**
+     * Saves cache with its tags
+     *
+     * @param string  $id
+     * @param string  $data
+     * @param int     $lifeTime
+     * @param array   $tags
+     * @return boolean
+     */
     public function saveWithTags ($id, $data, $lifeTime = false,
       array $tags = array()
     )
@@ -150,5 +159,4 @@
         $this->_getKey($id), $data, $lifeTime, $tags
       );
     }
-
   }

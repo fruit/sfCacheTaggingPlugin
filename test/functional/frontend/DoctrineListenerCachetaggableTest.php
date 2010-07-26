@@ -21,6 +21,9 @@
   
   $t = new lime_test();
 
+  $connection = Doctrine::getConnectionByTableName('BlogPost');
+  $connection->beginTransaction();
+
   BookTable::getInstance()->createQuery()->delete()->execute();
   FoodTable::getInstance()->createQuery()->delete()->execute();
 
@@ -153,3 +156,5 @@
   $t->ok($food->delete(), 'Food is "deleted" (really - NOT)');
 
   $t->ok(! $sfTagger->hasTag($bananasTagName), 'After SoftDelete "deletes" objects - tag cache is removed too');
+
+  $connection->rollback();

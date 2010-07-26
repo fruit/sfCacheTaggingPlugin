@@ -19,6 +19,9 @@
 
   $t = new lime_test();
 
+  $connection = Doctrine::getConnectionByTableName('BlogPost');
+  $connection->beginTransaction();
+
   BookTable::getInstance()->createQuery()->delete()->execute();
   RepositoryTable::getInstance()->createQuery()->delete()->execute();
   
@@ -30,3 +33,5 @@
   $t->isa_ok($article->setObjectVersion(213213213213), 'Book', 'setObjectVersion() returns self object');
 
   $t->is($article->getTagName(), 'Book_fr-foobarbaz', 'Multy unique column tables are compatible with tag names');
+
+  $connection->rollback();

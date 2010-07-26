@@ -82,7 +82,7 @@
           $taggingCache->deleteTag($this->preDeleteTagName);
         }
       }
-      catch (sfCacheDisabledException $e)
+      catch (sfCacheException $e)
       {
 
       }
@@ -122,7 +122,7 @@
       {
         $taggingCache = $this->getTaggingCache();
       }
-      catch (sfCacheDisabledException $e)
+      catch (sfCacheException $e)
       {
         return;
       }
@@ -187,7 +187,7 @@
       {
         $taggingCache = $this->getTaggingCache();
       }
-      catch (sfCacheDisabledException $e)
+      catch (sfCacheException $e)
       {
         return;
       }
@@ -236,7 +236,7 @@
       {
         $taggingCache = $this->getTaggingCache();
       }
-      catch (sfCacheDisabledException $e)
+      catch (sfCacheException $e)
       {
         return;
       }
