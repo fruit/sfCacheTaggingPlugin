@@ -13,7 +13,7 @@
    * @subpackage exception
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class sfCacheContextMissingException extends sfCacheException
+  class sfCacheMissingContextException extends sfCacheException
   {
 
   }

@@ -171,9 +171,17 @@
      */
     public function addTag ($tagName, $tagVersion)
     {
-      $this
-        ->getContentTagHandler()
-        ->setContentTag($tagName, $tagVersion, $this->getInvokerNamespace());
+
+      try
+      {
+        $this
+          ->getContentTagHandler()
+          ->setContentTag($tagName, $tagVersion, $this->getInvokerNamespace());
+      }
+      catch (sfCacheDisabledException $e)
+      {
+
+      }
     }
 
     /**

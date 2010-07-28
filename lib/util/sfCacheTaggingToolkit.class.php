@@ -36,7 +36,7 @@
 
       if (! sfContext::hasInstance())
       {
-        throw new sfCacheContextMissingException(
+        throw new sfCacheMissingContextException(
           sprintf('Content is not initialized for "%s"', __CLASS__)
         );
       }
