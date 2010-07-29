@@ -17,6 +17,8 @@ Some ideas are implemented in the real world (e.g. tag versions based on datetim
 and microtime, cache hit/set logging, cache locking) and part of them
 are not (atomic counter).
 
+## Ilustration ##?
+
 ## Contribution ##
 
 * [Repository (GitHub)](http://github.com/fruit/sfCacheTaggingPlugin "Repository (GitHub)")
@@ -32,17 +34,11 @@ are not (atomic counter).
 
         $ ./symfony plugin:upgrade sfCacheTaggingPlugin
 
-## Release notes
-
-  * Plugin API is fully upgraded (v2.0.0 => v3.0.0)
-
 ## Setup ##
 
 1.  Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``)
 
         [php]
-        <?php
-
         class ProjectConfiguration extends sfProjectConfiguration
         {
           public function setup ()
@@ -52,21 +48,25 @@ are not (atomic counter).
           }
         }
 
-1.  Create a new file ``/config/factories.yml`` or edit each application's level
-    ``/apps/%application_name%/config/factories.yml`` file
+1.  Create a new file ``/config/factories.yml`` (common for all applications)
+    or edit application-level ``/apps/%application_name%/config/factories.yml`` file.
 
-  Cache tagging works for you each time you save/update/delete Doctrine record
-  or fetch them from DB. So you should enable caching (**sf_cache: true**) in
-  all applications you work with. I recommend you to create default ``factories.yml``
-  for all applications you have by creating a file ``/config/factories.yml``
-  (you could find working example bellow). Symfony will check this file and load
-  it as a default factories.yml configuration to all applications you have in the project.
+    Basicaly, if you have back-end for managing data and front-end to print them out
+    you should enable cache in both of them. That is because you edit/create/delete
+    records in back-end, so object tags should be updated to invalidate front-end cache.
 
-  This is ``/config/factories.yml`` content (you can copy&paste this code
-  into your brand new created file) or merge this config with each application's
-  ``factories.yml`` (applications, where you need the data to be fetched/written from/to cache)
+    I recommend you to create default ``factories.yml`` for all applications you have by
+    creating a file ``/config/factories.yml`` (you could find explaind
+    and short working examples bellow).
 
-  ** Explained and commented working example of file ``/config/factories.yml``**
+    Symfony will check for this file and will load it as a default ``factories.yml``
+    configuration for all applications you have in the project.
+
+    This is ``/config/factories.yml`` content (you can copy&paste this code
+    into your brand new created file) or merge this config with each application
+    ``factories.yml`` file.
+
+  **Explained and commented working example of file ``/config/factories.yml``**
 
           all:
             view_cache:
@@ -83,10 +83,14 @@ are not (atomic counter).
                     host: localhost
                     port: 11211
                     timeout: 5
-                    lifetime: 86400           # default value is 1 day - 86400 for each sf*Cache mechanism
+                    lifetime: 86400           # default value is 1 day (in seconds)
 
-                # locks and tags storage (could be same as the cache storage)
-                locker:                       # if "locker" not setted (is "~"), it will be the same as cache (e.i. sfMemcacheCache)
+
+                locker:                       # locks storage (could be same as
+                                              # the cache storage)
+                                              # if "locker" not setted (is "~"), it will
+                                              # be the same as cache (e.i. sfMemcacheCache)
+
                   class: sfAPCCache           # Locks will be stored in APC
                                               # Here you can switch to any other backend sf*Cache
                                               # (see Restrictions block for more info)
@@ -97,7 +101,7 @@ are not (atomic counter).
               #param:
               #  … your params here
 
-    **Short working example to start caching with tags using APC (file ``/config/factories.yml``)**
+    **Short working example to start caching with tags using APC (location: ``/config/factories.yml``)**
 
           all:
             view_cache:
@@ -113,42 +117,31 @@ are not (atomic counter).
                 cache_key_use_vary_headers: true
                 cache_key_use_host_name:    true
 
-  > **Restrictions**: Backend's class should be inheritable from ``sfCache``
+  > **Restrictions**: Backend's class should be inherited from ``sfCache``
     class. Also, it should support the caching of objects and/or arrays.
 
   > **Bonus**: In additional to this plugin comes ``sfFileTaggingCache``
     and ``sfSQLiteTaggingCache`` which are ready to use as backend class.
     This classes already have serialization/unserialization support.
 
+1.  Add "Cachetaggable" behavior to each model, which you want to cache
 
+  Example of file ``/config/doctrine/schema.yml``
 
-1.  Edit Symfony's predefined application's level ``/apps/%application_name%/config/factories.yml`` files
-
-    > If you have edited each application's level ``/apps/%application_name%/config/factories.yml`` file in
-    2nd step - go to 4th step.
-
-    > In each application you want to use cache tagging please remove
-    "``all_view_cache_manager``" section (you have already configured it
-    in global ``/config/factories.yml`` file).
-
-1.  Add "Cachetaggable" behavior to each model, which you want to be a part of cache content.
-
-  Example of file schema.yml ``/config/doctrine/schema.yml``
-
-            BlogPost:
-              tableName: blog_post
+            YourModel:
+              tableName: your_model
               actAs:
-                ## Short version of setup
+                ## CONFIGURATION SHORT VERSION
                 ## Cachetaggable will detect your primery keys automaticaly
                 ## and generates uniqueKeyFormat based on PK column count
                 ## (e.g. '%s_%s' if table contains 2 primary keys)
                 Cachetaggable: ~
 
-                ## Extended version of setup
+                ## CONFIGURATION EXPLAINED VERSION
                 #Cachetaggable:
                 #  uniqueColumn: id               # you can customize unique column name (default is all table primary keys)
                 #  versionColumn: object_version  # you can customize version column name (default is "object_version")
-                #  uniqueKeyFormat: '%d'          # you can customize key format (default is "%d")
+                #  uniqueKeyFormat: '%s'          # you can customize key format (default is "%s")
                 #
                 #  # if you have more then 1 unique column, you could pass all of them
                 #  # as array (tag name will be based on all of them)
@@ -157,42 +150,6 @@ are not (atomic counter).
                 #  uniqueKeyFormat: '%d-%02b'      # the order of unique columns
                 #                                  # matches the "uniqueKeyFormat" template variables order
 
-              columns:
-                id:
-                  type: integer
-                  primary: true
-                  autoincrement: true
-                  unsigned: true
-                title: string(255)
-              relations:
-                BlogPostComment:
-                  class: BlogPostComment
-                  type: many
-                  local: id
-                  foreign: blog_post_id
-
-            BlogPostComment:
-              tableName: blog_post_comment
-              actAs:
-                Cachetaggable: ~
-              columns:
-                id:
-                  type: integer
-                  primary: true
-                  autoincrement: true
-                  unsigned: true
-                blog_post_id:
-                  type: integer
-                  unsigned: true
-                  notnull: true
-                author: string(20)
-                message: string(255)
-              indexes:
-                blog_post_id: { fields: [blog_post_id] }
-              relations:
-                BlogPost:
-                  onUpdate: CASCADE
-                  onDelete: CASCADE
 
 1.  Enable cache in ``settings.yml`` and add additional helpers to
     ``standard_helpers`` section
@@ -212,15 +169,15 @@ are not (atomic counter).
               .settings:
                 cache: false
 
-  Add helpers to the frontend application
+  Add helpers to the frontend application.
 
             all:
               .settings:
                 standard_helpers:
                   # … other helpers
-                  - Partial     # build-in Symfony helper
-                  - Cache       # build-in Symfony helper
-                  - CacheTag    # sfCacheTaggingPlugin helper
+                  - Partial     # build-in Symfony helper to work with partials/components
+                  - Cache       # build-in Symfony helper to work with cache
+                  - CacheTag    # sfCacheTaggingPlugin helper to tagging features
 
 1.  Customize ``sfCacheTaggingPlugin`` in the ``/config/app.yml``
 
@@ -283,273 +240,328 @@ are not (atomic counter).
 
 ## Usage ##
 
-*   ### Partials
+There are two known ways to cache partials and components:
 
-  * ``_posts.php``
+ 1. ### First way is to configure module-level ``cache.yml``:
 
-            [php]
-            <?php /* @var $posts Doctrine_Collection_Cachetaggable */ ?>
-            <fieldset>
-              <legend>Partial</legend>
+        _my_partial:
+          enabled: true
+          lifetime: 600
 
-              <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
-                <?php foreach ($posts as $post) { ?>
-                  <?php include_partial('posts/one_post', array('post' => $post) ?>
-                <?php } ?>
-                <?php cache_tag_save($posts->getTags()); ?>
-              <?php } ?>
+        _myCompdonent:
+          enabled: true
 
-            </fieldset>
+    And main template (e.g. ``indexSuccess.php``) will looks like:
 
-*   ### Components (one-table)
+        [php]
+        <h1>Welcome user!</h1>
+        <?php include_partial('default/my_partial') ?>
+
+        <h2>About town we live in</h2>
+        <?php include_component('default', 'myComponent') ?>
+
+    *Benefits*:
+     * Beautiful blue/yellow CSS-blocks when you are in dev-environment
+
+    *Limitations*:
+     * no custom cache naming (see next way)
+
+ 2. ### Second way is not to use cache.yml and store cache logic in template:
+
+        [php]
+        <h1>Welcome user!</h1>
+
+        <?php $hash = sprintf('my-partial-id:%d-culture:%s', $sf_user->getId(), $sf_user->getCulture()); ?>
+        <?php if (! cache_tag($hash, 60*60*24*30)) { ?>
+          <?php include_partial('default/my_partial') ?>
+          <?php cache_tag_save($posts->getTags()); ?>
+        <?php } ?>
+
+        <h2>About town we live in</h2>
+
+        <?php $hash = sprintf('my-component-town:%s', $sf_request->getParameter('town')); ?>
+        <?php if (! cache($hash)) { ?>
+          <?php include_component('default', 'myComponent') ?>
+          <?php cache_save($posts->getTags()); ?>
+        <?php } ?>
+
+    *Benefits*:
+     * custom cache naming based on whatever variables
+
+    *Limitations:*
+     * CSS-blocks are always blue in dev-environment ;)
+     * more code in templates
+
+#### *Partials*
+
+  * NOTICE! To cache partials you should use ``cache_tag()`` and ``cache_tag_save()``.
+  * Otherwise, in components/component slots, use build-in helpers ``cache()`` and ``cache_save()``
+
+        [php]
+        <?php /* @var $posts Doctrine_Collection_Cachetaggable */ ?>
+        <fieldset>
+          <legend>Partial</legend>
+
+          <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
+            <?php foreach ($posts as $post) { ?>
+              <?php include_partial('posts/one_post', array('post' => $post)) ?>
+            <?php } ?>
+            <?php cache_tag_save($posts->getTags()); ?>
+          <?php } ?>
+
+        </fieldset>
+
+
+
+#### *Components (one-table)*
 
   * Remember to enable each partial/component in module cache.yml ``%app%/modules/%module%/config/cache.yml``:
 
-            _listOfPosts:
-              enabled: true
+        _listOfPosts:
+          enabled: true
 
   * ``indexSuccess.php``
 
-            [php]
-            <fieldset>
-              <legend>Component</legend>
-              <?php include_component('posts', 'listOfPosts') ?>
-            </fieldset>
+        [php]
+        <fieldset>
+          <legend>Component</legend>
+          <?php include_component('posts', 'listOfPosts') ?>
+        </fieldset>
 
 
   * ``components.class.php``
 
-            [php]
-            class postsComponents extends sfComponents
-            {
-              public function executeListOfPosts($request)
-              {
-                /* @var $posts Doctrine_Collection_Cachetaggable */
-                $posts = Doctrine::getTable('BlogPost')
-                  ->createQuery('bp')
-                  ->select('bp.*')
-                  ->orderBy('bp.id DESC')
-                  ->limit(3)
-                  ->execute();
+        [php]
+        class postsComponents extends sfComponents
+        {
+          public function executeListOfPosts($request)
+          {
+            /* @var $posts Doctrine_Collection_Cachetaggable */
+            $posts = Doctrine::getTable('BlogPost')
+              ->createQuery('bp')
+              ->select('bp.*')
+              ->orderBy('bp.id DESC')
+              ->limit(3)
+              ->execute();
 
 
-                // See more about all available methods in PHPDOC of file
-                // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-                // (e.g. $this->deletePartialTags(), $this->setPartialTag())
-                // $this->setPartialTags($posts->getTags());
+            // See more about all available methods in PHPDOC of file
+            // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
+            // (e.g. $this->deletePartialTags(), $this->setPartialTag())
+            // $this->setPartialTags($posts->getTags());
 
-                // or equivalent-shorter code
-                $this->setPartialTags($posts);
+            // or equivalent-shorter code
+            $this->setPartialTags($posts);
 
-                $this->posts = $posts;
-              }
-            }
+            $this->posts = $posts;
+          }
+        }
 
-*   ### Components (two-tables, combining posts and comments 1:M relation)
+#### *Components (two-tables, combining posts and comments 1:M relation)*
 
   * Notice: enable component caching in cache.yml
 
-            _listOfPostsAndComments:
-              enabled: true
+        _listOfPostsAndComments:
+          enabled: true
 
   * ``indexSuccess.php``
 
-            [php]
-            <fieldset>
-              <legend>Component (posts and comments)</legend>
-              <?php include_component('post', 'listOfPostsAndComments') ?>
-            </fieldset>
+        [php]
+        <fieldset>
+          <legend>Component (posts and comments)</legend>
+          <?php include_component('post', 'listOfPostsAndComments') ?>
+        </fieldset>
 
   * ``components.class.php``
 
-            [php]
-            class postsComponents extends sfComponents
+        [php]
+        class postsComponents extends sfComponents
+        {
+          /**
+           * Explained version (AVOID OF USING IT)
+           */
+          public function executeListOfPostsAndComments ($request)
+          {
+            // each post could have many comments (fetching posts with its comments)
+            $posts = Doctrine::getTable('BlogPost')
+              ->createQuery('bp')
+              ->addSelect('bp.*, bpc.*')
+              ->innerJoin('bp.BlogPostComments bpc')
+              ->orderBy('bp.id DESC')
+              ->limit(3)
+              ->execute();
+
+
+            foreach ($posts as $post)
             {
-              /**
-               * Explained version (AVOID OF USING IT)
-               */
-              public function executeListOfPostsAndComments ($request)
-              {
-                // each post could have many comments (fetching posts with its comments)
-                $posts = Doctrine::getTable('BlogPost')
-                  ->createQuery('bp')
-                  ->addSelect('bp.*, bpc.*')
-                  ->innerJoin('bp.BlogPostComments bpc')
-                  ->orderBy('bp.id DESC')
-                  ->limit(3)
-                  ->execute();
+              // our cache (with posts) should be updated on edited/deleted/added the comments
+              // therefore, we are collecting comment's tags
 
+              // $posts->addTags($post->getBlogPostComment()->getTags());
+              // or shorter
 
-                foreach ($posts as $post)
-                {
-                  // our cache (with posts) should be updated on edited/deleted/added the comments
-                  // therefore, we are collecting comment's tags
-
-                  // $posts->addTags($post->getBlogPostComment()->getTags());
-                  // or shorter
-
-                  $posts->addTags($post->getBlogPostComment());
-                }
-
-                // after, we pass all tags to cache manager
-                // See more about all available methods in PHPDOC of file
-                // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-                // $this->setUserTags($posts->getTags());
-
-                // or shorter
-                $this->setUserTags($posts);
-
-                $this->posts = $posts;
-              }
-
-              /**
-               * Good, real world example.
-               *
-               * The shortest variant of previous code for lazy people like me
-               */
-              public function executeListOfPostsAndComments($request)
-              {
-                $posts = Doctrine::getTable('BlogPost')
-                  ->createQuery('bp')
-                  ->addSelect('bp.*, bpc.*')
-                  ->innerJoin('bp.BlogPostComments bpc')
-                  ->orderBy('bp.id DESC')
-                  ->limit(3)
-                  ->execute();
-
-                // fetch object tags recursively from the joined tables ;)
-                $this->setPartialTags($posts->getTags(true));
-
-                $this->posts = $posts;
-              }
+              $posts->addTags($post->getBlogPostComment());
             }
 
-* ### Adding tags to the whole page (action with layout)
+            // after, we pass all tags to cache manager
+            // See more about all available methods in PHPDOC of file
+            // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
+            // $this->setUserTags($posts->getTags());
+
+            // or shorter
+            $this->setUserTags($posts);
+
+            $this->posts = $posts;
+          }
+
+          /**
+           * Good, real world example.
+           *
+           * The shortest variant of previous code for lazy people like me
+           */
+          public function executeListOfPostsAndComments($request)
+          {
+            $posts = Doctrine::getTable('BlogPost')
+              ->createQuery('bp')
+              ->addSelect('bp.*, bpc.*')
+              ->innerJoin('bp.BlogPostComments bpc')
+              ->orderBy('bp.id DESC')
+              ->limit(3)
+              ->execute();
+
+            // fetch object tags recursively from the joined tables ;)
+            $this->setPartialTags($posts->getTags(true));
+
+            $this->posts = $posts;
+          }
+        }
+
+#### *Adding tags to the whole page (action with layout)*
 
   * Use it in your action to set the tags:
 
-            [php]
-            class carActions extends sfActions
-            {
-              public function executeShow (sfWebRequest $request)
-              {
-                // get a "Cachetaggable" Doctrine_Record
-                $car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
+        [php]
+        class carActions extends sfActions
+        {
+          public function executeShow (sfWebRequest $request)
+          {
+            // get a "Cachetaggable" Doctrine_Record
+            $car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
 
-                // set the tags for the action cache
-                // See more about all available methods in PHPDOC of file
-                // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-                // $this->setPageTags($car->getTags());
+            // set the tags for the action cache
+            // See more about all available methods in PHPDOC of file
+            // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
+            // $this->setPageTags($car->getTags());
 
-                // or shorter
-                $this->setPageTags($this->car);
+            // or shorter
+            $this->setPageTags($this->car);
 
-                $this->car = $car;
-              }
-            }
+            $this->car = $car;
+          }
+        }
 
   * Without a doubt, you have to enable the cache for that action in ``config/cache.yml``:
 
-            # "show" is a word from action method "execiteShow"
-            # also you could name it as "showSuccess"
-            show:
-              with_layout: true
-              enabled:     true
+        # "show" is a word from action method "execiteShow"
+        # also you could name it as "showSuccess"
+        show:
+          with_layout: true
+          enabled:     true
 
-* ### Adding tags to the specific action (action without layout)
+#### *Adding tags to the specific action (action without layout)*
 
   * You have to disable "with_layout" and enable the cache for that action in ``config/cache.yml``:
 
-            # "show" or "showSuccess" (useful, when you have not showFailed.php?)
-            show:
-              with_layout: false
-              enabled:     true
-              lifetime:    360
+        # "show" or "showSuccess" (useful, when you have not showFailed.php?)
+        show:
+          with_layout: false
+          enabled:     true
+          lifetime:    360
 
   * Action example
 
-            [php]
-            class carActions extends sfActions
-            {
-              public function executeShow (sfWebRequest $request)
-              {
-                // get a "Cachetaggable" Doctrine_Record
-                $car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
+        [php]
+        class carActions extends sfActions
+        {
+          public function executeShow (sfWebRequest $request)
+          {
+            // get a "Cachetaggable" Doctrine_Record
+            $car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
 
-                // set the tags for the action cache
-                // See more about all available methods in PHPDOC of file
-                // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-                // $this->setActionTags($car->getTags());
+            // set the tags for the action cache
+            // See more about all available methods in PHPDOC of file
+            // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
+            // $this->setActionTags($car->getTags());
 
-                // or shorter
-                $this->setActionTags($car);
+            // or shorter
+            $this->setActionTags($car);
 
-                $this->car = $car;
-              }
-            }
+            $this->car = $car;
+          }
+        }
 
-* ### Caching Doctrine_Records/Doctrine_Collections with its tags
+#### *Caching Doctrine_Records/Doctrine_Collections with its tags*
 
   * To start caching objects/collection with its tags you have just to enable
     result cache by calling Doctrine_Query::useResultCache()
 
-            [php]
-            class carActions extends sfActions
-            {
-              // Somewhere in component/action, you need to print out latest posts
-              $posts = Doctrine::getTable('BlogPost')
-                ->createQuery()
-                ->useResultCache()
-                ->addWhere('lang = ?', 'en_GB')
-                ->addWhere('is_visible = ?', true)
-                ->limit(15)
-                ->execute();
+        [php]
+        class carActions extends sfActions
+        {
+          // Somewhere in component/action, you need to print out latest posts
+          $posts = Doctrine::getTable('BlogPost')
+            ->createQuery()
+            ->useResultCache()
+            ->addWhere('lang = ?', 'en_GB')
+            ->addWhere('is_visible = ?', true)
+            ->limit(15)
+            ->execute();
 
-              $this->posts = $posts;
+          $this->posts = $posts;
 
-              // if you run this action again - you will pleasantly suprised
-              // $posts now stored in cache and with object tags ;)
-              // (object serialization powered by Doctrine build-in mechanism)
-              // and expired as soon as you edit one of them
-              // or add new record to table "blog_post"
-            }
+          // if you run this action again - you will pleasantly suprised
+          // $posts now stored in cache and with object tags ;)
+          // (object serialization powered by Doctrine build-in mechanism)
+          // and expired as soon as you edit one of them
+          // or add new record to table "blog_post"
+        }
 
 
   * Appending tags to existing Doctrine tags
 
-            [php]
-            class carActions extends sfActions
-            {
-              // Somewhere in component/action, you need to print out latest posts
-              $posts = Doctrine::getTable('BlogPost')
-                ->createQuery()
-                ->useResultCache()
-                ->addWhere('lang = ?')
-                ->addWhere('is_visible = ?')
-                ->limit(15)
-                ->execute(array('en_GB', true));
+        [php]
+        class carActions extends sfActions
+        {
+          // Somewhere in component/action, you need to print out latest posts
+          $posts = Doctrine::getTable('BlogPost')
+            ->createQuery()
+            ->useResultCache()
+            ->addWhere('lang = ?')
+            ->addWhere('is_visible = ?')
+            ->limit(15)
+            ->execute(array('en_GB', true));
 
-              // objects are written to cache with it tags
+          // objects are written to cache with it tags
 
-              $q = Doctrine::getTable('Culture')->createQuery();
-              $cultures = $q->execute();
+          $q = Doctrine::getTable('Culture')->createQuery();
+          $cultures = $q->execute();
 
-              // if execute was runned without params "$q->execute();"
-              $this->addDoctrineTags($cultures, $q);
+          // if execute was runned without params "$q->execute();"
+          $this->addDoctrineTags($cultures, $q);
 
-              // if execute was runned with params "$q->execute(array(true, 1, 'foo'));"
-              // $this->addDoctrineTags($cultures, $q->getResultCacheHash($q->getParams()));
-              // or
-              // shorter
-              // $this->addDoctrineTags($posts, $q, $q->getParams());
+          // if execute was runned with params "$q->execute(array(true, 1, 'foo'));"
+          // $this->addDoctrineTags($cultures, $q->getResultCacheHash($q->getParams()));
+          // or
+          // shorter
+          // $this->addDoctrineTags($posts, $q, $q->getParams());
 
 
-              // now if you update something in culture table, $posts will be expired
+          // now if you update something in culture table, $posts will be expired
 
-              $this->posts = $posts;
-            }
+          $this->posts = $posts;
+        }
 
-## Limitations / Peculiarities ##
+## Limitations / Specifity ##
 
   * In case, when model has translations (I18n behavior), it is enough to add
     "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
