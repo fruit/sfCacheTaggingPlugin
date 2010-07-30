@@ -68,54 +68,54 @@ are not (atomic counter).
 
   **Explained and commented working example of file ``/config/factories.yml``**
 
-          all:
-            view_cache:
-              class: sfTaggingCache
-              param:
-                logging: true                 # logging is enabled ("false" to disable)
-                cache:
-                  class: sfMemcacheCache      # Content will be stored in Memcache
-                                              # Here you can switch to any other backend
-                                              # (see Restrictions block for more info)
-                  param:
-                    persistent: true
-                    storeCacheInfo: false
-                    host: localhost
-                    port: 11211
-                    timeout: 5
-                    lifetime: 86400           # default value is 1 day (in seconds)
+        all:
+          view_cache:
+            class: sfTaggingCache
+            param:
+              logging: true                 # logging is enabled ("false" to disable)
+              cache:
+                class: sfMemcacheCache      # Content will be stored in Memcache
+                                            # Here you can switch to any other backend
+                                            # (see Restrictions block for more info)
+                param:
+                  persistent: true
+                  storeCacheInfo: false
+                  host: localhost
+                  port: 11211
+                  timeout: 5
+                  lifetime: 86400           # default value is 1 day (in seconds)
 
 
-                locker:                       # locks storage (could be same as
-                                              # the cache storage)
-                                              # if "locker" not setted (is "~"), it will
-                                              # be the same as cache (e.i. sfMemcacheCache)
+              locker:                       # locks storage (could be same as
+                                            # the cache storage)
+                                            # if "locker" not setted (is "~"), it will
+                                            # be the same as cache (e.i. sfMemcacheCache)
 
-                  class: sfAPCCache           # Locks will be stored in APC
-                                              # Here you can switch to any other backend sf*Cache
-                                              # (see Restrictions block for more info)
-                  param: {}
+                class: sfAPCCache           # Locks will be stored in APC
+                                            # Here you can switch to any other backend sf*Cache
+                                            # (see Restrictions block for more info)
+                param: {}
 
-            view_cache_manager:
-              class: sfViewCacheTagManager    # Extended sfViewCacheManager class
-              #param:
-              #  … your params here
+          view_cache_manager:
+            class: sfViewCacheTagManager    # Extended sfViewCacheManager class
+            #param:
+            #  … your params here
 
     **Short working example to start caching with tags using APC (location: ``/config/factories.yml``)**
 
-          all:
-            view_cache:
-              class: sfTaggingCache
-              param:
-                logging: true
-                cache: { class: sfAPCCache, param: {} }
-                locker: ~
+        all:
+          view_cache:
+            class: sfTaggingCache
+            param:
+              logging: true
+              cache: { class: sfAPCCache, param: {} }
+              locker: ~
 
-            view_cache_manager:
-              class: sfViewCacheTagManager
-              param:
-                cache_key_use_vary_headers: true
-                cache_key_use_host_name:    true
+          view_cache_manager:
+            class: sfViewCacheTagManager
+            param:
+              cache_key_use_vary_headers: true
+              cache_key_use_host_name:    true
 
   > **Restrictions**: Backend's class should be inherited from ``sfCache``
     class. Also, it should support the caching of objects and/or arrays.
@@ -128,194 +128,140 @@ are not (atomic counter).
 
   Example of file ``/config/doctrine/schema.yml``
 
-            YourModel:
-              tableName: your_model
-              actAs:
-                ## CONFIGURATION SHORT VERSION
-                ## Cachetaggable will detect your primery keys automaticaly
-                ## and generates uniqueKeyFormat based on PK column count
-                ## (e.g. '%s_%s' if table contains 2 primary keys)
-                Cachetaggable: ~
+        YourModel:
+          tableName: your_model
+          actAs:
+            ## CONFIGURATION SHORT VERSION
+            ## Cachetaggable will detect your primery keys automaticaly
+            ## and generates uniqueKeyFormat based on PK column count
+            ## (e.g. '%s_%s' if table contains 2 primary keys)
+            Cachetaggable: ~
 
-                ## CONFIGURATION EXPLAINED VERSION
-                #Cachetaggable:
-                #  uniqueColumn: id               # you can customize unique column name (default is all table primary keys)
-                #  versionColumn: object_version  # you can customize version column name (default is "object_version")
-                #  uniqueKeyFormat: '%s'          # you can customize key format (default is "%s")
-                #
-                #  # if you have more then 1 unique column, you could pass all of them
-                #  # as array (tag name will be based on all of them)
-                #
-                #  uniqueColumn: [id, is_enabled]
-                #  uniqueKeyFormat: '%d-%02b'      # the order of unique columns
-                #                                  # matches the "uniqueKeyFormat" template variables order
+            ## CONFIGURATION EXPLAINED VERSION
+            #Cachetaggable:
+            #  uniqueColumn: id               # you can customize unique column name (default is all table primary keys)
+            #  versionColumn: object_version  # you can customize version column name (default is "object_version")
+            #  uniqueKeyFormat: '%s'          # you can customize key format (default is "%s")
+            #
+            #  # if you have more then 1 unique column, you could pass all of them
+            #  # as array (tag name will be based on all of them)
+            #
+            #  uniqueColumn: [id, is_enabled]
+            #  uniqueKeyFormat: '%d-%02b'      # the order of unique columns
+            #                                  # matches the "uniqueKeyFormat" template variables order
 
 
 1.  Enable cache in ``settings.yml`` and add additional helpers to
     ``standard_helpers`` section
 
-  To setup cache, often, used a separate environment named "cache",
+  To setup cache, often, is used a separate environment named "cache",
   but in the same way you can do it in any other environments which you already have.
 
-            prod:
-              .settings:
-                cache: true
+        prod:
+          .settings:
+            cache: true
 
-            cache:
-              .settings:
-                cache: true
+        cache:
+          .settings:
+            cache: true
 
-            all:
-              .settings:
-                cache: false
+        all:
+          .settings:
+            cache: false
 
-  Add helpers to the frontend application.
+  Add helpers to the each application:
 
-            all:
-              .settings:
-                standard_helpers:
-                  # … other helpers
-                  - Partial     # build-in Symfony helper to work with partials/components
-                  - Cache       # build-in Symfony helper to work with cache
-                  - CacheTag    # sfCacheTaggingPlugin helper to tagging features
+        all:
+          .settings:
+            standard_helpers:
+              # … other helpers
+              - Partial     # build-in Symfony helper to work with partials/components
+              - Cache       # build-in Symfony helper to work with cache
+              - CacheTag    # sfCacheTaggingPlugin helper with cache tagging features
 
-1.  Customize ``sfCacheTaggingPlugin`` in the ``/config/app.yml``
+1.  Customize ``sfCacheTaggingPlugin`` in the ``app.yml``
 
-  Explained and commented version of ``/config/app.yml`` (project level or to each application's level ``/apps/%application_name%/config/app.yml``)
+  Explained and commented version of ``app.yml``:
 
-            all:
-              sfcachetaggingplugin:
+        all:
+          sfcachetaggingplugin:
 
-                template_lock: "lock_%s"    # name for locks (recommended to include constant %SF_ENVIRONMENT%)
-                template_tag: "tag_%s"      # name for tags (recommended to include constant %SF_ENVIRONMENT%)
+            template_lock: "lock_%s"    # Name for locks.
+            template_tag: "tag_%s"      # Name for tags.
 
-                microtime_precision: 5      # version precision
-                                            # (0 - without micro time (only seconds), version will be 10 digits length)
-                                            # (5 - with micro time part, version will be 15 digits length)
-                                            # (max precision value = 6, min = 0, only decimal numbers)
+            microtime_precision: 5      # Version precision.
+                                        # 0: without micro time, version length 10 digits
+                                        # 5: with micro time part, version length 15 digits
+                                        # (allowed decimal numbers in range [0, 6]
 
-                lock_lifetime: 2            # number of seconds to keep lock, if failed to unlock after locking it (default value if not set 2)
-                                            # value should be more then zero
+            lock_lifetime: 2            # Number of seconds to keep lock, if failed to
+                                        # unlock after locking it.
+                                        # Value should be more then zero.
 
-                tag_lifetime: 86400         # number of seconds to keep tags alive (default value if not set 86400)
-                                            # it is recommended to keep this value the same as you have declared in factories.yml at "all_view_cache_param_cache_param_lifetime" (86400)
-                                            # value should be more then zero
+            tag_lifetime: 86400         # Number of seconds to keep tags alive
+                                        # (default value if not set 86400).
+                                        # It's recommended to keep this value the same as
+                                        # you have declared in factories.yml at
+                                        # "all_view_cache_param_cache_param_lifetime" (86400).
+                                        # Value should be more then zero.
 
-                log_format_extended: 0      # logs will be stored in ``log/cache_%environment_name%.log``
-                                            # "0" print 1 char in one line
-                                            # "1" print 1 char, cache key, additional data (if available) per line
-                                            #
-                                            # Char explanation:
-                                            #   "g": content cache not found
-                                            #   "G": content cache is found
-                                            #   "l": could not lock the content or the tag
-                                            #   "L": content/tag was locked for writing
-                                            #   "s": could not write new values to the cache (e.g. for lock reasons)
-                                            #   "S": new values are saved to the cache
-                                            #   "u": could not unlock the cache
-                                            #   "U": cache was unlocked
-                                            #   "t": cache tag was expired
-                                            #   "T": cache tag is up-to-date
-                                            #   "p": could not write new version of tag
-                                            #   "P": tag version is updated
-                                            #
-                                            # Chars in lower case indicate negative operation
-                                            # Chars in upper case indicate positive operation
+            log_format_extended: 0      # Logs will be stored in ``log/cache_%environment_name%.log``
+                                        # 0: Print 1 char in one line.
+                                        # 1: Print 1 char + cache key + additional data
+                                        #    (if available) per line.
+                                        #
+                                        # Char explanation:
+                                        #   "g": content cache not found
+                                        #   "G": content cache is found
+                                        #   "l": could not lock the content or the tag
+                                        #   "L": content/tag was locked for writing
+                                        #   "s": could not write new values to the cache
+                                        #        (e.g. for lock reasons)
+                                        #   "S": new values are saved to the cache
+                                        #   "u": could not unlock the cache
+                                        #   "U": cache was unlocked
+                                        #   "t": cache tag was expired
+                                        #   "T": cache tag is up-to-date
+                                        #   "p": could not write new version of tag
+                                        #   "P": tag version is updated
+                                        #
+                                        # Chars in lower case indicate negative operation.
+                                        # Chars in upper case indicate positive operation.
 
-                #object_class_tag_name_provider: # you can customize tag name naming
-                #                                # useful for multi-environment models
-                #  - ProjectToolkit              # [class name]
-                #  - formatObjectClassName       # [static method name]
+            #object_class_tag_name_provider: # you can customize tag name naming
+            #                                # useful for multi-environment models
+            #  - ProjectToolkit              # [class name]
+            #  - formatObjectClassName       # [static method name]
 
-   Minified ``/config/app.yml`` content:
+   Minified ``app.yml`` content:
 
-            all:
-              sfcachetaggingplugin:
-                template_lock:        "%SF_ENVIRONMENT%_lock_%s"
-                template_tag:         "%SF_ENVIRONMENT%_tag_%s"
-                microtime_precision:  5
-                lock_lifetime:        2
-                tag_lifetime:         86400
-                log_format_extended:  0
+        all:
+          sfcachetaggingplugin:
+            template_lock:        "%SF_ENVIRONMENT%_lock_%s"
+            template_tag:         "%SF_ENVIRONMENT%_tag_%s"
+            microtime_precision:  5
+            lock_lifetime:        2
+            tag_lifetime:         86400
+            log_format_extended:  0
 
 ## Usage ##
-
-There are two known ways to cache partials and components:
-
- 1. ### First way is to configure module-level ``cache.yml``:
-
-        _my_partial:
-          enabled: true
-          lifetime: 600
-
-        _myCompdonent:
-          enabled: true
-
-    And main template (e.g. ``indexSuccess.php``) will looks like:
-
-        [php]
-        <h1>Welcome user!</h1>
-        <?php include_partial('default/my_partial') ?>
-
-        <h2>About town we live in</h2>
-        <?php include_component('default', 'myComponent') ?>
-
-    *Benefits*:
-     * Beautiful blue/yellow CSS-blocks when you are in dev-environment
-
-    *Limitations*:
-     * no custom cache naming (see next way)
-
- 2. ### Second way is not to use cache.yml and store cache logic in template:
-
-        [php]
-        <h1>Welcome user!</h1>
-
-        <?php $hash = sprintf('my-partial-id:%d-culture:%s', $sf_user->getId(), $sf_user->getCulture()); ?>
-        <?php if (! cache_tag($hash, 60*60*24*30)) { ?>
-          <?php include_partial('default/my_partial') ?>
-          <?php cache_tag_save($posts->getTags()); ?>
-        <?php } ?>
-
-        <h2>About town we live in</h2>
-
-        <?php $hash = sprintf('my-component-town:%s', $sf_request->getParameter('town')); ?>
-        <?php if (! cache($hash)) { ?>
-          <?php include_component('default', 'myComponent') ?>
-          <?php cache_save($posts->getTags()); ?>
-        <?php } ?>
-
-    *Benefits*:
-     * custom cache naming based on whatever variables
-
-    *Limitations:*
-     * CSS-blocks are always blue in dev-environment ;)
-     * more code in templates
 
 #### *Partials*
 
   * NOTICE! To cache partials you should use ``cache_tag()`` and ``cache_tag_save()``.
-  * Otherwise, in components/component slots, use build-in helpers ``cache()`` and ``cache_save()``
 
         [php]
+        <h1>Posts</h1>
+
         <?php /* @var $posts Doctrine_Collection_Cachetaggable */ ?>
-        <fieldset>
-          <legend>Partial</legend>
-
-          <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
-            <?php foreach ($posts as $post) { ?>
-              <?php include_partial('posts/one_post', array('post' => $post)) ?>
-            <?php } ?>
-            <?php cache_tag_save($posts->getTags()); ?>
-          <?php } ?>
-
-        </fieldset>
-
-
+        <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
+          <?php include_partial('posts/listing', array('posts' => $posts)) ?>
+          <?php cache_tag_save($posts->getTags()); ?>
+        <?php } ?>
 
 #### *Components (one-table)*
 
-  * Remember to enable each partial/component in module cache.yml ``%app%/modules/%module%/config/cache.yml``:
+  * Remember to enable component caching in module cache.yml ``%app%/modules/%module%/config/cache.yml``:
 
         _listOfPosts:
           enabled: true
@@ -325,7 +271,9 @@ There are two known ways to cache partials and components:
         [php]
         <fieldset>
           <legend>Component</legend>
-          <?php include_component('posts', 'listOfPosts') ?>
+          <?php include_component('posts', 'listOfPosts', array(
+            'sf_cache_key' => sprintf('list-of-posts-%s', $sf_user->getCulture()),
+          )) ?>
         </fieldset>
 
 
@@ -334,7 +282,7 @@ There are two known ways to cache partials and components:
         [php]
         class postsComponents extends sfComponents
         {
-          public function executeListOfPosts($request)
+          public function executeListOfPosts ($request)
           {
             /* @var $posts Doctrine_Collection_Cachetaggable */
             $posts = Doctrine::getTable('BlogPost')
@@ -348,8 +296,8 @@ There are two known ways to cache partials and components:
             // See more about all available methods in PHPDOC of file
             // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
             // (e.g. $this->deletePartialTags(), $this->setPartialTag())
-            // $this->setPartialTags($posts->getTags());
 
+            // $this->setPartialTags($posts->getTags());
             // or equivalent-shorter code
             $this->setPartialTags($posts);
 
@@ -359,7 +307,7 @@ There are two known ways to cache partials and components:
 
 #### *Components (two-tables, combining posts and comments 1:M relation)*
 
-  * Notice: enable component caching in cache.yml
+  * Notice: enable component caching in ``cache.yml``
 
         _listOfPostsAndComments:
           enabled: true
@@ -369,7 +317,9 @@ There are two known ways to cache partials and components:
         [php]
         <fieldset>
           <legend>Component (posts and comments)</legend>
-          <?php include_component('post', 'listOfPostsAndComments') ?>
+          <?php include_component('post', 'listOfPostsAndComments', array(
+            'sf_cache_key' => 'list-of-posts-in-left-block',
+          )) ?>
         </fieldset>
 
   * ``components.class.php``
@@ -399,7 +349,6 @@ There are two known ways to cache partials and components:
 
               // $posts->addTags($post->getBlogPostComment()->getTags());
               // or shorter
-
               $posts->addTags($post->getBlogPostComment());
             }
 
@@ -451,8 +400,8 @@ There are two known ways to cache partials and components:
             // set the tags for the action cache
             // See more about all available methods in PHPDOC of file
             // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-            // $this->setPageTags($car->getTags());
 
+            // $this->setPageTags($car->getTags());
             // or shorter
             $this->setPageTags($this->car);
 
@@ -462,9 +411,7 @@ There are two known ways to cache partials and components:
 
   * Without a doubt, you have to enable the cache for that action in ``config/cache.yml``:
 
-        # "show" is a word from action method "execiteShow"
-        # also you could name it as "showSuccess"
-        show:
+        showSuccess:
           with_layout: true
           enabled:     true
 
@@ -472,8 +419,7 @@ There are two known ways to cache partials and components:
 
   * You have to disable "with_layout" and enable the cache for that action in ``config/cache.yml``:
 
-        # "show" or "showSuccess" (useful, when you have not showFailed.php?)
-        show:
+        showSuccess:
           with_layout: false
           enabled:     true
           lifetime:    360
@@ -491,8 +437,8 @@ There are two known ways to cache partials and components:
             // set the tags for the action cache
             // See more about all available methods in PHPDOC of file
             // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-            // $this->setActionTags($car->getTags());
 
+            // $this->setActionTags($car->getTags());
             // or shorter
             $this->setActionTags($car);
 
