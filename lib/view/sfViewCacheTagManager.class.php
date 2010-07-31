@@ -528,4 +528,34 @@
 
       return $content;
     }
+
+    public function decorateContentWithDebug(sfEvent $event, $content)
+    {
+      $updatedContent = parent::decorateContentWithDebug($event, $content);
+
+      if ($content === $updatedContent)
+      {
+        return $content;
+      }
+
+      $cacheMetadata = $this->getCache()->get(
+        $this->generateCacheKey($event['uri'])
+      );
+
+      if ($cacheMetadata instanceof stdClass && isset($cacheMetadata->tags))
+      {
+        $tags = sprintf('[cache tags] count: %d, tag=version: ', count($cacheMetadata->tags));
+
+        foreach ($cacheMetadata->tags as $name => $version)
+        {
+          $tags .= sprintf('%s=%s, ', $name, $version);
+        }
+
+        $tags = substr($tags, 0, -2) . '.';
+
+        $updatedContent = str_replace('&nbsp;<br />&nbsp;', "{$tags}&nbsp;<br />&nbsp;", $updatedContent);
+      }
+
+      return $updatedContent;
+    }
   }
