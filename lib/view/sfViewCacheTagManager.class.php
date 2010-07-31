@@ -544,14 +544,19 @@
 
       if ($cacheMetadata instanceof stdClass && isset($cacheMetadata->tags))
       {
-        $tags = sprintf('[cache tags] count: %d, tag=version: ', count($cacheMetadata->tags));
+        $tags = sprintf('[cache tags] count: %d', $tagsCount = count($cacheMetadata->tags));
 
-        foreach ($cacheMetadata->tags as $name => $version)
+        if (0 != $tagsCount)
         {
-          $tags .= sprintf('%s=%s, ', $name, $version);
-        }
+          $tags .= ', tags: ';
 
-        $tags = substr($tags, 0, -2) . '.';
+          foreach ($cacheMetadata->tags as $name => $version)
+          {
+            $tags .= sprintf('%s(%s), ', $name, $version);
+          }
+
+          $tags = substr($tags, 0, -2) . '.';
+        }
 
         $updatedContent = str_replace('&nbsp;<br />&nbsp;', "{$tags}&nbsp;<br />&nbsp;", $updatedContent);
       }
