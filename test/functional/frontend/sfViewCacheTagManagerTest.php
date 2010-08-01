@@ -69,13 +69,6 @@
     );
   }
 
-  $t->is($cacheManager->startWithTags('some_cache_key'), null, 'ob_start() on new key');
-  $t->diag('Output some content for testing ob_start() in sfViewCacheManager');
-  $t->isnt($content = $cacheManager->stopWithTags('some_cache_key'), null, 'ob_get_clean() on key "some_cache_key"');
-  
-  echo $content;
-  $t->isnt($cacheManager->startWithTags('some_cache_key'), '', 'ob_start() on old key');
-
   try
   {
     $cacheManager->initialize($sfContext, new sfAPCCache(), array());

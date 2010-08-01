@@ -176,8 +176,6 @@ are not (atomic counter).
             standard_helpers:
               # … other helpers
               - Partial     # build-in Symfony helper to work with partials/components
-              - Cache       # build-in Symfony helper to work with cache
-              - CacheTag    # sfCacheTaggingPlugin helper with cache tagging features
 
 1.  Customize ``sfCacheTaggingPlugin`` in the ``app.yml``
 
@@ -246,27 +244,43 @@ are not (atomic counter).
 
 ## Usage ##
 
+  No more ``cache()`` and ``cache_save()`` helpers. You must setup all
+  cache logic in ``cache.yml`` (location: ``%app%/modules/%module%/config/cache.yml``).
+
 #### *Partials*
 
-  * NOTICE! To cache partials you should use ``cache_tag()`` and ``cache_tag_save()``.
+  To link partial with content tags, you should pass them as an extra parameter
+  named ``sf_cache_tags``. Cache name should be certainly passed as parameter ``sf_cache_key``.
+
+  * ``cache.yml`` configuration:
+
+        _listing:
+          enabled: true
+
+  * Action template ``indexSuccess.php``:
 
         [php]
-        <h1>Posts</h1>
-
         <?php /* @var $posts Doctrine_Collection_Cachetaggable */ ?>
-        <?php if (! cache_tag('latest-blog-posts-index-on-page')) { ?>
-          <?php include_partial('posts/listing', array('posts' => $posts)) ?>
-          <?php cache_tag_save($posts->getTags()); ?>
-        <?php } ?>
+
+        <h1><?php __('Posts in "%1%"', array('%1%' => $sf_user->getCulture())); </h1>
+
+        <?php include_partial('posts/listing', array(
+          'posts' => $posts,
+          'sf_cache_key' => sprintf('latest-posts-culture:%s', $sf_user->getCulture()),
+          'sf_cache_tags' => $posts->getTags(),
+        )) ?>
 
 #### *Components (one-table)*
 
-  * Remember to enable component caching in module cache.yml ``%app%/modules/%module%/config/cache.yml``:
+  To link component with tags you will should call ``$this->setPartialTags();``
+  inside you component.
+
+  * Remember to enable specific component caching in ``cache.yml``:
 
         _listOfPosts:
           enabled: true
 
-  * ``indexSuccess.php``
+  * Action template: ``indexSuccess.php``
 
         [php]
         <fieldset>
@@ -387,6 +401,12 @@ are not (atomic counter).
 
 #### *Adding tags to the whole page (action with layout)*
 
+  * Without a doubt, you have to enable the cache for that action in ``config/cache.yml``:
+
+        showSuccess:
+          with_layout: true
+          enabled:     true
+
   * Use it in your action to set the tags:
 
         [php]
@@ -403,17 +423,11 @@ are not (atomic counter).
 
             // $this->setPageTags($car->getTags());
             // or shorter
-            $this->setPageTags($this->car);
+            $this->setPageTags($car);
 
             $this->car = $car;
           }
         }
-
-  * Without a doubt, you have to enable the cache for that action in ``config/cache.yml``:
-
-        showSuccess:
-          with_layout: true
-          enabled:     true
 
 #### *Adding tags to the specific action (action without layout)*
 
@@ -422,7 +436,6 @@ are not (atomic counter).
         showSuccess:
           with_layout: false
           enabled:     true
-          lifetime:    360
 
   * Action example
 
@@ -449,7 +462,7 @@ are not (atomic counter).
 #### *Caching Doctrine_Records/Doctrine_Collections with its tags*
 
   * To start caching objects/collection with its tags you have just to enable
-    result cache by calling Doctrine_Query::useResultCache()
+    result cache by calling ``Doctrine_Query::useResultCache()``:
 
         [php]
         class carActions extends sfActions
@@ -473,12 +486,13 @@ are not (atomic counter).
         }
 
 
-  * Appending tags to existing Doctrine tags
+  * Appending tags to existing Doctrine tags:
 
         [php]
         class carActions extends sfActions
         {
           // Somewhere in component/action, you need to print out latest posts
+          //
           $posts = Doctrine::getTable('BlogPost')
             ->createQuery()
             ->useResultCache()
@@ -489,18 +503,19 @@ are not (atomic counter).
 
           // objects are written to cache with it tags
 
+          // For example, want to $posts will be invalidated if something was chanaged
+          // in table "culture":
           $q = Doctrine::getTable('Culture')->createQuery();
           $cultures = $q->execute();
 
-          // if execute was runned without params "$q->execute();"
+          // when execute was runned without params "$q->execute();"
           $this->addDoctrineTags($cultures, $q);
 
-          // if execute was runned with params "$q->execute(array(true, 1, 'foo'));"
+          // when execute was runned with params "$q->execute(array(true, 1, 'foo'));"
           // $this->addDoctrineTags($cultures, $q->getResultCacheHash($q->getParams()));
           // or
           // shorter
           // $this->addDoctrineTags($posts, $q, $q->getParams());
-
 
           // now if you update something in culture table, $posts will be expired
 
@@ -517,11 +532,65 @@ are not (atomic counter).
 
   * Unit/funcational tests report:
 
-            .
+        $ ./symfony test:all
+        CacheTagging] functional/frontend/DoctrineListenerCachetaggableTest..ok
+        CacheTagging] functional/frontend/DoctrineTemplateCachetaggableTest..ok
+        [sfCacheTagging] functional/frontend/actionWithLayoutTest............ok
+        [sfCacheTagging] functional/frontend/actionWithoutLayoutTest.........ok
+        [sfCacheTagging] functional/frontend/sfCacheTaggingPluginTest........ok
+        [sfCacheTagging] functional/frontend/sfCacheTaggingToolkitTest.......ok
+        [sfCacheTagging] functional/frontend/sfContentTagHandlerTest.........ok
+        [sfCacheTagging] functional/frontend/sfDoctrineProxyCacheTest........ok
+        [sfCacheTagging] functional/frontend/sfTaggingCacheTest..............ok
+        sfCacheTagging] functional/frontend/sfViewCacheTagManagerBridgeTest..ok
+        [sfCacheTagging] functional/frontend/sfViewCacheTagManagerTest.......ok
+        [sfCacheTagging] functional/notag/DoctrineListenerCachetaggableTest..ok
+        [sfCacheTagging] functional/notag/sfCacheTaggingToolkitTest..........ok
+        [sfCacheTagging] unit/DoctrineTemplateCachetaggableTest..............ok
+        [sfCacheTagging] unit/sfCacheTaggingToolkitTest......................ok
+        [sfCacheTagging] unit/sfCallableArrayTest............................ok
+        [sfCacheTagging] unit/sfContentTagHandlerTest........................ok
+         All tests successful.
+         Files=17, Tests=1256
 
   * Coverage report:
 
-            .
+        $ ./symfony test:coverage --detailed plugins/sfCacheTaggingPlugin/test/ plugins/sfCacheTaggingPlugin/lib/
+        >> coverage  running /www/sfpro/de...lateCachetaggableTest.php (1/17)
+        >> coverage  running /www/sfpro/de...cheTaggingToolkitTest.php (2/17)
+        >> coverage  running /www/sfpro/de...ContentTagHandlerTest.php (3/17)
+        >> coverage  running /www/sfpro/de...t/sfCallableArrayTest.php (4/17)
+        >> coverage  running /www/sfpro/de...acheTaggingPluginTest.php (5/17)
+        >> coverage  running /www/sfpro/de...ewCacheTagManagerTest.php (6/17)
+        >> coverage  running /www/sfpro/de...enerCachetaggableTest.php (7/17)
+        >> coverage  running /www/sfpro/de...nd/sfTaggingCacheTest.php (8/17)
+        >> coverage  running /www/sfpro/de...lateCachetaggableTest.php (9/17)
+        >> coverage  running /www/sfpro/de...actionWithLayoutTest.php (10/17)
+        >> coverage  running /www/sfpro/de...ctrineProxyCacheTest.php (11/17)
+        >> coverage  running /www/sfpro/de...ionWithoutLayoutTest.php (12/17)
+        >> coverage  running /www/sfpro/de...heTaggingToolkitTest.php (13/17)
+        >> coverage  running /www/sfpro/de...ontentTagHandlerTest.php (14/17)
+        >> coverage  running /www/sfpro/de...TagManagerBridgeTest.php (15/17)
+        >> coverage  running /www/sfpro/de...nerCachetaggableTest.php (16/17)
+        >> coverage  running /www/sfpro/de...heTaggingToolkitTest.php (17/17)
+        plugins/sfCacheTaggingPlugin/lib/cache/sfNoTaggingCache.class           21%
+        plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCache.class             83%
+        lugins/sfCacheTaggingPlugin/lib/cache/extra/sfSQLiteTaggingCache.class 100%
+        plugins/sfCacheTaggingPlugin/lib/cache/extra/sfFileTaggingCache.class  100%
+        lugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class  66%
+        plugins/sfCacheTaggingPlugin/lib/util/sfCallableArray.class            100%
+        plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class       83%
+        plugins/sfCacheTaggingPlugin/lib/util/sfContentTagHandler.class         74%
+        ins/sfCacheTaggingPlugin/lib/util/sfTagNamespacedParameterHolder.class  83%
+        plugins/sfCacheTaggingPlugin/lib/view/sfViewCacheTagManager.class       53%
+        ins/sfCacheTaggingPlugin/lib/doctrine/cache/sfDoctrineProxyCache.class  59%
+        ugins/sfCacheTaggingPlugin/lib/doctrine/collection/Cachetaggable.class  85%
+        cheTaggingPlugin/lib/doctrine/query/Cachetaggable_Doctrine_Query.class  79%
+        plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class  69%
+        plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  91%
+        fCacheTaggingPlugin/lib/exception/sfCacheMissingContextException.class   0%
+        gins/sfCacheTaggingPlugin/lib/exception/sfCacheDisabledException.class 100%
+        TOTAL COVERAGE:  74%
 
 Every combination is tested (data backend / locker backend) of listed below:
 

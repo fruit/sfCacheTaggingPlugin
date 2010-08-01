@@ -194,46 +194,6 @@
     }
 
     /**
-     * Initializes ouput buffering
-     *
-     * @param string $key This is Your cache key
-     * @return mixed string: cache exists and not expired - returns cache data
-     *               null: in all other cases
-     */
-    public function startWithTags ($key)
-    {
-      if (null !== ($data = $this->getTaggingCache()->get($key)))
-      {
-        return $data;
-      }
-      
-      ob_start();
-      ob_implicit_flush(0);
-
-      return null;
-    }
-
-    /**
-     * Determinates output buffering
-     *
-     * @param string  $key      Cache key
-     * @param int     $lifeTime optional time to live in seconds
-     * @return mixed cache data
-     */
-    public function stopWithTags ($key, $lifetime = null)
-    {
-      $data = ob_get_clean();
-
-      $tags = $this
-        ->getContentTagHandler()
-        ->getContentTags(self::NAMESPACE_PARTIAL);
-      
-      $this->getTaggingCache()->set($key, $data, $lifetime, $tags);
-
-      return $data;
-    }
-
-    /**
      * Retrieves content in the cache.
      *
      * Match duplicated as a parent::get()
@@ -486,17 +446,15 @@
     public function setPartialCache($module, $action, $cacheKey, $content)
     {
       $uri = $this->getPartialUri($module, $action, $cacheKey);
-      
+
       if (! $this->isCacheable($uri))
       {
         return $content;
       }
 
-      $partialTags = $this
-        ->getContentTagHandler()
-        ->getContentTags(
-          self::NAMESPACE_PARTIAL
-        );
+      $tagHandler = $this->getContentTagHandler();
+      
+      $partialTags = $tagHandler->getContentTags(self::NAMESPACE_PARTIAL);
 
       $saved = $this->set(
         serialize(array(
@@ -526,10 +484,22 @@
           ->getReturnValue();
       }
 
+      $tagHandler->removeContentTags(self::NAMESPACE_PARTIAL);
+
       return $content;
     }
 
-    public function decorateContentWithDebug(sfEvent $event, $content)
+    /**
+     * Listens to the 'view.cache.filter_content' event to decorate a chunk of HTML with cache information.
+     *
+     * Added info about linked tags
+     *
+     * @param sfEvent $event   A sfEvent instance
+     * @param string  $content The HTML content
+     *
+     * @return string The decorated HTML string
+     */
+    public function decorateContentWithDebug (sfEvent $event, $content)
     {
       $updatedContent = parent::decorateContentWithDebug($event, $content);
 
@@ -539,28 +509,68 @@
       }
 
       $cacheMetadata = $this->getCache()->get(
-        $this->generateCacheKey($event['uri'])
+        $hash = $this->generateCacheKey($event['uri'])
       );
 
-      if ($cacheMetadata instanceof stdClass && isset($cacheMetadata->tags))
+      if (
+          $cacheMetadata instanceof stdClass
+        &&
+          isset($cacheMetadata->tags)
+        && 
+          is_array($cacheMetadata->tags)
+      )
       {
-        $tags = sprintf('[cache tags] count: %d', $tagsCount = count($cacheMetadata->tags));
+        $tags = sprintf('[cache&nbsp;tags]&nbsp;count:&nbsp;%d', $tagsCount = count($cacheMetadata->tags));
 
         if (0 != $tagsCount)
         {
-          $tags .= ', tags: ';
+          $tags .= ',&nbsp;tags:';
 
           foreach ($cacheMetadata->tags as $name => $version)
           {
-            $tags .= sprintf('%s(%s), ', $name, $version);
+            $tags .= sprintf('&nbsp;%s(%s),', $name, $version);
           }
 
-          $tags = substr($tags, 0, -2) . '.';
+          $tags = substr($tags, 0, -1) . '.';
         }
 
         $updatedContent = str_replace('&nbsp;<br />&nbsp;', "{$tags}&nbsp;<br />&nbsp;", $updatedContent);
       }
 
       return $updatedContent;
+    }
+
+    /**
+     * Before checking cache key - saves passed tags
+     *
+     * @see parent::checkCacheKey()
+     * @param  array  $parameters An array of parameters
+     * @return string The cache key
+     */
+    public function checkCacheKey (array & $parameters)
+    {
+      $sfCacheTagsKey = 'sf_cache_tags';
+
+      if (isset($parameters[$sfCacheTagsKey]))
+      {
+        $tags = true === sfConfig::get('sf_escaping_strategy')
+          ? sfOutputEscaper::unescape($parameters[$sfCacheTagsKey])
+          : $parameters[$sfCacheTagsKey];
+
+        $this
+          ->getContentTagHandler()
+          ->setContentTags($tags, self::NAMESPACE_PARTIAL);
+
+        if (! isset($parameters['sf_cache_key']))
+        {
+          throw new sfCacheException(
+            '"sf_cache_key" not declared in partial parameters'
+          );
+        }
+
+        unset($parameters[$sfCacheTagsKey]);
+      }
+
+      return parent::checkCacheKey($parameters);
     }
   }
