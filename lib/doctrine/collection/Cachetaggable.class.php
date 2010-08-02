@@ -117,19 +117,23 @@
 
           $tags = $isRecursively ? $object->getTags(true) : $object->getTags();
 
-          $this
-            ->getContentTagHandler()
-            ->addContentTags($tags, $this->getNamespace());
+          $tagHandler->addContentTags($tags, $this->getNamespace());
         }
 
-        $lastSavedVersion = $taggingCache->getTag($formatedClassName);
+        $existingCollectionVersion = $taggingCache->getTag($formatedClassName);
 
-        if ($lastSavedVersion && ($lastSavedVersion < $freshestVersion))
+        if ($existingCollectionVersion && ($existingCollectionVersion < $freshestVersion))
         {
-          $tagHandler->setContentTag(
-            $formatedClassName, $lastSavedVersion, $this->getNamespace()
-          );
+          $newCollectionVersion = $freshestVersion;
         }
+        else
+        {
+          $newCollectionVersion = $existingCollectionVersion;
+        }
+
+        $tagHandler->setContentTag(
+          $formatedClassName, $newCollectionVersion, $this->getNamespace()
+        );
       }
       else
       {
