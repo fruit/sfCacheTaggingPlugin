@@ -8,15 +8,13 @@
    * file that was distributed with this source code.
    */
 
-  require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
-
-  require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
+  require_once realpath(dirname(__FILE__) . '/../../../../test/bootstrap/unit.php');
 
   $t = new lime_test();
 
   try
   {
-    $taggingCache = new sfTaggingCache(array());
+    $c = new sfTaggingCache(array());
 
     $t->fail('Option cache.class not passed');
   }
@@ -27,12 +25,15 @@
 
   try
   {
-    $taggingCache = new sfTaggingCache(
+    $c = new sfTaggingCache(
       array(
         'cache' => array(
           'class' => 'sfCallable',
-          'param' => array(),
-        )
+          'param' => array()
+        ),
+        'logger' => array(
+          'class' => 'sfNoLogger',
+        ),
       )
     );
 
@@ -43,22 +44,25 @@
     $t->pass($e->getMessage());
   }
 
-  $taggingCache = new sfTaggingCache(
+  $c = new sfTaggingCache(
     array(
       'cache' => array(
         'class' => 'sfAPCCache',
         'param' => array(),
-      )
+      ),
+      'logger' => array(
+        'class' => 'sfNoLogger',
+      ),
     )
   );
 
-  $t->isa_ok($taggingCache->getLockerCache(), 'sfAPCCache', 'getLockerCache return object sfAPCCache');
-  $t->isa_ok($taggingCache->getDataCache(), 'sfAPCCache', 'getDataCache returns object sfAPCCache');
+  $t->isa_ok($c->getLockerCache(), 'sfAPCCache', 'getLockerCache return object sfAPCCache');
+  $t->isa_ok($c->getDataCache(), 'sfAPCCache', 'getDataCache returns object sfAPCCache');
 
   try
   {
 
-    $taggingCache = new sfTaggingCache(
+    $c = new sfTaggingCache(
       array(
         'cache' => array(
           'class' => 'sfAPCCache',
@@ -66,7 +70,10 @@
         ),
         'locker' => array(
 
-        )
+        ),
+        'logger' => array(
+          'class' => 'sfNoLogger',
+        ),
       )
     );
 
@@ -80,7 +87,7 @@
   try
   {
 
-    $taggingCache = new sfTaggingCache(
+    $c = new sfTaggingCache(
       array(
         'cache' => array(
           'class' => 'sfAPCCache',
@@ -89,7 +96,10 @@
         'locker' => array(
           'class' => 'sfCallable',
           'param' => array(),
-        )
+        ),
+        'logger' => array(
+          'class' => 'sfNoLogger',
+        ),
       )
     );
 
@@ -103,7 +113,7 @@
   try
   {
 
-    $taggingCache = new sfTaggingCache(
+    $c = new sfTaggingCache(
       array(
         'cache' => array(
           'class' => 'sfAPCCache',
@@ -112,7 +122,10 @@
         'locker' => array(
           'class' => 'noSuchClassExists',
           'param' => array(),
-        )
+        ),
+        'logger' => array(
+          'class' => 'sfNoLogger',
+        ),
       )
     );
 
@@ -125,10 +138,13 @@
 
   try
   {
-    $taggingCache->initialize(array(
+    $c->initialize(array(
       'cache' => array(
         'class' => 'noExistingClassName',
-      )
+      ),
+      'logger' => array(
+        'class' => 'sfNoLogger',
+      ),
     ));
 
     $t->fail('class "noExistingClassName" does not exists');
@@ -139,42 +155,42 @@
   }
 
   $content = 'My cache content';
-  $t->is($taggingCache->remove('name'), false);
+  $t->is($c->remove('name'), false);
 
-  $t->is($taggingCache->get('name'), null);
+  $t->is($c->get('name'), null);
 
-  $t->is($taggingCache->set('name', $content), true);
+  $t->is($c->set('name', $content), true);
 
-  $t->is($taggingCache->get('name'), $content);
+  $t->is($c->get('name'), $content);
 
-  $t->is($taggingCache->remove('name'), true);
-  
-  
-  $t->is($taggingCache->remove('name'), false);
+  $t->is($c->remove('name'), true);
 
-  $t->is($taggingCache->get('name'), null);
+
+  $t->is($c->remove('name'), false);
+
+  $t->is($c->get('name'), null);
 
   $tags = array('A' => 12, 'C' => 94);
 
-  $t->is($taggingCache->set('name', $content, 300, $tags), true);
+  $t->is($c->set('name', $content, 300, $tags), true);
 
-  $t->ok($taggingCache->getTimeout('name') - time() <= 300);
-  
-  $t->is($taggingCache->get('name'), $content);
+  $t->ok($c->getTimeout('name') - time() <= 300);
 
-  $t->is($taggingCache->hasTag('A'), true);
-  $t->is($taggingCache->hasTag('C'), true);
-  $t->is($taggingCache->hasTag('B'), false);
+  $t->is($c->get('name'), $content);
 
-  $t->is($taggingCache->getTags('name'), $tags);
-  $t->is($taggingCache->getTags('fake_name'), null);
+  $t->is($c->hasTag('A'), true);
+  $t->is($c->hasTag('C'), true);
+  $t->is($c->hasTag('B'), false);
 
-  $t->is($taggingCache->remove('name'), true);
+  $t->is($c->getTags('name'), $tags);
+  $t->is($c->getTags('fake_name'), null);
 
-  $taggingCache->set('CityA', 'City A');
-  $taggingCache->set('CityB', 'City B');
+  $t->is($c->remove('name'), true);
 
-  $taggingCache->removePattern('City*');
+  $c->set('CityA', 'City A');
+  $c->set('CityB', 'City B');
 
-  $t->ok(! $taggingCache->has('CityA'));
-  $t->ok(! $taggingCache->has('CityB'));
+  $c->removePattern('City*');
+
+  $t->ok(! $c->has('CityA'));
+  $t->ok(! $c->has('CityB'));

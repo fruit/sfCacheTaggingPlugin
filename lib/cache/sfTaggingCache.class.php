@@ -47,6 +47,18 @@
      */
     protected $contentTagHandler = null;
 
+
+    /**
+     * @var sfLogger
+     */
+    protected $logger = null;
+
+    /**
+     * @var sfEventDispatcher
+     */
+    protected $dispatcher = null;
+
+
     /**
      * Extended verion of default getOption method
      * In case, options is array with sub arrays you could easy to get value
@@ -114,6 +126,15 @@
 
       $this->contentTagHandler = new sfContentTagHandler();
 
+      if (! ProjectConfiguration::hasActive())
+      {
+        throw new sfInitializationException(
+          'Project configuration is not initialized'
+        );
+      }
+
+      $this->dispatcher = ProjectConfiguration::getActive()->getEventDispatcher();
+
       $cacheClassName = $this->getOption('cache.class');
 
       if (! $cacheClassName)
@@ -127,10 +148,7 @@
       if (! class_exists($cacheClassName, true))
       {
         throw new sfInitializationException(
-          sprintf(
-            'sfCacheTaggingPlugin: Tagging cache class "%s" not found',
-            $cacheClassName
-          )
+          sprintf('Data cache class "%s" not found', $cacheClassName)
         );
       }
 
@@ -141,7 +159,7 @@
       if (! $this->dataCache instanceof sfCache)
       {
         throw new sfInitializationException(
-          'sfCacheTaggingPlugin: Data backend class is not instance of sfCache.'
+          'Data cache class is not instance of sfCache.'
         );
       }
 
@@ -164,10 +182,7 @@
         if (! class_exists($lockerClassName, true))
         {
           throw new sfInitializationException(
-            sprintf(
-              'sfCacheTaggingPlugin: Tagging locker class "%s" not found',
-              $lockerClassName
-            )
+            sprintf('Locker cache class "%s" not found', $lockerClassName)
           );
         }
 
@@ -176,18 +191,37 @@
 
         if (! $this->lockerCache instanceof sfCache)
         {
-          throw new sfInitializationException(
-          'sfCacheTaggingPlugin: Locker backend class is not instance ' .
-            'of sfCache.'
+          throw new sfInitializationException( 
+            'Locker cache class is not instance of sfCache'
           );
         }
       }
 
-      if ($options['logging'])
+      if (! $this->getOption ('logger.class'))
       {
-        $this->setStatsFilename(
-          sfConfig::get('sf_log_dir') . DIRECTORY_SEPARATOR .
-          sprintf('cache_%s.log', sfConfig::get('sf_environment'))
+        throw new sfInitializationException(sprintf(
+          'You must pass a "logger.class" option to initialize a %s object.',
+          __CLASS__
+        ));
+      }
+
+      $loggerClassName = $this->getOption('logger.class');
+
+      if (! class_exists($loggerClassName, true))
+      {
+        throw new sfInitializationException(
+          sprintf('Logger cache class "%s" not found', $loggerClassName)
+        );
+      }
+
+      $this->logger = new $loggerClassName(
+        $this->dispatcher, $this->getOption('logger.param', array())
+      );
+
+      if (! $this->logger instanceof sfLogger)
+      {
+        throw new sfInitializationException(
+          'Logger class is not instance of sfLogger'
         );
       }
     }
@@ -200,6 +234,14 @@
     public function getDataCache ()
     {
       return $this->dataCache;
+    }
+
+    /**
+     * @return sfCacheTagLogger
+     */
+    protected function getLogger ()
+    {
+      return $this->logger;
     }
 
     /**
@@ -258,7 +300,7 @@
 
       $result = $this->getDataCache()->remove($key);
 
-      $this->writeChar($result ? 'D' : 'd', $key);
+      $this->getLogger()->log($result ? 'D' : 'd', $key);
 
       return $result;
     }
@@ -367,7 +409,7 @@
           ->getDataCache()
           ->set($key, $extendedData, $timeout);
 
-        $this->writeChar($result ? 'S' : 's', $key);
+        $this->getLogger()->log($result ? 'S' : 's', $key);
 
         $this->unlock($key);
 
@@ -381,7 +423,7 @@
       }
       else
       {
-        $this->writeChar('s', $key);
+        $this->getLogger()->log('s', $key);
 
         $result = false;
       }
@@ -407,7 +449,7 @@
 
       $result = $this->getDataCache()->set($tagKey, $tagValue, $lifetime);
 
-      $this->writeChar($result ? 'P' :'p', $tagKey, $tagValue);
+      $this->getLogger()->log($result ? 'P' :'p', sprintf('%s(%s)', $tagKey, $tagValue));
 
       return $result;
     }
@@ -436,8 +478,9 @@
     {
       $result = $this->getDataCache()->get($this->generateTagKey($tagKey));
 
-      $this->writeChar(
-        $result ? 'G' :'g', $this->generateTagKey($tagKey), $result
+      $this->getLogger()->log(
+        $result ? 'G' :'g', 
+        sprintf('%s(%s)', $this->generateTagKey($tagKey), $result)
       );
 
       return $result;
@@ -528,10 +571,14 @@
           # tag is exprired or version is old
           if (! $tagNewVersion || $tagOldVersion < $tagNewVersion)
           {
-            $this->writeChar(
+            $this->getLogger()->log(
               't',
-              $this->generateTagKey($tagKey),
-              sprintf('%s => %s', $tagOldVersion, $tagNewVersion)
+              sprintf(
+                '%s(%s=>%s)',
+                $this->generateTagKey($tagKey),
+                $tagOldVersion,
+                $tagNewVersion
+              )
             );
 
             # one tag is expired, no reasons to continue
@@ -541,7 +588,11 @@
             break;
           }
 
-          $this->writeChar('T', $this->generateTagKey($tagKey), $tagNewVersion);
+          $this
+            ->getLogger()
+            ->log('T', sprintf(
+              '%s(%s)', $this->generateTagKey($tagKey), $tagNewVersion
+            ));
         }
 
         # if was expired, check data is not locked by any other client
@@ -563,101 +614,9 @@
         }
       }
 
-      $this->writeChar($value !== $default ? 'G' : 'g', $key);
+      $this->getLogger()->log($value !== $default ? 'G' : 'g', $key);
 
       return $value;
-    }
-
-    /**
-     * Defines log file
-     *
-     * @param string $statsFilename
-     * @return sfTaggingCache
-     */
-    protected function setStatsFilename ($statsFilename)
-    {
-      $this->tryToCloseStatsFileResource();
-
-      if (! file_exists($statsFilename))
-      {
-        if (0 === file_put_contents($statsFilename, ''))
-        {
-          chmod($statsFilename, 0600);
-        }
-        else
-        {
-          throw new sfInitializationException(sprintf(
-            'Could not create file "%s"', $statsFilename
-          ));
-        }
-      }
-
-      if (! is_readable($statsFilename) || ! is_writable($statsFilename))
-      {
-        throw new sfInitializationException(sprintf(
-          'File "%s" is not readable/writeable', $statsFilename
-        ));
-      }
-
-      $this->fileResource = fopen($statsFilename, 'a+');
-
-      if (! $this->fileResource)
-      {
-        throw new sfInitializationException(sprintf(
-          'Could not fopen file "%s" with append (a+) flag',
-          $statsFilename
-        ));
-      }
-
-      return $this;
-    }
-
-    /**
-     * Closes file log resource
-     *
-     * @return void
-     */
-    protected function tryToCloseStatsFileResource ()
-    {
-      if (null !== $this->fileResource)
-      {
-        fclose($this->fileResource);
-      }
-    }
-
-    public function __destruct ()
-    {
-      $this->tryToCloseStatsFileResource();
-    }
-
-    /**
-     * Appends $char to log file
-     *
-     * @param string $char
-     * @return void
-     */
-    protected function writeChar ($char, $key, $info = null)
-    {
-      if (is_resource($this->fileResource))
-      {
-        if (sfConfig::get('app_sfcachetaggingplugin_log_format_extended', false))
-        {
-          if (null !== $info)
-          {
-            $logFormat = "%s:%s:%s\n";
-          }
-          else
-          {
-            $logFormat = "%s:%s\n";
-          }
-        }
-        else
-        {
-          $logFormat = "%s";
-        }
-
-        fwrite($this->fileResource, sprintf($logFormat, $char, $key, $info));
-      }
     }
 
     /**
@@ -691,7 +650,7 @@
         $result = $lockerCache->set($lockKey, 1, $expire);
       }
 
-      $this->writeChar(true === $result ? 'L' : 'l', $key);
+      $this->getLogger()->log(true === $result ? 'L' : 'l', $key);
 
       return $result;
     }
@@ -719,7 +678,7 @@
 
       $result = $this->getLockerCache()->remove($lockKey);
 
-      $this->writeChar(true === $result ? 'U' : 'u', $key);
+      $this->getLogger()->log(true === $result ? 'U' : 'u', $key);
 
       return $result;
     }

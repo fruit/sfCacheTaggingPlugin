@@ -93,7 +93,11 @@
       
       try
       {
-        $taggingCache->initialize(array('logging' => true, 'cache' => $data, 'locker' => $locker));
+        $taggingCache->initialize(array(
+          'logger'  => array('class' => 'sfNoLogger'),
+          'cache'   => $data,
+          'locker'  => $locker,
+        ));
         $taggingCache->clean();
 
       }

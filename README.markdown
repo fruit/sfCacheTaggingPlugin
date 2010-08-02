@@ -72,7 +72,6 @@ are not (atomic counter).
           view_cache:
             class: sfTaggingCache
             param:
-              logging: true                 # logging is enabled ("false" to disable)
               cache:
                 class: sfMemcacheCache      # Content will be stored in Memcache
                                             # Here you can switch to any other backend
@@ -86,7 +85,7 @@ are not (atomic counter).
                   lifetime: 86400           # default value is 1 day (in seconds)
 
 
-              locker:                       # locks storage (could be same as
+              locker:                       # storage for locks (could be the same as
                                             # the cache storage)
                                             # if "locker" not setted (is "~"), it will
                                             # be the same as cache (e.i. sfMemcacheCache)
@@ -95,6 +94,39 @@ are not (atomic counter).
                                             # Here you can switch to any other backend sf*Cache
                                             # (see Restrictions block for more info)
                 param: {}
+
+              logger:
+                class: sfCacheTagLogger     # to disable logger, set class to "sfNoLogger"
+                param:
+
+                  file:         %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log   # log file location
+                  
+                  file_mode:    0640              # -rw-r----- (default: 0640)
+                  dir_mode:     0750              # drwxr-x--- (default: 0750)
+                  time_format:  "%Y-%b-%d %T%z"   # e.g. 2010-Sep-01 15:20:58+0300 (default: "%Y-%b-%d %T%z")
+                  
+                  format:       %char%        # %char% - Char explanation:
+                                              #   "g": content cache not found
+                                              #   "G": content cache is found
+                                              #   "l": could not lock the content or the tag
+                                              #   "L": content/tag was locked for writing
+                                              #   "s": could not write new values to the cache
+                                              #        (e.g. for lock reasons)
+                                              #   "S": new values are saved to the cache
+                                              #   "u": could not unlock the cache
+                                              #   "U": cache was unlocked
+                                              #   "t": cache tag was expired
+                                              #   "T": cache tag is up-to-date
+                                              #   "p": could not write new version of tag
+                                              #   "P": tag version is updated
+                                              #
+                                              # Chars in lower case indicate negative operation.
+                                              # Chars in upper case indicate positive operation.
+                                              #
+                                              # %time% - Time, when cache was accessed
+                                              # %key_data% - Cache name or tag name with its version
+                                              # %EOL% - Append \n in the end of line
+                                              # (e.g. "%time%:%char%:%key_data%%EOL%")
 
           view_cache_manager:
             class: sfViewCacheTagManager    # Extended sfViewCacheManager class
@@ -107,9 +139,15 @@ are not (atomic counter).
           view_cache:
             class: sfTaggingCache
             param:
+              lifetime: 86400
               logging: true
               cache: { class: sfAPCCache, param: {} }
               locker: ~
+              logger:
+                class: sfCacheTagLogger
+                param:
+                  file: %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
+                  format: %char%
 
           view_cache_manager:
             class: sfViewCacheTagManager
@@ -200,31 +238,8 @@ are not (atomic counter).
                                         # (default value if not set 86400).
                                         # It's recommended to keep this value the same as
                                         # you have declared in factories.yml at
-                                        # "all_view_cache_param_cache_param_lifetime" (86400).
+                                        # "all_view_cache_param_cache_param_lifetime".
                                         # Value should be more then zero.
-
-            log_format_extended: 0      # Logs will be stored in ``log/cache_%environment_name%.log``
-                                        # 0: Print 1 char in one line.
-                                        # 1: Print 1 char + cache key + additional data
-                                        #    (if available) per line.
-                                        #
-                                        # Char explanation:
-                                        #   "g": content cache not found
-                                        #   "G": content cache is found
-                                        #   "l": could not lock the content or the tag
-                                        #   "L": content/tag was locked for writing
-                                        #   "s": could not write new values to the cache
-                                        #        (e.g. for lock reasons)
-                                        #   "S": new values are saved to the cache
-                                        #   "u": could not unlock the cache
-                                        #   "U": cache was unlocked
-                                        #   "t": cache tag was expired
-                                        #   "T": cache tag is up-to-date
-                                        #   "p": could not write new version of tag
-                                        #   "P": tag version is updated
-                                        #
-                                        # Chars in lower case indicate negative operation.
-                                        # Chars in upper case indicate positive operation.
 
             #object_class_tag_name_provider: # you can customize tag name naming
             #                                # useful for multi-environment models
@@ -240,12 +255,10 @@ are not (atomic counter).
             microtime_precision:  5
             lock_lifetime:        2
             tag_lifetime:         86400
-            log_format_extended:  0
 
 ## Usage ##
 
-  No more ``cache()`` and ``cache_save()`` helpers. You must setup all
-  cache logic in ``cache.yml`` (location: ``%app%/modules/%module%/config/cache.yml``).
+  No more ``cache()`` and ``cache_save()`` helpers. You must setup all cache logic in ``cache.yml``
 
 #### *Partials*
 
