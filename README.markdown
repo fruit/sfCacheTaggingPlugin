@@ -84,6 +84,7 @@ are not (atomic counter).
                   timeout: 5
                   lifetime: 86400           # default value is 1 day (in seconds)
 
+              tagger: ~
 
               locker:                       # storage for locks (could be the same as
                                             # the cache storage)
@@ -96,7 +97,7 @@ are not (atomic counter).
                 param: {}
 
               logger:
-                class: sfCacheTagLogger     # to disable logger, set class to "sfNoLogger"
+                class: sfFileCacheTagLogger # to disable logger, set class to "sfNoCacheTagLogger"
                 param:
 
                   file:         %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log   # log file location
@@ -106,27 +107,35 @@ are not (atomic counter).
                   time_format:  "%Y-%b-%d %T%z"   # e.g. 2010-Sep-01 15:20:58+0300 (default: "%Y-%b-%d %T%z")
                   
                   format:       %char%        # %char% - Char explanation:
-                                              #   "g": content cache not found
-                                              #   "G": content cache is found
-                                              #   "l": could not lock the content or the tag
-                                              #   "L": content/tag was locked for writing
+                                              # Data:
+                                              #   "g": data cache not found or expired
+                                              #   "G": data cache was found
+                                              #   "l": could not lock the data cache
+                                              #   "L": data cache was locked for writing
                                               #   "s": could not write new values to the cache
                                               #        (e.g. for lock reasons)
-                                              #   "S": new values are saved to the cache
+                                              #   "S": new values are saved to the data cache
                                               #   "u": could not unlock the cache
+                                              #        (e.g. it is already unlocked)
                                               #   "U": cache was unlocked
-                                              #   "t": cache tag was expired
-                                              #   "T": cache tag is up-to-date
+                                              # Tags:
+                                              #   "v": cache tag version is expired
+                                              #   "V": cache tag version is up-to-date
                                               #   "p": could not write new version of tag
-                                              #   "P": tag version is updated
+                                              #   "P": tag was updated with new a version
+                                              #   "e": could not remove tag version
+                                              #   "E": tag was removed
+                                              #   "t": tag does not exists
+                                              #   "T": tag was found
                                               #
                                               # Chars in lower case indicate negative operation.
                                               # Chars in upper case indicate positive operation.
                                               #
-                                              # %time% - Time, when cache was accessed
-                                              # %key_data% - Cache name or tag name with its version
-                                              # %EOL% - Append \n in the end of line
-                                              # (e.g. "%time%:%char%:%key_data%%EOL%")
+                                              # %time%        - Time, when cache was accessed
+                                              # %key%         - Cache name or tag name with its version
+                                              # %microtime%   - Microtime timestamp
+                                              # %EOL%         - Whether to append \n in the end of line
+                                              # (e.g. "%microtime%:%char%:%key%%EOL%")
 
           view_cache_manager:
             class: sfViewCacheTagManager    # Extended sfViewCacheManager class

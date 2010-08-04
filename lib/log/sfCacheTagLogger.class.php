@@ -11,98 +11,123 @@
   /**
    * Cache key and tag logger
    *
+   * Due the priority logic in sfLogger, was created sfCacheLogger
+   *
    * @package sfCacheTaggingPlugin
    * @subpackage log
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class sfCacheTagLogger extends sfLogger
+  abstract class sfCacheTagLogger
   {
-    protected 
-      $format     = '%char%',
-      $timeFormat = '%Y-%b-%d %T%z',
-      $fp         = null;
+    /**
+     * Default logger format
+     *
+     * Available arguments combinations: %char%, %time%, %key%, %EOL%
+     *
+     * @var string
+     */
+    protected $format = '%char%';
+    
+    /**
+     *
+     * @var <type>
+     */
+    protected $options = array();
 
     /**
-     * @see sfLogger::initialize()
-     * @param sfEventDispatcher $dispatcher
-     * @param array $options
+     * Class constructor.
+     *
+     * @see initialize()
      */
-    public function initialize (sfEventDispatcher $dispatcher, $options = array())
+    public function __construct (array $options = array())
     {
-      $this->dispatcher = $dispatcher;
+      $this->initialize($options);
 
-      if (! isset($options['file']))
+      if ($this->getOption('auto_shutdown'))
       {
-        throw new sfConfigurationException('You must provide a "file" parameter for this logger.');
+        register_shutdown_function(array($this, 'shutdown'));
       }
-
-      if (isset($options['format']))
-      {
-        $this->format = $options['format'];
-      }
-
-      if (isset($options['time_format']))
-      {
-        $this->timeFormat = $options['time_format'];
-      }
-
-      $dir = dirname($options['file']);
-      if (! is_dir($dir))
-      {
-        $dirChmod = isset($options['dir_mode']) ? $options['dir_mode'] : 0750;
-        mkdir($dir, $dirChmod, true);
-      }
-
-      $fileExists = file_exists($options['file']);
-
-      if (!is_writable($dir) || ($fileExists && !is_writable($options['file'])))
-      {
-        throw new sfFileException(sprintf(
-          'Unable to open the log file "%s" for writing.', $options['file']
-        ));
-      }
-
-      $this->fp = fopen($options['file'], 'a');
-
-      if (! $this->fp)
-      {
-        throw new sfFileException(sprintf(
-          'Unable to open file resource "%s"', $options['file']
-        ));
-      }
-
-      if (! $fileExists)
-      {
-        $fileChmod = isset($options['file_mode']) ? $options['file_mode'] : 0640;
-        chmod($options['file'], $fileChmod);
-      }
-
-      $this->options = $options;
     }
 
-    protected function doLog ($char, $keyData)
+    /**
+     * Initializes this sfCacheTagLogger instance.
+     *
+     * @param array $options An array of options.
+     * @return void
+     */
+    public function initialize (array $options = array())
     {
-      if (flock($this->fp, LOCK_EX))
+      $this->options = Doctrine_Lib::arrayDeepMerge(
+        array('auto_shutdown' => true, 'skip_chars' => ''), $options
+      );
+
+      if (null !== ($timeFormat = $this->getOption('time_format')))
       {
-        fwrite($this->fp, strtr($this->format, array(
-          '%char%'     => $char,
-          '%key_data%' => $keyData === null ? '' : $keyData,
-          '%time%'     => strftime($this->timeFormat),
-          '%EOL%'      => PHP_EOL,
-        )));
-        
-        flock($this->fp, LOCK_UN);
+        $this->timeFormat = $timeFormat;
+      }
+
+      if (null !== ($format = $this->getOption('format')))
+      {
+        $this->format = $format;
       }
     }
+
+    /**
+     * Returns the options for the logger instance.
+     */
+    public function getOptions()
+    {
+      return $this->options;
+    }
+
+    /**
+     * Sets option value
+     */
+    public function setOption ($name, $value)
+    {
+      $this->options[$name] = $value;
+    }
+
+    /**
+     * @param string $name Option name
+     * @param mixed  $default Return this value if option does not exists
+     * @return mixed|null
+     */
+    public function getOption ($name, $default = null)
+    {
+      return isset($this->options[$name]) ? $this->options[$name] : $default;
+    }
+
+    /**
+     * @param string $char  One character
+     * @param string $key   Cache name or tag name with version
+     *                      (e.g. "CompanyArticle_1(947568127349582")
+     */
+    abstract protected function doLog ($char, $key);
+
+    /**
+     * Logs a message.
+     *
+     * @param string $char  One character
+     * @param string $key   Cache name or tag name
+     *                      (e.g. "CompanyArticle_1" or "top-10-en-posts")
+     */
+    public function log ($char, $key)
+    {
+      if (false !== strpos($this->getOption('skip_chars'), $char))
+      {
+        return false;
+      }
+
+      return $this->doLog($char, $key);
+    }
+
 
     /**
      * Executes the shutdown method.
      */
     public function shutdown ()
     {
-      if (is_resource($this->fp))
-      {
-        fclose($this->fp);
-      }
+
     }
   }

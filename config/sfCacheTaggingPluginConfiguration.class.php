@@ -22,7 +22,7 @@
    */
   class sfCacheTaggingPluginConfiguration extends sfPluginConfiguration
   {
-    const VERSION = '1.6.0';
+    const VERSION = '2.0.0';
 
     /**
      * Handy method to get type hinting in IDE's
