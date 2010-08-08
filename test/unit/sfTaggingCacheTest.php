@@ -29,7 +29,7 @@
       'options' => array(
         'data' => array('class' => 'sfAPCCache', 'param' => array()),
         'tags' => array(),
-        'logger' => array('class' => 'sfNoLogger'),
+        'logger' => array('class' => 'sfNoTaggingLogger'),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
@@ -45,6 +45,14 @@
       'options' => array(
         'data' => array('class' => 'sfAPCCache', 'param' => array()),
         'tags' => array('class' => 'noSuchClassExists', 'param' => array()),
+        'logger' => array('class' => 'sfNoLogger'),
+      ),
+      'exceptionClass' => 'sfInitializationException',
+    ),
+    array(
+      'options' => array(
+        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'tags' => array('param' => array()),
         'logger' => array('class' => 'sfNoLogger'),
       ),
       'exceptionClass' => 'sfInitializationException',

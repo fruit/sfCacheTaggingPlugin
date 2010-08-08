@@ -108,8 +108,9 @@
     /**
      * Appends tags to doctrine result cache
      *
-     * @param mixed $tags
-     * @param mixed $q        Doctrine_Query or string
+     * @param mixed                   $tags
+     * @param Doctrine_Query|string   $q        Doctrine_Query or string
+     *
      * @param array $params   params from $q->getParams()
      */
     public function addDoctrineTags ($tags, $q, array $params = array())

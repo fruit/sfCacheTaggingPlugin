@@ -15,21 +15,6 @@
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
 
-  class ArrayAsIteratorAggregate implements IteratorAggregate
-  {
-    protected $tags;
-
-    public function __construct($tags)
-    {
-      $this->tags = $tags;
-    }
-
-    public function getIterator()
-    {
-      return new ArrayIterator($this->tags);
-    }
-  }
-  
   $connection = Doctrine::getConnectionByTableName('BlogPost');
   $connection->beginTransaction();
 
@@ -87,49 +72,6 @@
 
   $posts->removeTags();
   $t->is($posts->getTags(), $postCollectionTag, 'cleaned added tags');
-
-  try
-  {
-    $posts->addTags($tagsToAdd);
-    $t->is($posts->getTags(), $tagsToReturn, 'addTags(Array $value)');
-
-    $posts->removeTags();
-    $posts->addTags(new ArrayIterator($tagsToAdd));
-    $t->is($posts->getTags(), $tagsToReturn, 'addTags(ArrayIterator $value)');
-
-    $posts->removeTags();
-    $posts->addTags(new ArrayAsIteratorAggregate($tagsToAdd));
-    $t->is($posts->getTags(), $tagsToReturn, 'addTags(IteratorAggregate $value)');
-
-    $posts->removeTags();
-    $posts->addTags(new ArrayObject($tagsToAdd));
-    $t->is($posts->getTags(), $tagsToReturn, 'addTags(ArrayObject $value)');
-
-    $posts->removeTags();
-    $posts->addTags($postComments);
-    $t->is($posts->getTags(), array_merge($postCollectionTag, $postCommentCollectionTag), 'addTags(Doctrine_Collection_Cachetaggable $value)');
-    $posts->removeTags();
-
-    $post = new BlogPost();
-    $post->setTitle('Extra post');
-    $post->save();
-
-    $postTags = $post->getTags();
-
-    $posts->removeTags();
-
-    $posts->addTags($post);
-
-    $t->is($posts->getTags(), $postTags, 'addTags(Doctrine_Record $value)');
-
-    $post->delete();
-
-    $cacheManager->getTaggingCache()->clean(sfCache::ALL);
-  }
-  catch (Exception $e)
-  {
-    $t->fail($e->getMessage());
-  }
 
   foreach (array('someTag', null, 30, 2.1293, new stdClass(), -2) as $mixed)
   {

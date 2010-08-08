@@ -13,7 +13,7 @@
    * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class CacheMetadata extends stdClass implements Serializable
+  class CacheMetadata implements Serializable
   {
     /**
      * @var sfParameterHolder
@@ -25,12 +25,21 @@
      */
     protected $data = null;
 
+    /**
+     * @param mixed $data
+     * @param array $tags
+     */
     public function __construct ($data = null, array $tags = array())
     {
       $this->initialize($data, $tags);
     }
 
-    protected function initialize ($data, array $tags = array())
+    /**
+     * @param mixed $data
+     * @param array $tags
+     * @return void
+     */
+    public function initialize ($data, array $tags = array())
     {
       $this->holder = new sfParameterHolder();
 
@@ -39,7 +48,6 @@
     }
 
     /**
-     *
      * @return sfParameterHolder
      */
     protected function getHolder ()
@@ -47,44 +55,98 @@
       return $this->holder;
     }
 
+    /**
+     * @param mixed $data
+     * @return void
+     */
     public function setData ($data)
     {
       $this->data = $data;
     }
 
+    /**
+     * @return array
+     */
     public function getTags ()
     {
       return $this->getHolder()->getAll();
     }
 
+    /**
+     * Rewrites all existing tags with new
+     * 
+     * @param array $tags
+     * @return void
+     */
     public function setTags (array $tags)
     {
       $this->getHolder()->clear();
       $this->getHolder()->add($tags);
     }
 
+    /**
+     * Return cache data (content)
+     *
+     * @return mixed
+     */
     public function getData ()
     {
       return $this->data;
     }
 
+    /**
+     * Checks for tag exists
+     *
+     * @param string $tagName
+     * @return boolean
+     */
+    public function hasTag ($tagName)
+    {
+      return $this->getHolder()->has($tagName);
+    }
+
+    /**
+     * Appends tags to existing
+     *
+     * @param array $tags
+     * @return void
+     */
     public function addTags (array $tags)
     {
       foreach ($tags as $name => $version)
       {
-        $has = $this->getHolder()->has($name);
+        $this->setTag($name, $version);
+      }
+    }
 
-        if (! $has || ($has && $this->getHolder()->get($name) < $version))
-        {
-          $this->getHolder()->set($name, $version);
-        }
+    /**
+     * @param string $tagName
+     * @return false|string
+     */
+    public function getTag ($tagName)
+    {
+      return $this->getHolder()->get($tagName);
+    }
+
+    /**
+     * @param string $tagName
+     * @param string $tagVersion
+     * @return void
+     */
+    public function setTag ($tagName, $tagVersion)
+    {
+      $has = $this->hasTag($tagName);
+
+      if (! $has || ($has && $this->getTag($tagName) < $tagVersion))
+      {
+        $this->getHolder()->set($tagName, $tagVersion);
       }
     }
 
     /**
      * Serializes the current instance.
      *
-     * @return array Objects instance
+     * @return array Serialized CacheMetadata object
      */
     public function serialize()
     {
@@ -92,9 +154,10 @@
     }
 
     /**
-     * Unserializes a sfParameterHolder instance.
+     * Unserializes a CacheMetadatainstance.
      *
-     * @param string $serialized  A serialized sfParameterHolder instance
+     * @param string $serialized A serialized CacheMetadata instance
+     * @return void
      */
     public function unserialize($serialized)
     {
@@ -103,10 +166,13 @@
       $this->initialize($data, $tags);
     }
 
+    /**
+     * @return string
+     */
     public function __toString ()
     {
       $output = sprintf(
-        "\n%s:\n  data: %s\n  tags:\n",
+        "%s:\n  data: %s\n  tags:\n",
         __CLASS__,
         (string) $this->getData());
 

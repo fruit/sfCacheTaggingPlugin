@@ -151,21 +151,13 @@
         }
       }
 
-      $tagLifetime = sfCacheTaggingToolkit::getTagLifetime();
-
-      $taggingCache->setTag(
-        $object->getTagName(), $object->getObjectVersion(), $tagLifetime
-      );
+      $taggingCache->setTag($object->getTagName(), $object->getObjectVersion());
 
       $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
         get_class($object)
       );
 
-      $taggingCache->setTag(
-        $formatedClassName,
-        $object->getObjectVersion(),
-        $tagLifetime
-      );
+      $taggingCache->setTag($formatedClassName, $object->getObjectVersion());
 
       # updating object tags
       $object->addTag($object->getTagName(), $object->getObjectVersion());
@@ -210,11 +202,9 @@
       $params['set'] = array();
       $selectQuery->setParams($params);
 
-      $lifetime = sfCacheTaggingToolkit::getTagLifetime();
-
       foreach ($selectQuery->execute() as $object)
       {
-        $taggingCache->setTag($object->getTagName(), $updateVersion, $lifetime);
+        $taggingCache->setTag($object->getTagName(), $updateVersion);
       }
       
       $taggingCache->setTag(

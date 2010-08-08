@@ -51,9 +51,4 @@
     {
 
     }
-
-    public function shutdown ()
-    {
-      
-    }
   }

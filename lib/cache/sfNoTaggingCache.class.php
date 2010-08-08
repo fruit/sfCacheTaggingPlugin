@@ -29,7 +29,7 @@
     /**
      * @see sfTaggingCache
      */
-    public function setTags ($tags, $lifetime = null)
+    public function setTags (array $tags, $lifetime = null)
     {
       return true;
     }

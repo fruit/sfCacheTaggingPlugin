@@ -32,6 +32,8 @@
 
   $taggingCache = $cacheManager->getTaggingCache();
 
+  /* @var $taggingCache sfTaggingCache */
+  
   $dataCacheSetups = sfYaml::load(PLUGIN_DATA_DIR . '/config/cache_setup.yml');
   $tagCacheSetups = $dataCacheSetups;
 
@@ -95,7 +97,6 @@
           'logger'  => array('class' => 'sfFileCacheTagLogger', 'param' => array(
             'file' => sfConfig::get('sf_log_dir') . '/cache.log',
             'format' => '%microtime% [%char%] %key%%EOL%',
-            
           )),
           'data'   => $dataCache,
           'tags'   => $tagsCache,
@@ -328,9 +329,9 @@
         $taggingCache->set('posts+comments', $emptyPosts, null, $emptyPosts->getTags()),
         true,
         sprintf(
-        'Saving empty "posts+comments" to cache (%d posts, %d comments)',
-        $emptyPosts->count(),
-        $emptyPostComments->count()
+          'Saving empty "posts+comments" to cache (%d posts, %d comments)',
+          $emptyPosts->count(),
+          $emptyPostComments->count()
         )
       );
 

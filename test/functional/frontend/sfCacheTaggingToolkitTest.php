@@ -12,6 +12,23 @@
 
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
+  $optionMicrotimePrecision = sfConfig::get('app_sfcachetaggingplugin_microtime_precision');
+
+  class ArrayAsIteratorAggregate implements IteratorAggregate
+  {
+    protected $tags;
+
+    public function __construct($tags)
+    {
+      $this->tags = $tags;
+    }
+
+    public function getIterator()
+    {
+      return new ArrayIterator($this->tags);
+    }
+  }
+
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
 
@@ -49,10 +66,6 @@
   {
     $t->pass($e->getMessage());
   }
-
-  BlogPostTable::getInstance()->createQuery()->delete()->execute();
-  UniversityTable::getInstance()->createQuery()->delete()->execute();
-
 
   $precisionToTest = array(
     array('value' => -1, 'throwException' => true),
@@ -107,6 +120,8 @@
     }
   }
 
+  sfConfig::set('app_sfcachetaggingplugin_microtime_precision', $optionMicrotimePrecision);
+
   include_once sfConfig::get('sf_apps_dir') . '/frontend/modules/blog_post/actions/actions.class.php';
 
   try
@@ -114,17 +129,75 @@
     $e = new sfEvent(
       new blog_postActions(sfContext::getInstance(), 'blog_post', 'run'),
       'component.method_not_found',
-      array('method' => 'callMe', 'arguments' => array(1,2,3))
+      array('method' => 'callMe', 'arguments' => array(1, 2, 3))
     );
 
     $v = sfCacheTaggingToolkit::listenOnComponentMethodNotFoundEvent($e);
 
     $t->ok(null === $v, 'Return null if method does not exists');
+
+    $t->pass();
   }
   catch (BadMethodCallException $e)
   {
-    $t->pass($e->getMessage());
+    $t->fail($e->getMessage());
   }
 
+  # getTaggingCache
+
+  try
+  {
+    $t->isa_ok(sfCacheTaggingToolkit::getTaggingCache(), 'sfTaggingCache', 'getTaggingCache return correct object');
+    $t->pass('No expcetions thrown');
+  }
+  catch (Exception $e)
+  {
+    $t->fail($e->getMessage());
+  }
+
+  $posts = BlogPostTable::getInstance()->findAll();
+
+  $post = $posts->getFirst();
+
+  $cleanTags = array('Auto_1' => 127872123, 'Auto_2' => 192768211);
+
+  $tests = array(
+    $cleanTags, new ArrayIterator($cleanTags), new ArrayAsIteratorAggregate($cleanTags),
+    new ArrayObject($cleanTags), $posts, $post
+  );
+
+  foreach ($tests as $tags)
+  {
+    try
+    {
+      $decoratedTags = sfCacheTaggingToolkit::formatTags($tags);
+      $typeOfTags = is_array($tags) ? '"Array"' : 'object("'.get_class($tags).'")';
+      $t->is(
+        gettype($decoratedTags),
+        'array',
+        sprintf('return array if argument is %s', $typeOfTags)
+      );
+
+      $t->pass(sprintf('Adding tags as %s', $typeOfTags));
+    }
+    catch (InvalidArgumentException $e)
+    {
+      $t->fail($e->getMessage());
+    }
+  }
+
+  $tests = array(null, true, 2, 'string', 2.1E-3, new stdClass());
+  foreach ($tests as $tags)
+  {
+    try
+    {
+      sfCacheTaggingToolkit::formatTags($tags);
+      $t->fail();
+    }
+    catch (InvalidArgumentException $e)
+    {
+      $t->pass($e->getMessage());
+    }
+  }
 
   $connection->rollback();

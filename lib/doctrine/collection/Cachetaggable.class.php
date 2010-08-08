@@ -181,7 +181,13 @@
       }
       catch (sfCacheDisabledException $e)
       {
-
+        /**
+         * @todo
+         *
+         * Add message to log file about this exception
+         *
+         * sfProjectConfiguration::getActive()->getEventDispatcher()->notify()
+         */
       }
     }
 

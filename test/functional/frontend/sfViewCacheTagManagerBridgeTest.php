@@ -12,12 +12,14 @@
   $browser = new sfTestFunctional(new sfBrowser());
   $t = $browser->test();
 
-  $cacheManager = sfContext::getInstance()->getViewCacheManager();
-  /* @var $cacheManager sfViewCacheTagManager */
-
   try
   {
-    $bridge = new sfViewCacheTagManagerBridge($cacheManager->getTaggingCache());
+    $bridge = new sfViewCacheTagManagerBridge(
+      new sfTaggingCache(array(
+        'data' => array('class' => 'sfAPCCache'),
+        'logger' => array('class' => 'sfNoCacheTagLogger'),
+      ))
+    );
 
     $t->pass('Bridge initialized');
   }
@@ -25,8 +27,6 @@
   {
     $t->fail($e->getMessage());
   }
-
-  $holder = $cacheManager->getContentTagHandler();
 
   $validPatternMethods = array(
     'get%sTags' => array(),
@@ -40,21 +40,14 @@
 
   $invalidPatternMethods = array(
     array('get%sTaags', array()),
-    array('set%sTags', array()),
     array('set%sTags', array(1)),
     array('set%sTags', array(new stdClass())),
-    array('add%sTags', array()),
     array('add%sTags', array(1)),
     array('add%sTags', array('aaaa')),
     array('add%sTags', array(null)),
     array('removeMy%sTags', array()),
-    array('has%sTag', array()),
-    array('set%sTag', array(array())),
-    array('set%sTag', array(null)),
-    array('set%sTag', array(1)),
     array('set%sTag', array('MyTag', array())),
     array('set%sTag', array('MyTag', new stdClass())),
-    array('remove%sTag', array()),
     array('remove%sTag', array(null)),
     array('remove%sTag', array(3)),
     array('remove%sTag', array(new stdClass())),
@@ -72,7 +65,7 @@
         $c = new sfCallableArray(array($bridge, $method));
         $c->callArray($arguments);
 
-        $t->pass(sprintf('Callable method ::%s(%s)', $method, implode(', ', $arguments)));
+        $t->pass(sprintf('Callable method %s()', $method));
       }
       catch (Exception $e)
       {
@@ -91,7 +84,7 @@
         $c = new sfCallableArray(array($bridge, $method));
         $c->callArray($arguments);
 
-        $t->fail(sprintf('Method %s(%s) was successfully called', $method, implode(', ', $arguments)));
+        $t->fail(sprintf('Method %s() was successfully called', $method));
       }
       catch (Exception $e)
       {
@@ -101,5 +94,62 @@
     }
   }
 
-  $t->todo('Add test on addDoctrineTags');
-  
+
+  $t->can_ok($bridge, array('addDoctrineTags'));
+
+  try
+  {
+     $t->isa_ok(
+       $bridge->addDoctrineTags(
+         array('TAG_1' => 12321839123, 'TAG_2' => 12738725), null
+       ),
+       'sfViewCacheTagManagerBridge'
+     );
+
+     $t->fail();
+  }
+  catch (InvalidArgumentException $e)
+  {
+    $t->pass($e->getMessage());
+  }
+
+  try
+  {
+    $q = new Doctrine_Query();
+    $q->addWhere('some_value = ?', rand(1, 100));
+
+    $t->isa_ok(
+      $bridge->addDoctrineTags(
+        array('TAG_1' => 12321839123, 'TAG_2' => 12738725),
+        $q->getResultCacheHash($q->getParams())
+      ),
+     'sfViewCacheTagManagerBridge'
+    );
+
+    $t->pass();
+  }
+  catch (Exception $e)
+  {
+    $t->fail($e->getMessage());
+  }
+
+  try
+  {
+    $q = new Doctrine_Query();
+    $q->addWhere('some_value = ?', rand(1, 100));
+
+    $t->isa_ok(
+      $bridge->addDoctrineTags(
+        array('TAG_1' => 12321839123, 'TAG_2' => 12738725),
+        $q,
+        $q->getParams()
+      ),
+      'sfViewCacheTagManagerBridge'
+    );
+
+    $t->pass();
+  }
+  catch (Exception $e)
+  {
+    $t->fail($e->getMessage());
+  }

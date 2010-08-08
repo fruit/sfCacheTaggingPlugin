@@ -18,7 +18,7 @@
   class sfCacheTaggingToolkit
   {
     const NAMESPACE_CACHE_TAGS = 'symfony.cache.tags';
-    const TEMPLATE_NAME = 'Cachetaggable';
+    const TEMPLATE_NAME        = 'Cachetaggable';
 
     /**
      * @throws sfCacheDisabledException   when "sf_cache" is OFF
@@ -89,56 +89,6 @@
     }
 
     /**
-     * Returns app.yml tag lifetime, otherwise,
-     * return default value (86400 - 1 day)
-     *
-     * @return int
-     */
-    public static function getTagLifetime ()
-    {
-      return self::validateLifetime(
-        'app_sfcachetaggingplugin_tag_lifetime', 86400
-      );
-    }
-
-    /**
-     * Returns app.yml lock lifetime, otherwise, return default value (2)
-     *
-     * @return int
-     */
-    public static function getLockLifetime ()
-    {
-      return self::validateLifetime(
-        'app_sfcachetaggingplugin_lock_lifetime', 2
-      );
-    }
-
-    /**
-     * Checks tag/lock defined values
-     *
-     * @param string $configRoute
-     * @throws  OutOfBoundsException
-     * @return int
-     */
-    protected static function validateLifetime ($configRoute, $defaultValue)
-    {
-      $lifetime = (int) sfConfig::get($configRoute, $defaultValue);
-
-      if (0 >= $lifetime)
-      {
-        throw new OutOfBoundsException(
-          sprintf(
-            'Value of "%s" (%s) is less or equal to zero',
-            $configRoute,
-            $lifetime
-          )
-        );
-      }
-
-      return (int) $lifetime;
-    }
-
-    /**
      * Format passed tags to the array
      *
      * @param mixed $tags array|Doctrine_Collection_Cachetaggable|
@@ -160,13 +110,13 @@
       }
       elseif ($tags instanceof Doctrine_Record)
       {
-        if (! $tags->getTable()->hasTemplate(
-          sfCacheTaggingToolkit::TEMPLATE_NAME
-        ))
+        $table = $tags->getTable();
+
+        if (! $table->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
         {
           throw new InvalidArgumentException(sprintf(
             'Object "%s" should have the "%s" template',
-            $tags->getTable()->getClassnameToReturn(),
+            $table->getClassnameToReturn(),
             sfCacheTaggingToolkit::TEMPLATE_NAME
           ));
         }
@@ -180,11 +130,13 @@
       {
         $tagsToReturn = $tags->getArrayCopy();
       }
-      elseif ($tags instanceof IteratorAggregate || $tags instanceof Iterator)
+      elseif (
+          $tags instanceof IteratorAggregate
+        ||
+          $tags instanceof Iterator
+      )
       {
-        $iterator = $tags instanceof Iterator ? $tags : $tags->getIterator();
-
-        foreach ($iterator as $key => $value)
+        foreach ($tags as $key => $value)
         {
           $tagsToReturn[$key] = $value;
         }
@@ -196,9 +148,9 @@
             'Invalid argument\'s type "%s". ' .
             'See acceptable types in the PHPDOC of "%s"',
             sprintf(
-              '%s %s',
+              '%s%s',
               gettype($tags),
-              is_object($tags) ? get_class($tags) : ''
+              is_object($tags) ? '('.get_class($tags).')' : ''
             ),
             __METHOD__
           )
@@ -216,42 +168,33 @@
      */
     public static function listenOnComponentMethodNotFoundEvent (sfEvent $event)
     {
-      $event->setProcessed(false);
+      $event->setProcessed(true);
 
-      if (! sfConfig::get('sf_cache'))
+      try
       {
-        $event->setProcessed(true);
-        
+        $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
+      }
+      catch (sfException $e)
+      {
+        /**
+         * @todo notify logger
+         */
         return;
       }
 
-      $viewCacheManager = $event
-        ->getSubject()
-        ->getContext()
-        ->getViewCacheManager();
-
-      if (! $viewCacheManager instanceof sfViewCacheTagManager)
-      {
-        return;
-      }
-      
       try
       {
         $callable = array(
-          new sfViewCacheTagManagerBridge($viewCacheManager->getTaggingCache()),
-          $event['method']
+          new sfViewCacheTagManagerBridge($taggingCache), $event['method']
         );
 
-        $event->setReturnValue(
-          call_user_func_array($callable, $event['arguments'])
-        );
+        $event
+          ->setReturnValue(call_user_func_array($callable, $event['arguments']));
       }
       catch (BadMethodCallException $e)
       {
-        return;
+        $event->setProcessed(false);
       }
-
-      $event->setProcessed(true);
     }
 
     /**

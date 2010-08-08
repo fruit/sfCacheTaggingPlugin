@@ -76,7 +76,7 @@
      * @param mixed   $default
      * @return mixed
      */
-    protected function getArrayValueByKeyPath ($keyPath, $array, $default = null)
+    protected function getArrayValueByKeyPath ($keyPath, $array)
     {
       $dotPosition = strpos($keyPath, '.');
 
@@ -91,7 +91,7 @@
         }
       }
 
-      return isset($array[$keyPath]) ? $array[$keyPath] : $default;
+      return isset($array[$keyPath]) ? $array[$keyPath] : null;
     }
 
     /**
@@ -104,7 +104,9 @@
      */
     public function getOption ($name, $default = null)
     {
-      return $this->getArrayValueByKeyPath($name, $this->options, $default);
+      $option = $this->getArrayValueByKeyPath($name, $this->options);
+
+      return null === $option ? $default : $option;
     }
 
     /**
@@ -137,9 +139,10 @@
         );
       }
 
-      $params = $this->getOption('data.param', array());
       # check is valid class
-      $this->dataCache = new $dataCacheClassName($params);
+      $this->dataCache = new $dataCacheClassName(
+        $this->getOption('data.param', array())
+      );
 
       if (! $this->dataCache instanceof sfCache)
       {
@@ -148,7 +151,7 @@
         );
       }
 
-      if (null === $this->getOption('tags'))
+      if (! $this->getOption('tags'))
       {
         $this->tagsCache = $this->dataCache;
       }
@@ -600,7 +603,7 @@
      * @return boolean true: was locked
      *                 false: could not lock
      */
-    public function lock ($lockName, $expire = 5)
+    public function lock ($lockName, $expire = 1)
     {
       $key = $this->generateLockKey($lockName);
 
