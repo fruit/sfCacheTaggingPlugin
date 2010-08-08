@@ -22,7 +22,7 @@
     /**
      * Default logger format
      *
-     * Available arguments combinations: %char%, %time%, %key%, %EOL%
+     * Available arguments combinations: %char%, %char_explanation%, %time%, %key%, %EOL%
      *
      * @var string
      */
@@ -58,7 +58,11 @@
     public function initialize (array $options = array())
     {
       $this->options = Doctrine_Lib::arrayDeepMerge(
-        array('auto_shutdown' => true, 'skip_chars' => ''), $options
+        array(
+          'auto_shutdown' => true,
+          'skip_chars' => '',
+        ),
+        $options
       );
 
       if (null !== ($timeFormat = $this->getOption('time_format')))
@@ -122,6 +126,38 @@
       return $this->doLog($char, $key);
     }
 
+    protected function explainChar ($char)
+    {
+      switch ($char)
+      {
+        # Data:
+        case 'g': return 'data cache not found or expired';
+        case 'G': return 'data cache was found';
+        case 'h': return 'cache dot not have data accessed by key';
+        case 'H': return 'cache have data accessed by key';
+        case 'l': return 'could not lock the data cache';
+        case 'L': return 'data cache was locked for writing';
+        case 's': return 'could not write new values to the cache';
+        case 'S': return 'new values are saved to the data cache';
+        case 'u': return 'could not unlock the cache';
+        case 'U': return 'cache was unlocked';
+        # Tags:
+        case 'v': return 'cache tag version is expired';
+        case 'V': return 'cache tag version is up-to-date';
+        case 'p': return 'could not write new version of tag';
+        case 'P': return 'tag was updated with new a version';
+        case 'e': return 'could not remove tag version';
+        case 'E': return 'tag was removed';
+        case 't': return 'tag does not exists';
+        case 'T': return 'tag was found';
+        case 'i': return 'cache does not have tag accessed by key';
+        case 'I': return 'cache have tag accessed by key';
+
+        default:
+          return 'Unknown char';
+          break;
+      }
+    }
 
     /**
      * Executes the shutdown method.

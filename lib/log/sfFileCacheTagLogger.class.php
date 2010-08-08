@@ -83,11 +83,12 @@
       if (flock($this->fp, LOCK_EX))
       {
         fwrite($this->fp, strtr($this->format, array(
-          '%char%'      => $char,
-          '%key%'       => $key,
-          '%time%'      => strftime($this->timeFormat),
-          '%microtime%' => sprintf("%0.0f", pow(10, 5) * microtime(true)),
-          '%EOL%'       => PHP_EOL,
+          '%char%'              => $char,
+//          '%char_explanation%'  => $this->explainChar($char),
+          '%key%'               => $key,
+          '%time%'              => strftime($this->timeFormat),
+          '%microtime%'         => sprintf("%0.0f", pow(10, 5) * microtime(true)),
+          '%EOL%'               => PHP_EOL,
         )));
 
         flock($this->fp, LOCK_UN);

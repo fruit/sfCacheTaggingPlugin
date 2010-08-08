@@ -102,4 +102,19 @@
 
       $this->initialize($data, $tags);
     }
+
+    public function __toString ()
+    {
+      $output = sprintf(
+        "\n%s:\n  data: %s\n  tags:\n",
+        __CLASS__,
+        (string) $this->getData());
+
+      foreach ($this->getTags() as $name => $version)
+      {
+        $output .= "    {$name}: {$version}\n";
+      }
+
+      return $output;
+    }
   }

@@ -6,7 +6,7 @@
    *
    * For the full copyright and license information, please view the LICENSE
    * file that was distributed with this source code.
-  */
+   */
 
   /**
    * This code adds opportunity to use cache tagging, there are extra methods to
@@ -26,18 +26,11 @@
     protected $dataCache = null;
 
     /**
-     * This cache stores locks
-     *
-     * @var sfCache
-     */
-    protected $lockerCache = null;
-
-    /**
      * This cache stores tags
      *
      * @var sfCache
      */
-    protected $taggerCache = null;
+    protected $tagsCache = null;
 
     /**
      * Log file pointer
@@ -127,26 +120,26 @@
 
       $this->contentTagHandler = new sfContentTagHandler();
 
-      $cacheClassName = $this->getOption('cache.class');
+      $dataCacheClassName = $this->getOption('data.class');
 
-      if (! $cacheClassName)
+      if (! $dataCacheClassName)
       {
         throw new sfInitializationException(sprintf(
-          'You must pass a "cache.class" option to initialize a %s object.',
+          'You must pass a "data.class" option to initialize a %s object.',
           __CLASS__
         ));
       }
 
-      if (! class_exists($cacheClassName, true))
+      if (! class_exists($dataCacheClassName, true))
       {
         throw new sfInitializationException(
-          sprintf('Data cache class "%s" not found', $cacheClassName)
+          sprintf('Data cache class "%s" not found', $dataCacheClassName)
         );
       }
 
-      $params = $this->getOption('cache.param', array());
+      $params = $this->getOption('data.param', array());
       # check is valid class
-      $this->dataCache = new $cacheClassName($params);
+      $this->dataCache = new $dataCacheClassName($params);
 
       if (! $this->dataCache instanceof sfCache)
       {
@@ -155,70 +148,36 @@
         );
       }
 
-      if (null === $this->getOption('locker'))
+      if (null === $this->getOption('tags'))
       {
-        $this->lockerCache = $this->dataCache;
+        $this->tagsCache = $this->dataCache;
       }
       else
       {
-        $lockerClassName = $this->getOption('locker.class');
+        $tagsClassName = $this->getOption('tags.class');
 
-        if (! $lockerClassName)
+        if (! $tagsClassName)
         {
           throw new sfInitializationException(sprintf(
-            'You must pass a "locker.class" option to initialize a %s object.',
+            'You must pass a "tags.class" option to initialize a %s object.',
             __CLASS__
           ));
         }
 
-        if (! class_exists($lockerClassName, true))
+        if (! class_exists($tagsClassName, true))
         {
           throw new sfInitializationException(
-            sprintf('Locker cache class "%s" not found', $lockerClassName)
+            sprintf('tags cache class "%s" not found', $tagsClassName)
           );
         }
 
         # check is valid class
-        $this->lockerCache = new $lockerClassName($options['locker']['param']);
+        $this->tagsCache = new $tagsClassName($options['tags']['param']);
 
-        if (! $this->lockerCache instanceof sfCache)
-        {
-          throw new sfInitializationException( 
-            'Locker cache class is not instance of sfCache'
-          );
-        }
-      }
-
-      if (null === $this->getOption('tagger'))
-      {
-        $this->taggerCache = $this->dataCache;
-      }
-      else
-      {
-        $taggerClassName = $this->getOption('tagger.class');
-
-        if (! $taggerClassName)
-        {
-          throw new sfInitializationException(sprintf(
-            'You must pass a "tagger.class" option to initialize a %s object.',
-            __CLASS__
-          ));
-        }
-
-        if (! class_exists($taggerClassName, true))
+        if (! $this->tagsCache instanceof sfCache)
         {
           throw new sfInitializationException(
-            sprintf('Tagger cache class "%s" not found', $taggerClassName)
-          );
-        }
-
-        # check is valid class
-        $this->taggerCache = new $taggerClassName($options['tagger']['param']);
-
-        if (! $this->taggerCache instanceof sfCache)
-        {
-          throw new sfInitializationException(
-            'Tagger cache class is not instance of sfCache'
+            'tags cache class is not instance of sfCache'
           );
         }
       }
@@ -272,23 +231,13 @@
     }
 
     /**
-     * Returns cache class for locks
-     *
-     * @return sfCache
-     */
-    public function getLockerCache ()
-    {
-      return $this->lockerCache;
-    }
-
-    /**
      * Returns cache class for tags
      *
      * @return sfCache
      */
-    public function getTaggerCache ()
+    public function getTagsCache ()
     {
-      return $this->taggerCache;
+      return $this->tagsCache;
     }
 
     /**
@@ -304,7 +253,11 @@
      */
     public function has ($key)
     {
-      return null !== $this->get($key);
+      $has = null !== $this->get($key);
+
+      $this->getLogger()->log($has ? 'H' : 'h', $key);
+
+      return $has;
     }
 
     /**
@@ -351,6 +304,13 @@
     {
       return $this->getDataCache()->getTimeout($key);
     }
+    
+    public function getTTL ($key)
+    {
+      $timeout = $this->getTimeout($key);
+      
+      return 0 == $timeout ? $this->getLifetime(null) : ($timeout - time());
+    }
 
     /**
      * @see sfCache::getLastModified
@@ -391,7 +351,7 @@
         return $this->set(
           $key,
           $cacheMetadata->getData(),
-          $this->getTimeout($key),
+          $this->getTTL($key),
           $cacheMetadata->getTags()
         );
       }
@@ -416,22 +376,25 @@
 
       $cacheMetadata = new $cacheMetadataClassName($data, $tags);
 
-      if ($this->lock($key, sfCacheTaggingToolkit::getLockLifetime()))
+      $result = false;
+
+      if (! $this->isLocked($key))
       {
+        $this->lock($key);
+
         $result = $this->getDataCache()->set($key, $cacheMetadata, $timeout);
 
         $this->getLogger()->log($result ? 'S' : 's', $key);
 
-        $this->unlock($key);
-
         $this->setTags($cacheMetadata->getTags());
+        
+        $this->unlock($key);
       }
       else
       {
         $this->getLogger()->log('s', $key);
-
-        $result = false;
       }
+      
 
       return $result;
     }
@@ -439,22 +402,18 @@
     /**
      * Saves tag with its version
      *
-     * @param string  $tagKey     tag key
-     * @param string  $tagValue   tag version
-     * @param int     $lifetime   optional tag time to live
+     * @param string  $tagName      tag name
+     * @param string  $tagVersion   tag version
+     * @param int     $lifetime     optional tag time to live
      * @return boolean
      */
-    public function setTag ($tagKey, $tagValue, $lifetime = null)
+    public function setTag ($tagName, $tagVersion, $lifetime = null)
     {
-      $tagKey = $this->generateTagKey($tagKey);
+      $key = $this->generateTagKey($tagName);
 
-      $lifetime = (null === $lifetime)
-        ? sfCacheTaggingToolkit::getTagLifetime()
-        : $lifetime;
+      $result = $this->getTagsCache()->set($key, $tagVersion, $lifetime);
 
-      $result = $this->getTaggerCache()->set($tagKey, $tagValue, $lifetime);
-
-      $this->getLogger()->log($result ? 'P' :'p', sprintf('%s(%s)', $tagKey, $tagValue));
+      $this->getLogger()->log($result ? 'P' :'p', sprintf('%s(%s)', $key, $tagVersion));
 
       return $result;
     }
@@ -467,26 +426,27 @@
      */
     public function setTags (array $tags, $lifetime = null)
     {
-      foreach ($tags as $tagKey => $tagValue)
+      foreach ($tags as $tagName => $version)
       {
-        $this->setTag($tagKey, $tagValue, $lifetime);
+        $this->setTag($tagName, $version, $lifetime);
       }
     }
 
     /**
      * Returns version of the tag by key
      *
-     * @param string $tagKey
+     * @param string $tagName
      * @return string version of the tag
      */
-    public function getTag ($tagKey)
+    public function getTag ($tagName)
     {
-      $key = $this->generateTagKey($tagKey);
+      $key = $this->generateTagKey($tagName);
 
-      $result = $this->getTaggerCache()->get($key);
+      $result = $this->getTagsCache()->get($key);
 
       $this->getLogger()->log(
-        $result ? 'T' :'t', sprintf('%s%s', $key, $result ? "({$result})" : '')
+        $result ? 'T' : 't',
+        $key . ($result ? "({$result})" : '')
       );
 
       return $result;
@@ -495,12 +455,18 @@
     /**
      * Checks tag key exists
      *
-     * @param string $tagKey
+     * @param string $tagName
      * @return boolean
      */
-    public function hasTag ($tagKey)
+    public function hasTag ($tagName)
     {
-      return $this->getTaggerCache()->has($this->generateTagKey($tagKey));
+      $key = $this->generateTagKey($tagName);
+
+      $has = $this->getTagsCache()->has($key);
+
+      $this->getLogger()->log($has ? 'I' : 'i', $key);
+
+      return $has;
     }
 
     /**
@@ -511,7 +477,7 @@
      */
     public function getTags ($key)
     {
-      $value = $this->getTaggerCache()->get($key);
+      $value = $this->getDataCache()->get($key);
 
       $cacheMetadataClassName = $this->getMetadataClassName();
 
@@ -526,14 +492,14 @@
     /**
      * Removes tag version (basicly called on physical object removing)
      *
-     * @param string $key
+     * @param string $tagName
      * @return boolean
      */
-    public function deleteTag ($key)
+    public function deleteTag ($tagName)
     {
-      $result = $this
-        ->getTaggerCache()
-        ->remove($this->generateTagKey($key));
+      $key = $this->generateTagKey($tagName);
+
+      $result = $this->getTagsCache()->remove($key);
 
       $this->getLogger()->log($result ? 'E' : 'e', $key);
       
@@ -565,8 +531,6 @@
      */
     public function get ($key, $default = null)
     {
-      $data = $default;
-
       $cacheMetadata = $this->getDataCache()->get($key, $default);
 
       $cacheMetadataClassName = $this->getMetadataClassName();
@@ -603,86 +567,80 @@
           );
         }
 
-        # if was expired, check data is not locked by any other client
-        if ($hasExpired && $this->isLocked($key))
+        // some cache tags is invalidated
+        if ($hasExpired)
         {
-          # return old cache coz new data is writing to the current cache
-          $data = $cacheMetadata->getData();
+          if ($this->isLocked($key))
+          {
+            # return old cache coz new data is writing to the current cache
+            $cacheMetadata = $cacheMetadata->getData();
+          }
+          else
+          {
+            # cache no locked, but cache is expired
+            $cacheMetadata = null;
+          }
         }
         else
         {
-          $data = $cacheMetadata->getData();
+          $cacheMetadata = $cacheMetadata->getData();
         }
       }
 
-      $this->getLogger()->log($data !== $default ? 'G' : 'g', $key);
+      $this->getLogger()->log($cacheMetadata !== $default ? 'G' : 'g', $key);
 
-      return $data;
+      return $cacheMetadata;
     }
 
     /**
      * Set lock on $key on $expire seconds
      *
-     * @param string  $key
+     * @param string  $lockName
      * @param int     $expire expire time in seconds
      * @return boolean true: was locked
      *                 false: could not lock
      */
-    public function lock ($key, $expire = 2)
+    public function lock ($lockName, $expire = 5)
     {
-      $lockKey = $this->generateLockKey($key);
+      $key = $this->generateLockKey($lockName);
 
-      $lockerCache = $this->getLockerCache();
+      $result = $this->getDataCache()->set($key, 1, $expire);
 
-      /**
-       * @todo comment this block (need refactoring?)
-       */
-      if ($lockerCache instanceof sfMemcacheCache)
-      {
-        $memcache = $lockerCache->getBackend();
-
-        $prefix = $lockerCache->getOption('prefix');
-
-        $result = $memcache->add(sprintf('%s%s', $prefix, $lockKey), 1, $expire);
-      }
-      elseif ($this->isLocked($key))
-      {
-        $result = false;
-      }
-      else
-      {
-        $result = $lockerCache->set($lockKey, 1, $expire);
-      }
-
-      $this->getLogger()->log(true === $result ? 'L' : 'l', $key);
+      $this->getLogger()->log($result ? 'L' : 'l', $key);
 
       return $result;
     }
 
     /**
-     * Check for $key is locked/not locked
+     * Check for $lockName is locked/not locked
      *
-     * @param string $key
+     * @param string $lockName
      * @return boolean
      */
-    public function isLocked ($key)
+    public function isLocked ($lockName)
     {
-      return (bool) $this->getLockerCache()->get($this->generateLockKey($key));
+      $key = $this->generateLockKey($lockName);
+
+      $result = $this->getDataCache()->has($key);
+
+      $this->getLogger()->log($result ? 'R' : 'r', $key);
+
+      return $result;
     }
 
     /**
      * Call this to unlock key
      *
-     * @param string $key
+     * @param string $lockName
      * @return boolean
      */
-    public function unlock ($key)
+    public function unlock ($lockName)
     {
-      $lockKey = $this->generateLockKey($key);
+      $key = $this->generateLockKey($lockName);
 
-      $result = $this->getLockerCache()->remove($lockKey);
+      $result = $this->getDataCache()->remove($key);
 
-      $this->getLogger()->log(true === $result ? 'U' : 'u', $key);
+      $this->getLogger()->log($result ? 'U' : 'u', $lockName);
 
       return $result;
     }
@@ -696,14 +654,9 @@
      */
     public function clean ($mode = sfCache::ALL)
     {
-      if ($this->getDataCache() !== $this->getLockerCache())
+      if ($this->getDataCache() !== $this->getTagsCache())
       {
-        $this->getLockerCache()->clean($mode);
-      }
-
-      if ($this->getDataCache() !== $this->getTaggerCache())
-      {
-        $this->getTaggerCache()->clean($mode);
+        $this->getTagsCache()->clean($mode);
       }
 
       $this->getDataCache()->clean($mode);

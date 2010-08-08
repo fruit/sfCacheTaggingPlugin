@@ -33,7 +33,7 @@
   $taggingCache = $cacheManager->getTaggingCache();
 
   $dataCacheSetups = sfYaml::load(PLUGIN_DATA_DIR . '/config/cache_setup.yml');
-  $lockCacheSetups = $dataCacheSetups;
+  $tagCacheSetups = $dataCacheSetups;
 
   $count = count($dataCacheSetups);
 
@@ -85,18 +85,20 @@
 
   Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml');
 
-  foreach ($dataCacheSetups as $data)
+  foreach ($dataCacheSetups as $dataCache)
   {
-    foreach ($lockCacheSetups as $locker)
+    foreach ($tagCacheSetups as $tagsCache)
     {
-      $t->info(sprintf('Data/Locker - %s/%s combination', $data['class'], $locker['class']));
-      
       try
       {
         $taggingCache->initialize(array(
-          'logger'  => array('class' => 'sfNoLogger'),
-          'cache'   => $data,
-          'locker'  => $locker,
+          'logger'  => array('class' => 'sfFileCacheTagLogger', 'param' => array(
+            'file' => sfConfig::get('sf_log_dir') . '/cache.log',
+            'format' => '%microtime% [%char%] %key%%EOL%',
+            
+          )),
+          'data'   => $dataCache,
+          'tags'   => $tagsCache,
         ));
         $taggingCache->clean();
 
@@ -105,14 +107,16 @@
       {
         $t->comment(sprintf(
           'Skipping combination %s/%s. %s.',
-          $data['class'],
-          $locker['class'],
+          $dataCache['class'],
+          $tagsCache['class'],
           $e->getMessage()
         ));
 
         continue;
       }
-      
+
+      $t->info(sprintf('Data/Locker - %s/%s combination', $dataCache['class'], $tagsCache['class']));
+
       $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
       $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());
       $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));

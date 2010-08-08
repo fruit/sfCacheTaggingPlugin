@@ -78,7 +78,7 @@ are not (atomic counter).
                                             # (see Restrictions block for more info)
                 param:
                   persistent: true
-                  storeCacheInfo: false
+                  storeCacheInfo: true
                   host: localhost
                   port: 11211
                   timeout: 5
@@ -110,6 +110,8 @@ are not (atomic counter).
                                               # Data:
                                               #   "g": data cache not found or expired
                                               #   "G": data cache was found
+                                              #   "h": cache dot not have data accessed by key
+                                              #   "H": cache have data accessed by key
                                               #   "l": could not lock the data cache
                                               #   "L": data cache was locked for writing
                                               #   "s": could not write new values to the cache
@@ -127,15 +129,19 @@ are not (atomic counter).
                                               #   "E": tag was removed
                                               #   "t": tag does not exists
                                               #   "T": tag was found
+                                              #   "i": cache does not have tag accessed by key
+                                              #   "I": cache have tag accessed by key
                                               #
                                               # Chars in lower case indicate negative operation.
                                               # Chars in upper case indicate positive operation.
-                                              #
-                                              # %time%        - Time, when cache was accessed
-                                              # %key%         - Cache name or tag name with its version
-                                              # %microtime%   - Microtime timestamp
-                                              # %EOL%         - Whether to append \n in the end of line
-                                              # (e.g. "%microtime%:%char%:%key%%EOL%")
+
+                                              # %char%              - Operation char (see above)
+                                              # %char_explanation%  - Operation explanation string 
+                                              # %time%              - Time, when data/tag was accessed
+                                              # %key%               - Cache name or tag name with its version
+                                              # %microtime%         - Microtime timestamp when data/tag was accessed
+                                              # %EOL%               - Whether to append \n in the end of line
+                                              # (e.g. "%microtime% %char% (%char_explanation%) %key%%EOL%")
 
           view_cache_manager:
             class: sfViewCacheTagManager    # Extended sfViewCacheManager class
