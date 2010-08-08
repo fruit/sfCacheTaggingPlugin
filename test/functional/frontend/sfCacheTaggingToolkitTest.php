@@ -135,12 +135,10 @@
     $v = sfCacheTaggingToolkit::listenOnComponentMethodNotFoundEvent($e);
 
     $t->ok(null === $v, 'Return null if method does not exists');
-
-    $t->pass();
   }
   catch (BadMethodCallException $e)
   {
-    $t->fail($e->getMessage());
+    $t->pass($e->getMessage());
   }
 
   # getTaggingCache

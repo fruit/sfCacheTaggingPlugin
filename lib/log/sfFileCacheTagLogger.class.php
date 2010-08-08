@@ -18,14 +18,6 @@
   class sfFileCacheTagLogger extends sfCacheTagLogger
   {
     /**
-     * Date format
-     *
-     * @link http://php.net/manual/en/function.strftime.php
-     * @var string
-     */
-    protected $timeFormat = '%Y-%b-%d %T%z';
-
-    /**
      * File pointer on log file
      *
      * @var resource
@@ -38,7 +30,15 @@
      */
     public function initialize (array $options = array())
     {
-      parent::initialize($options);
+      parent::initialize(
+        array_merge(
+          array(
+            'file_mode' => 0640,
+            'dir_mode' => 0750,
+          ),
+          $options
+        )
+      );
 
       if (null === ($file = $this->getOption('file')))
       {
@@ -51,7 +51,7 @@
 
       if (! is_dir($dir))
       {
-        mkdir($dir, $this->getOption('dir_name', 0750), true);
+        mkdir($dir, $this->getOption('dir_mode'), true);
       }
 
       $fileExists = file_exists($file);
@@ -65,16 +65,9 @@
 
       $this->fp = fopen($file, 'a');
 
-      if (! $this->fp)
-      {
-        throw new sfFileException(sprintf(
-          'Unable to open file resource "%s"', $file
-        ));
-      }
-
       if (! $fileExists)
       {
-        chmod($file, $this->getOption('file_mode', 0640));
+        chmod($file, $this->getOption('file_mode'));
       }
     }
 
@@ -84,7 +77,7 @@
       {
         fwrite($this->fp, strtr($this->format, array(
           '%char%'              => $char,
-//          '%char_explanation%'  => $this->explainChar($char),
+          '%char_explanation%'  => $this->explainChar($char),
           '%key%'               => $key,
           '%time%'              => strftime($this->timeFormat),
           '%microtime%'         => sprintf("%0.0f", pow(10, 5) * microtime(true)),
@@ -93,6 +86,8 @@
 
         flock($this->fp, LOCK_UN);
       }
+
+      return true;
     }
 
     /**
@@ -102,7 +97,9 @@
     {
       if (is_resource($this->fp))
       {
-        fclose($this->fp);
+        return fclose($this->fp);
       }
+
+      return false;
     }
   }

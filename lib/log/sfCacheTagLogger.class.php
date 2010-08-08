@@ -27,7 +27,15 @@
      * @var string
      */
     protected $format = '%char%';
-    
+
+    /**
+     * Date format
+     *
+     * @link http://php.net/manual/en/function.strftime.php
+     * @var string
+     */
+    protected $timeFormat = '%Y-%b-%d %T%z';
+
     /**
      *
      * @var <type>
@@ -57,7 +65,7 @@
      */
     public function initialize (array $options = array())
     {
-      $this->options = Doctrine_Lib::arrayDeepMerge(
+      $this->options = array_merge(
         array(
           'auto_shutdown' => true,
           'skip_chars' => '',
@@ -123,7 +131,7 @@
         return false;
       }
 
-      return $this->doLog($char, $key);
+      return (boolean) $this->doLog($char, $key);
     }
 
     protected function explainChar ($char)
@@ -154,7 +162,7 @@
         case 'I': return 'cache have tag accessed by key';
 
         default:
-          return 'Unknown char';
+          return 'Unregistered char';
           break;
       }
     }
@@ -164,6 +172,6 @@
      */
     public function shutdown ()
     {
-
+      
     }
   }

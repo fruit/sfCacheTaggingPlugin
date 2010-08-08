@@ -603,7 +603,7 @@
      * @return boolean true: was locked
      *                 false: could not lock
      */
-    public function lock ($lockName, $expire = 1)
+    public function lock ($lockName, $expire = 2)
     {
       $key = $this->generateLockKey($lockName);
 
