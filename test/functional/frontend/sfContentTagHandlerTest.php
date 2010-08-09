@@ -1,5 +1,4 @@
 <?php
-
   /*
    * This file is part of the sfCacheTaggingPlugin package.
    * (c) 2009-2010 Ilya Sabelnikov <fruit.dev@gmail.com>
@@ -22,9 +21,37 @@
 
   $t = new lime_test();
 
+  $handler = new sfContentTagHandler();
+  $q = BlogPostCommentTable::getInstance()->createQuery('c');
+  $q
+    ->addSelect('c.*')
+    ->addSelect('p.*')
+    ->leftJoin('c.BlogPost p')
+    ->addSelect('v.*')
+    ->leftJoin('p.BlogPostVote v')
+
+    ->addSelect('t.*')
+    ->leftJoin('p.Translation t WITH t.lang = "en"')
+  ;
+
+  $comments = $q->execute();
+//  $comments = $q->fetchOne();
+
+  print_r($comments->getTags(true));die;
+//
+//  foreach ($comments as $comment)
+//  {
+//    $handler->addContentReferencedTags(
+//      $comment, 'NS', true
+//    );
+//
+//    print_r($handler->getContentTags('NS'));
+//    die;
+//  }
+
   $connection = BlogPostTable::getInstance()->getConnection();
   $connection->beginTransaction();
-  
+
   $posts = BlogPostTable::getInstance()->findAll();
 
   $t->ok(count($posts->getTags() > count($posts->delete()->getTags())));
@@ -35,8 +62,8 @@
   $postTagKey = BlogPostTable::getInstance()->getClassnameToReturn();
   $postCommentTagKey = BlogPostCommentTable::getInstance()->getClassnameToReturn();
 
-  $postCollectionTag = array("{$postTagKey}"   => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
-  $postCommentCollectionTag = array("{$postCommentTagKey}"   => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
+  $postCollectionTag = array("{$postTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
+  $postCommentCollectionTag = array("{$postCommentTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
 
   $t->is(
     $posts->getTags(),
@@ -87,5 +114,5 @@
   }
 
   $connection->rollback();
-  
-  
+
+

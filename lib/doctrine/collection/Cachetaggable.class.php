@@ -72,10 +72,10 @@
     /**
      * Returns this collection and added tags
      *
-     * @param boolean $isRecursively
+     * @param boolean $deep
      * @return array
      */
-    public function getTags ($isRecursively = false)
+    public function getTags ($deep = false)
     {
       if (! $this->getTable()->hasTemplate(
         sfCacheTaggingToolkit::TEMPLATE_NAME
@@ -115,7 +115,7 @@
             ? $objectVersion
             : $freshestVersion;
 
-          $tags = $isRecursively ? $object->getTags(true) : $object->getTags();
+          $tags = $deep ? $object->getTags(true) : $object->getTags();
 
           $tagHandler->addContentTags($tags, $this->getNamespace());
         }

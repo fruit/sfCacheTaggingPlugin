@@ -29,6 +29,15 @@
       'versionColumn'   => 'object_version',
     );
 
+    /**
+     * Copy & pasted from Doctrine_Record::toArray() 
+     *
+     * @var integer $_state the state of this record
+     * @see Doctrine_Record::STATE_* constants
+     */
+    protected $_state = null;
+
+
     protected $objectIdentifiers = array();
 
     /**
@@ -100,10 +109,10 @@
     /**
      * Retrieves object's tags and appended tags
      *
-     * @param boolean $isRecursively collect tags from joined related objects
+     * @param boolean $deep collect tags from joined related objects
      * @return array object tags (self and external from ->addTags())
      */
-    public function getTags ($isRecursively = false)
+    public function getTags ($deep = false)
     {
       try
       {
@@ -114,7 +123,22 @@
         return array();
       }
 
+      if (
+          $this->_state == Doctrine_Record::STATE_LOCKED
+        ||
+          $this->_state == Doctrine_Record::STATE_TLOCKED
+      )
+      {
+        return array();
+      }
+
       $invoker = $this->getInvoker();
+
+      $stateBeforeLock = $this->_state;
+
+      $this->_state = $invoker->exists()
+        ? Doctrine_Record::STATE_LOCKED
+        : Doctrine_Record::STATE_TLOCKED;
 
       $className = sfCacheTaggingToolkit::getBaseClassName(get_class($invoker));
 
@@ -128,16 +152,35 @@
         $this->getInvokerNamespace()
       );
       
-      if ($isRecursively)
+      if ($deep)
       {
-        $tagHandler->addContentReferencedTags(
-          $invoker, $this->getInvokerNamespace(), $isRecursively
-        );
+        foreach ($invoker->getReferences() as $reference)
+        {
+          if ( ! $reference instanceof Doctrine_Null)
+          {
+            $table = $reference->getTable();
+
+            if (! $table->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
+            {
+              continue;
+            }
+            
+            $tagHandler->addContentTags(
+              $reference->getTags(true), $this->getInvokerNamespace()
+            );
+          }
+        }
       }
 
+      /**
+       * @todo mistical code (switching added tags with fetch on the fly)
+       *       maybe copy & past from toArray()?
+       */
       $tags = $tagHandler->getContentTags($this->getInvokerNamespace());
 
       $tagHandler->removeContentTags($this->getInvokerNamespace());
+
+      $this->_state = $stateBeforeLock;
 
       return $tags;
     }
@@ -207,7 +250,7 @@
         );
       }
 
-      $objectTable = $object->getTable();
+      $table = $object->getTable();
 
       $columnValues = array(
         sfCacheTaggingToolkit::getBaseClassName($objectClassName)
@@ -219,7 +262,7 @@
       {
         if (! array_key_exists($objectClassName, $this->objectIdentifiers))
         {
-          $uniqueColumns = $objectTable->getIdentifierColumnNames();
+          $uniqueColumns = $table->getIdentifierColumnNames();
 
           $keyFormat = implode('_', array_fill(0, count($uniqueColumns), '%s'));
 
@@ -247,21 +290,18 @@
       /**
        * Hack to speed-up Doctrine_Record::get()
        */
-      $accessorOverrideAttribute = $objectTable->getAttribute(
+      $accessorOverrideAttribute = $table->getAttribute(
         Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE
       );
 
-      $objectTable->setAttribute(
-        Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE,
-        false
-      );
+      $table->setAttribute(Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE, false);
 
       foreach ($uniqueColumns as $columnName)
       {
         $columnValues[] = $object->get($columnName);
       }
 
-      $objectTable->setAttribute(
+      $table->setAttribute(
         Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE,
         $accessorOverrideAttribute
       );

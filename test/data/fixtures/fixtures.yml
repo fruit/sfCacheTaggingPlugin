@@ -27,6 +27,27 @@ BlogPost:
       ru:
         content: 'Баз, Баз, Баз'
 
+BlogPostVote:
+  v01: { BlogPost: a, rate: 2 }
+  v02: { BlogPost: a, rate: 2 }
+  v03: { BlogPost: a, rate: 1 }
+  v04: { BlogPost: a, rate: 2 }
+  v06: { BlogPost: a, rate: 1 }
+
+  v07: { BlogPost: b, rate: 5 }
+  v08: { BlogPost: b, rate: 5 }
+  v09: { BlogPost: b, rate: 4 }
+  
+  v10: { BlogPost: c, rate: 4 }
+  v12: { BlogPost: c, rate: 3 }
+  v13: { BlogPost: c, rate: 4 }
+  v14: { BlogPost: c, rate: 4 }
+  v15: { BlogPost: c, rate: 5 }
+  v16: { BlogPost: c, rate: 3 }
+  v17: { BlogPost: c, rate: 3 }
+  v18: { BlogPost: c, rate: 4 }
+  v19: { BlogPost: c, rate: 3 }
+
 BlogPostComment:
   ac0: { author: fruit, message: 'Hi!', BlogPost: a }
   ac1: { author: david, message: 'Ha-ya!', BlogPost: a }
@@ -35,3 +56,4 @@ BlogPostComment:
   bc1: { author: david, message: 'Bye-Bye!', BlogPost: b }
   bc2: { author: david, message: 'Have a nice day!', BlogPost: b }
   bc3: { author: marko, message: 'Tra-ala', BlogPost: c }
+  bc4: { author: unknown, message: 'No-commments' }
