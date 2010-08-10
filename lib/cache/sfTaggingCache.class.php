@@ -16,7 +16,7 @@
    * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class sfTaggingCache extends sfCache
+  class sfTaggingCache extends sfCache implements sfTaggingCacheInterface
   {
     /**
      * This cache stores your data any instanceof sfCache
@@ -711,5 +711,13 @@
     protected function getMetadataClassName ()
     {
       return $this->getOption('metadata.class', 'CacheMetadata');
+    }
+
+    /**
+     * @return array registered keys in storage
+     */
+    public function getCacheInfo ()
+    {
+      return $this->getDataCache()->getCacheInfo();
     }
   }

@@ -21,23 +21,23 @@
 
   $t = new lime_test();
 
-  $handler = new sfContentTagHandler();
-  $q = BlogPostCommentTable::getInstance()->createQuery('c');
-  $q
-    ->addSelect('c.*')
-    ->addSelect('p.*')
-    ->leftJoin('c.BlogPost p')
-    ->addSelect('v.*')
-    ->leftJoin('p.BlogPostVote v')
-
-    ->addSelect('t.*')
-    ->leftJoin('p.Translation t WITH t.lang = "en"')
-  ;
-
-  $comments = $q->execute();
-//  $comments = $q->fetchOne();
-
-  print_r($comments->getTags(true));die;
+//  $handler = new sfContentTagHandler();
+//  $q = BlogPostCommentTable::getInstance()->createQuery('c');
+//  $q
+//    ->addSelect('c.*')
+//    ->addSelect('p.*')
+//    ->leftJoin('c.BlogPost p')
+//    ->addSelect('v.*')
+//    ->leftJoin('p.BlogPostVote v')
+//
+//    ->addSelect('t.*')
+//    ->leftJoin('p.Translation t WITH t.lang = "en"')
+//  ;
+//
+//  $comments = $q->execute();
+////  $comments = $q->fetchOne();
+//
+//  print_r($comments->getTags(true));die;
 //
 //  foreach ($comments as $comment)
 //  {

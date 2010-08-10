@@ -17,7 +17,7 @@
    * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class sfFileTaggingCache extends sfFileCache
+  class sfFileTaggingCache extends sfFileCache implements sfTaggingCacheInterface
   {
     /**
      * @see sfFileCache::get()
@@ -35,5 +35,17 @@
     public function set ($key, $data, $lifetime = null)
     {
       return parent::set($key, serialize($data), $lifetime);
+    }
+
+    /**
+     * @return array
+     */
+    public function getCacheKeys ()
+    {
+      return glob(
+        $this->getOption('cache_dir') . DIRECTORY_SEPARATOR .
+        str_replace(sfCache::SEPARATOR, DIRECTORY_SEPARATOR, $pattern) .
+        self::EXTENSION
+      );
     }
   }

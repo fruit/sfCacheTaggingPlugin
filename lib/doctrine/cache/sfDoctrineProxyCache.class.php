@@ -34,13 +34,11 @@
      * @see parent::_doSave()
      * @return boolean
      */
-    protected function _doSave ($id, $data, $lifeTime = false)
+    protected function _doSave ($id, $data, $ttl = false)
     {
       try
       {
-        return $this->getTaggingCache()->set(
-          $id, $data, ! $lifeTime ? null : $lifeTime
-        );
+        return $this->getTaggingCache()->set($id, $data, ! $ttl ? null : $ttl);
       }
       catch (sfCacheDisabledException $e)
       {
@@ -54,15 +52,13 @@
      * @see parent::_doSave()
      * @return boolean
      */
-    protected function _doSaveWithTags ($id, $data, $lifeTime = false, 
-      array $tags = array()
-    )
+    protected function _doSaveWithTags ($id, $data, $ttl, $tags)
     {
       try
       {
-        return $this->getTaggingCache()->set(
-          $id, $data, ! $lifeTime ? null : $lifeTime, $tags
-        );
+        return $this
+          ->getTaggingCache()
+          ->set($id, $data, ! $ttl ? null : $ttl, $tags);
       }
       catch (sfCacheDisabledException $e)
       {
@@ -80,7 +76,14 @@
      */
     protected function _getCacheKeys ()
     {
-      return array();
+      try
+      {
+        return $this->getTaggingCache()->getCacheKeys();
+      }
+      catch (sfCacheDisabledException $e)
+      {
+        # be silent - sf_cache is disabled for this environment
+      }
     }
 
     /**
@@ -91,8 +94,6 @@
     {
       try
       {
-        $this->getTaggingCache()->remove($id);
-
         return $this->getTaggingCache()->remove($id);
       }
       catch (sfCacheDisabledException $e)
@@ -127,19 +128,18 @@
      */
     protected function _doFetch ($id, $testCacheValidity = true)
     {
-      $value = false;
-
       try
       {
         $value = $this->getTaggingCache()->get($id);
-        $value = null === $value ? false : $value;
+
+        return null === $value ? false : $value;
       }
       catch (sfCacheDisabledException $e)
       {
         # be silent - sf_cache is disabled for this environment
       }
 
-      return $value;
+      return false;
     }
 
     /**
@@ -147,16 +147,12 @@
      *
      * @param string  $id
      * @param string  $data
-     * @param int     $lifeTime
+     * @param int     $ttl    Time To Live
      * @param array   $tags
      * @return boolean
      */
-    public function saveWithTags ($id, $data, $lifeTime = false,
-      array $tags = array()
-    )
+    public function saveWithTags ($id, $data, $ttl = false, array $tags = array())
     {
-      return $this->_doSaveWithTags(
-        $this->_getKey($id), $data, $lifeTime, $tags
-      );
+      return $this->_doSaveWithTags($this->_getKey($id), $data, $ttl, $tags);
     }
   }

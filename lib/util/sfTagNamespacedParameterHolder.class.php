@@ -37,34 +37,40 @@
         ));
       }
 
-      parent::remove($tagName, $default, $ns);
+      return parent::remove($tagName, $default, $ns);
     }
 
     /**
      * Adds tag with its version to the holder
      *
      * @param string  $tagName
-     * @param mixed   $tagVersion
+     * @param numeric $tagVersion
      * @param mixed   $ns
      *
      * @return void
      */
     public function set ($tagName, $tagVersion, $ns = null)
     {
+      if (! $ns)
+      {
+        $ns = $this->default_namespace;
+      }
+
       if (! is_string($tagName))
       {
         throw new InvalidArgumentException(sprintf(
-          'Called "%s" with invalid first argument type "%s". ' .
+          'Called "%s" with invalid first argument "$tagName" type "%s". ' .
             'Acceptable type is: "string"',
           __METHOD__,
           gettype($tagName)
         ));
       }
 
-      if (null !== $tagVersion && ! is_scalar($tagVersion))
+      if (! is_numeric($tagVersion))
       {
         throw new InvalidArgumentException(sprintf(
-          'Called "%s" with invalid second argument type "%s".  are scalars',
+          'Called "%s" with invalid second argument "$tagVersion" type "%s". ' .
+            'Acceptable type is: "numeric"',
           __METHOD__,
           gettype($tagVersion)
         ));
@@ -77,8 +83,7 @@
       
       # skip old tag versions
       if (
-          ! isset($this->parameters[$ns][$tagName])
-        ||
+          ! isset($this->parameters[$ns][$tagName]) ||
           $tagVersion > $this->parameters[$ns][$tagName]
       )
       {

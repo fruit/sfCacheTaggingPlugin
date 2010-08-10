@@ -18,6 +18,7 @@
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfSQLiteTaggingCache extends sfSQLiteCache
+    implements sfTaggingCacheInterface
   {
     /**
      * @see sfSQLiteCache::get()
@@ -35,5 +36,13 @@
     public function set ($key, $data, $lifetime = null)
     {
       return parent::set($key, serialize($data), $lifetime);
+    }
+
+    /**
+     * @return array
+     */
+    public function getCacheKeys ()
+    {
+      return $this->dbh->arrayQuery('SELECT key FROM cache WHERE 1', SQLITE_ASSOC);
     }
   }

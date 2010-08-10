@@ -15,13 +15,15 @@
   $t = new lime_test();
 
   $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
+  
 
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
   /* @var $cacheManager sfViewCacheTagManager */
 
   $q = BlogPostTable::getInstance()->createQuery('p');
   $t->isa_ok($q->getResultCacheDriver(), 'sfDoctrineProxyCache', 'instance of Proxy');
+
+  $connection->beginTransaction();
 
   $q
     ->useResultCache()
@@ -56,4 +58,68 @@
 
   $t->ok(! $q->getResultCacheDriver()->contains($hash), 'cache removed');
 
+  $t->is(
+    $q->getResultCacheDriver()->save(md5('key'), serialize(array(1, 3, 5)), 291),
+    true
+  );
+
   $connection->rollback();
+  
+  $q->clearResultCache();
+  
+  
+  # with sfCacheDisabledException
+
+  $optionSfCache = sfConfig::get('sf_cache');
+  sfConfig::set('sf_cache', false);
+
+  $q = BlogPostTable::getInstance()->createQuery('p');
+
+  $connection->beginTransaction();
+  $q
+    ->useResultCache()
+    ->select('*')
+    ->addWhere('id != ?', 4)
+    ->leftJoin('p.BlogPostComment c')
+    ->limit(5);
+
+  $q->clearResultCache();
+
+  $hash = $q->getResultCacheHash();
+
+  $t->ok(! $q->getResultCacheDriver()->contains($hash), 'hash is new');
+
+  $posts = $q->execute();
+
+  $t->is($q->getResultCacheDriver()->contains($hash), false);
+
+  $t->is($q->getResultCacheDriver()->fetch($hash), false);
+
+  $post = $posts->getFirst();
+
+  $post->delete();
+
+  $t->is($q->getResultCacheDriver()->contains($hash), false);
+
+  $posts = $q->execute();
+
+  $t->is($q->getResultCacheDriver()->contains($hash), false);
+
+  $t->is($q->getResultCacheDriver()->delete($hash), false);
+
+  $t->is($q->getResultCacheDriver()->contains($hash), false);
+
+  $t->is(
+    $q->getResultCacheDriver()->save(md5('key'), serialize(array(1, 3, 5)), 291),
+    false
+  );
+
+  $connection->rollback();
+
+
+  $q->clearResultCache();
+
+
+
+
+  sfConfig::set('sf_cache', $optionSfCache);

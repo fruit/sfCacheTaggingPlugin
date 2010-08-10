@@ -122,7 +122,7 @@
 
         $existingCollectionVersion = $taggingCache->getTag($formatedClassName);
 
-        if ($existingCollectionVersion && ($existingCollectionVersion < $freshestVersion))
+        if (! $existingCollectionVersion || ($existingCollectionVersion < $freshestVersion))
         {
           $newCollectionVersion = $freshestVersion;
         }
