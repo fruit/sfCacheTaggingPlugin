@@ -58,6 +58,18 @@
 
   $t->ok(! $q->getResultCacheDriver()->contains($hash), 'cache removed');
 
+  # _ getCacheKeys
+
+  $posts = $q->execute();
+
+  $hash = $q->getResultCacheHash();
+
+  $t->ok($q->getResultCacheDriver()->contains($hash), 'cache exists');
+
+  $q->getResultCacheDriver()->deleteAll();
+  
+  $t->ok(! $q->getResultCacheDriver()->contains($hash), 'cache removed');
+
   $t->is(
     $q->getResultCacheDriver()->save(md5('key'), serialize(array(1, 3, 5)), 291),
     true
@@ -109,6 +121,17 @@
 
   $t->is($q->getResultCacheDriver()->contains($hash), false);
 
+  # _ getCacheKeys
+  $posts = $q->execute();
+
+  $hash = $q->getResultCacheHash();
+
+  $t->ok(! $q->getResultCacheDriver()->contains($hash), 'cache not saved');
+
+  $q->getResultCacheDriver()->deleteAll();
+
+  $t->ok(! $q->getResultCacheDriver()->contains($hash), 'cache removed');
+
   $t->is(
     $q->getResultCacheDriver()->save(md5('key'), serialize(array(1, 3, 5)), 291),
     false
@@ -118,8 +141,5 @@
 
 
   $q->clearResultCache();
-
-
-
 
   sfConfig::set('sf_cache', $optionSfCache);

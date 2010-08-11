@@ -84,6 +84,8 @@
       {
         # be silent - sf_cache is disabled for this environment
       }
+      
+      return;
     }
 
     /**

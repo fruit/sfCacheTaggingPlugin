@@ -716,8 +716,8 @@
     /**
      * @return array registered keys in storage
      */
-    public function getCacheInfo ()
+    public function getCacheKeys ()
     {
-      return $this->getDataCache()->getCacheInfo();
+      return $this->getDataCache()->getCacheKeys();
     }
   }

@@ -252,9 +252,9 @@
 
       $afterDeleteComments = $table->count();
 
-      3 == $afterDeleteComments
+      4 == $afterDeleteComments
         ? $t->pass('Removed all davids comments')
-        : $t->fail('Not removed davids comments');
+        : $t->fail("Not removed davids comments {$afterDeleteComments}");
 
       $t->is(null === ($taggingCache->get('posts+comments')), true, '"posts+comments" is not expired, removed 3 comments');
 
@@ -365,5 +365,6 @@
 
       $cc->run();
 
+      $taggingCache->clean();
     }
   }

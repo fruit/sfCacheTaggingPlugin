@@ -13,7 +13,7 @@
    * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class sfXCacheCacheTaggingCache extends sfXCacheCache
+  class sfXCacheTaggingCache extends sfXCacheCache
     implements sfTaggingCacheInterface
   {
     /**
@@ -32,7 +32,7 @@
         {
           foreach ($infos['cache_list'] as $info)
           {
-            $keys[] = $info['name'];
+            $keys[] = substr($info['name'], strlen($this->getOption('prefix')));
           }
         }
       }

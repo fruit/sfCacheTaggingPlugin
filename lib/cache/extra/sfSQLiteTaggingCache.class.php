@@ -43,6 +43,14 @@
      */
     public function getCacheKeys ()
     {
-      return $this->dbh->arrayQuery('SELECT key FROM cache WHERE 1', SQLITE_ASSOC);
+      $keys = array();
+      $rows = $this->dbh->arrayQuery('SELECT key FROM cache WHERE 1', SQLITE_ASSOC);
+
+      foreach ($rows as $row)
+      {
+        $keys[] = $row['key'];
+      }
+
+      return $keys;
     }
   }

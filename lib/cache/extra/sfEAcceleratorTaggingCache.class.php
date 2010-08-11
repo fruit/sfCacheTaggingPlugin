@@ -32,7 +32,7 @@
 
       foreach ($infos as $info)
       {
-        $keys[] = $info['name'];
+        $keys[] = substr($info['name'], strlen($this->getOption('prefix')));
       }
 
       return $keys;

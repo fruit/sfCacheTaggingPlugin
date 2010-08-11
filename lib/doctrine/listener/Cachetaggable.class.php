@@ -101,7 +101,7 @@
       $object = $event->getInvoker();
       
       # do not set new object version if no fields are modified
-      if (0 == count($object->getModified()))
+      if (! $object->isNew() && 0 == count($object->getModified()))
       {
         return;
       }

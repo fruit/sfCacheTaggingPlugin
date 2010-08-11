@@ -42,10 +42,18 @@
      */
     public function getCacheKeys ()
     {
-      return glob(
-        $this->getOption('cache_dir') . DIRECTORY_SEPARATOR .
-        str_replace(sfCache::SEPARATOR, DIRECTORY_SEPARATOR, $pattern) .
-        self::EXTENSION
-      );
+      $cacheDir = $this->getOption('cache_dir') . DIRECTORY_SEPARATOR;
+
+      $keys = array();
+
+      foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->getOption('cache_dir'))) as $path)
+      {
+        $key = str_replace($this->getOption('cache_dir').DIRECTORY_SEPARATOR, '', $path);
+        $key = str_replace(DIRECTORY_SEPARATOR, self::SEPARATOR, $key);
+        $key = substr($key, 0, - strlen(self::EXTENSION));
+        $keys[] = $key;
+      }
+
+      return $keys;
     }
   }

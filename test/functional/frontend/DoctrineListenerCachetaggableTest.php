@@ -158,3 +158,16 @@
   $t->ok(! $sfTagger->hasTag($bananasTagName), 'After SoftDelete "deletes" objects - tag cache is removed too');
 
   $connection->rollback();
+
+  $univeristies = UniversityTable::getInstance()->findAll();
+
+  try
+  {
+    $univeristies->getTags();
+
+    $t->pass('Running getTags() on NON-Cachetaggable model');
+  }
+  catch (LogicException $e)
+  {
+    $t->pass($e->getMessage());
+  }

@@ -1,7 +1,7 @@
 -
-  class: sfMemcacheCache
+  class: sfMemcacheTaggingCache
   param:
-    prefix: sf
+    prefix: test
     persistent: true
     storeCacheInfo: true
     host: localhost
@@ -9,24 +9,30 @@
     timeout: 1
     lifetime: 900
 -
-  class: sfAPCCache
+  class: sfAPCTaggingCache
   param:
+    prefix: test
     lifetime: 600
 -
   class: sfSQLiteTaggingCache
   param:
+    prefix: "" # does not have prefixes
     database: <?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite.db
 -
   class: sfSQLiteTaggingCache
   param:
+    prefix: "" # does not have prefixes
     database: ":memory:"
 -
   class: sfFileTaggingCache
   param:
+    prefix: "" # does not have prefixes
     cache_dir: <?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/file
 -
-  class: sfEAcceleratorCache
-  param: {}
+  class: sfEAcceleratorTaggingCache
+  param:
+    prefix: test
 -
-  class: sfXCacheCache
-  param: {}
+  class: sfXCacheTaggingCache
+  param:
+    prefix: test

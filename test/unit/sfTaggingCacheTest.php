@@ -27,7 +27,7 @@
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'tags' => array(),
         'logger' => array('class' => 'sfNoTaggingLogger'),
       ),
@@ -35,7 +35,7 @@
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'tags' => array('class' => 'sfCallable', 'param' => array()),
         'logger' => array('class' => 'sfNoLogger'),
       ),
@@ -43,7 +43,7 @@
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'tags' => array('class' => 'noSuchClassExists', 'param' => array()),
         'logger' => array('class' => 'sfNoLogger'),
       ),
@@ -51,7 +51,7 @@
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'tags' => array('param' => array()),
         'logger' => array('class' => 'sfNoLogger'),
       ),
@@ -66,13 +66,13 @@
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'logger' => array(),
       ),
       'exceptionClass' => 'sfInitializationException',
@@ -80,28 +80,28 @@
 
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'logger' => array('class' => null),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'logger' => array('class' => 'sfCallable', 'param' => array()),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'logger' => array('class' => 'sfClassNotFound', 'param' => array()),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCCache', 'param' => array()),
+        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'logger' => array('class' => 'sfFileCacheTagLogger', 'param' => array(
           'file' => sfConfig::get('sf_log_dir') . '/cache.log',
         )),
@@ -134,7 +134,7 @@
 
   $differentCacheEngines = array(
     'data' => array(
-      'class' => 'sfAPCCache',
+      'class' => 'sfAPCTaggingCache',
       'param' => array(
         'cache_dir' => sfConfig::get('sf_cache_dir') . '/test',
       )
@@ -295,6 +295,8 @@
 
   # clean
 
+  $c->clean(sfCache::ALL);
+
   $c = new sfTaggingCache($differentCacheEngines);
 
   $t->ok($c->set('file', 'robots.txt', 1000, array('X_1' => 928, 'X_3' => '187')));
@@ -311,7 +313,18 @@
   $t->is($c->getTag('X_1'), null);
   $t->is($c->getTag('X_3'), null);
   
-
   # getContentTagHandler
-
   $t->isa_ok($c->getContentTagHandler(), 'sfContentTagHandler');
+
+  # getCacheKeys
+
+  $c->clean(sfCache::ALL);
+
+  $c->set('CityA', 'City A');
+  $c->set('CityB', 'City B');
+
+  $keys = $c->getCacheKeys();
+  sort($keys);
+  
+  $t->is(gettype($keys), 'array');
+  $t->is($keys, array('CityA', 'CityB'));

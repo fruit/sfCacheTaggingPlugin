@@ -28,9 +28,9 @@
 
       foreach ($infos['cache_list'] as $info)
       {
-        $keys[] = $info['info'];
+        $keys[] = substr($info['info'], strlen($this->getOption('prefix')));
       }
 
-      return $key;
+      return $keys;
     }
   }
