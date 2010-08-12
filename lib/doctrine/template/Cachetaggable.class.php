@@ -191,6 +191,7 @@
      * @param mixed $tags Adds tags to current object.
      *                    Supported types are: Doctrine_Record, ArrayAccess,
      *                    Doctrine_Collection_Cachetaggable, array.
+     * @return boolean
      */
     public function addTags ($tags)
     {
@@ -199,11 +200,15 @@
         $this
           ->getContentTagHandler()
           ->addContentTags($tags, $this->getInvokerNamespace());
+
+        return true;
       }
       catch (sfCacheDisabledException $e)
       {
         
       }
+
+      return false;
     }
 
     /**
@@ -211,20 +216,24 @@
      *
      * @param string      $tagName
      * @param int|string  $tagVersion
+     * @return boolean
      */
     public function addTag ($tagName, $tagVersion)
     {
-
       try
       {
         $this
           ->getContentTagHandler()
           ->setContentTag($tagName, $tagVersion, $this->getInvokerNamespace());
+
+        return true;
       }
       catch (sfCacheDisabledException $e)
       {
 
       }
+
+      return false;
     }
 
     /**
@@ -306,13 +315,6 @@
         $accessorOverrideAttribute
       );
 
-      if (0 === count($columnValues))
-      {
-        throw new sfConfigurationException(
-          'Please setup column names to build tag name'
-        );
-      }
-
       return call_user_func_array(
         'sprintf', array_merge(array("%s_{$keyFormat}"), $columnValues)
       );
@@ -326,11 +328,7 @@
      */
     public function setObjectVersion ($version)
     {
-      $invoker = $this->getInvoker();
-
-      $invoker->set($this->getOption('versionColumn'), $version);
-
-      return $invoker;
+      return $this->getInvoker()->set($this->getOption('versionColumn'), $version);
     }
 
     /**
@@ -345,11 +343,11 @@
 
     /**
      * Updates object version
-     *
+     * @return Doctrine_Recotd
      */
     public function updateObjectVersion ()
     {
-      $this->setObjectVersion(sfCacheTaggingToolkit::generateVersion());
+      return $this->setObjectVersion(sfCacheTaggingToolkit::generateVersion());
     }
 
     /**
