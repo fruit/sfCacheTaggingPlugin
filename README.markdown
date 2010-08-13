@@ -17,7 +17,7 @@ Some ideas are implemented in the real world (e.g. tag versions based on datetim
 and microtime, cache hit/set logging, cache locking) and part of them
 are not (atomic counter).
 
-## Ilustration ##?
+## Illustration ##?
 
 ## Contribution ##
 
@@ -56,7 +56,7 @@ are not (atomic counter).
     records in back-end, so object tags should be updated to invalidate front-end cache.
 
     I recommend you to create default ``factories.yml`` for all applications you have by
-    creating a file ``/config/factories.yml`` (you could find explaind
+    creating a file ``/config/factories.yml`` (you could find explained
     and short working examples bellow).
 
     Symfony will check for this file and will load it as a default ``factories.yml``
@@ -73,9 +73,9 @@ are not (atomic counter).
             class: sfTaggingCache
             param:
               cache:
-                class: sfMemcacheCache      # Content will be stored in Memcache
-                                            # Here you can switch to any other backend
-                                            # (see Restrictions block for more info)
+                class: sfMemcacheTaggingCache   # Content will be stored in Memcache
+                                                # Here you can switch to any other backend
+                                                # (see Restrictions block for more info)
                 param:
                   persistent: true
                   storeCacheInfo: true
@@ -84,17 +84,10 @@ are not (atomic counter).
                   timeout: 5
                   lifetime: 86400           # default value is 1 day (in seconds)
 
-              tagger: ~
-
-              locker:                       # storage for locks (could be the same as
+              tags: ~                       # storage for tags (could be the same as
                                             # the cache storage)
-                                            # if "locker" not setted (is "~"), it will
-                                            # be the same as cache (e.i. sfMemcacheCache)
-
-                class: sfAPCCache           # Locks will be stored in APC
-                                            # Here you can switch to any other backend sf*Cache
-                                            # (see Restrictions block for more info)
-                param: {}
+                                            # if "tags" is NULL (~), it will
+                                            # be the same as cache (e.i. sfMemcacheTaggingCache)
 
               logger:
                 class: sfFileCacheTagLogger # to disable logger, set class to "sfNoCacheTagLogger"
@@ -156,8 +149,10 @@ are not (atomic counter).
             param:
               lifetime: 86400
               logging: true
-              cache: { class: sfAPCCache, param: {} }
-              locker: ~
+              cache:
+                class: sfAPCTaggingCache
+                param: {}
+              tags: ~
               logger:
                 class: sfCacheTagLogger
                 param:
@@ -171,11 +166,18 @@ are not (atomic counter).
               cache_key_use_host_name:    true
 
   > **Restrictions**: Backend's class should be inherited from ``sfCache``
-    class. Also, it should support the caching of objects and/or arrays.
+    class. Then, it should be implement sfTaggingCacheInterface 
+    (due a Doctrine cache engine compatibility).
+    Also, it should support the caching of objects and/or arrays.
 
-  > **Bonus**: In additional to this plugin comes ``sfFileTaggingCache``
-    and ``sfSQLiteTaggingCache`` which are ready to use as backend class.
-    This classes already have serialization/unserialization support.
+    Therefor, plugin comes with additional extended cache backend classes:
+
+      - sfAPCTaggingCache
+      - sfEAcceleratorTaggingCache
+      - sfFileTaggingCache
+      - sfMemcacheTaggingCache
+      - sfSQLiteTaggingCache
+      - sfXCacheTaggingCache
 
 1.  Add "Cachetaggable" behavior to each model, which you want to cache
 
@@ -185,7 +187,7 @@ are not (atomic counter).
           tableName: your_model
           actAs:
             ## CONFIGURATION SHORT VERSION
-            ## Cachetaggable will detect your primery keys automaticaly
+            ## Cachetaggable will detect your primary keys automatically
             ## and generates uniqueKeyFormat based on PK column count
             ## (e.g. '%s_%s' if table contains 2 primary keys)
             Cachetaggable: ~
@@ -229,6 +231,7 @@ are not (atomic counter).
             standard_helpers:
               # … other helpers
               - Partial     # build-in Symfony helper to work with partials/components
+              - Cache       # build-in Symfony helper to work with cache
 
 1.  Customize ``sfCacheTaggingPlugin`` in the ``app.yml``
 
@@ -245,17 +248,6 @@ are not (atomic counter).
                                         # 5: with micro time part, version length 15 digits
                                         # (allowed decimal numbers in range [0, 6]
 
-            lock_lifetime: 2            # Number of seconds to keep lock, if failed to
-                                        # unlock after locking it.
-                                        # Value should be more then zero.
-
-            tag_lifetime: 86400         # Number of seconds to keep tags alive
-                                        # (default value if not set 86400).
-                                        # It's recommended to keep this value the same as
-                                        # you have declared in factories.yml at
-                                        # "all_view_cache_param_cache_param_lifetime".
-                                        # Value should be more then zero.
-
             #object_class_tag_name_provider: # you can customize tag name naming
             #                                # useful for multi-environment models
             #  - ProjectToolkit              # [class name]
@@ -268,8 +260,6 @@ are not (atomic counter).
             template_lock:        "%SF_ENVIRONMENT%_lock_%s"
             template_tag:         "%SF_ENVIRONMENT%_tag_%s"
             microtime_precision:  5
-            lock_lifetime:        2
-            tag_lifetime:         86400
 
 ## Usage ##
 
@@ -300,7 +290,7 @@ are not (atomic counter).
 
 #### *Components (one-table)*
 
-  To link component with tags you will should call ``$this->setPartialTags();``
+  To link component with tags you should call ``$this->setPartialTags();``
   inside you component.
 
   * Remember to enable specific component caching in ``cache.yml``:
@@ -397,10 +387,10 @@ are not (atomic counter).
             // after, we pass all tags to cache manager
             // See more about all available methods in PHPDOC of file
             // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-            // $this->setUserTags($posts->getTags());
+            // $this->setPartialTags($posts->getTags());
 
             // or shorter
-            $this->setUserTags($posts);
+            $this->setPartialTags($posts);
 
             $this->posts = $posts;
           }
@@ -506,11 +496,14 @@ are not (atomic counter).
 
           $this->posts = $posts;
 
-          // if you run this action again - you will pleasantly suprised
+          // if you run this action again - you will pleasantly surprised
           // $posts now stored in cache and with object tags ;)
           // (object serialization powered by Doctrine build-in mechanism)
           // and expired as soon as you edit one of them
           // or add new record to table "blog_post"
+
+          // when Doctrine_Query has many joins, tags will be fetched
+          // recursively from all joined models
         }
 
 
@@ -531,7 +524,7 @@ are not (atomic counter).
 
           // objects are written to cache with it tags
 
-          // For example, want to $posts will be invalidated if something was chanaged
+          // For example, want to $posts will be invalidated if something was changed
           // in table "culture":
           $q = Doctrine::getTable('Culture')->createQuery();
           $cultures = $q->execute();
@@ -550,7 +543,7 @@ are not (atomic counter).
           $this->posts = $posts;
         }
 
-## Limitations / Specifity ##
+## Limitations / Specificity ##
 
   * In case, when model has translations (I18n behavior), it is enough to add
     "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
@@ -569,70 +562,115 @@ are not (atomic counter).
         [sfCacheTagging] functional/frontend/sfCacheTaggingToolkitTest.......ok
         [sfCacheTagging] functional/frontend/sfContentTagHandlerTest.........ok
         [sfCacheTagging] functional/frontend/sfDoctrineProxyCacheTest........ok
-        [sfCacheTagging] functional/frontend/sfTaggingCacheTest..............ok
         sfCacheTagging] functional/frontend/sfViewCacheTagManagerBridgeTest..ok
         [sfCacheTagging] functional/frontend/sfViewCacheTagManagerTest.......ok
         [sfCacheTagging] functional/notag/DoctrineListenerCachetaggableTest..ok
         [sfCacheTagging] functional/notag/sfCacheTaggingToolkitTest..........ok
-        [sfCacheTagging] unit/DoctrineTemplateCachetaggableTest..............ok
+        [sfCacheTagging] unit/CacheMetadataTest..............................ok
+        [sfCacheTagging] unit/sfCacheTagLoggerTest...........................ok
         [sfCacheTagging] unit/sfCacheTaggingToolkitTest......................ok
         [sfCacheTagging] unit/sfCallableArrayTest............................ok
         [sfCacheTagging] unit/sfContentTagHandlerTest........................ok
+        [sfCacheTagging] unit/sfFileCacheTagLoggerTest.......................ok
+        [sfCacheTagging] unit/sfNoCacheTagLoggerTest.........................ok
+        [sfCacheTagging] unit/sfNoTaggingCacheTest...........................ok
+        [sfCacheTagging] unit/sfTagNamespacedParameterHolderTest.............ok
+        [sfCacheTagging] unit/sfTaggingCacheInterfaceTest....................ok
+        [sfCacheTagging] unit/sfTaggingCacheTest.............................ok
          All tests successful.
-         Files=17, Tests=1256
+         Files=23, Tests=1564
 
   * Coverage report:
 
-        $ ./symfony test:coverage --detailed plugins/sfCacheTaggingPlugin/test/ plugins/sfCacheTaggingPlugin/lib/
-        >> coverage  running /www/sfpro/de...lateCachetaggableTest.php (1/17)
-        >> coverage  running /www/sfpro/de...cheTaggingToolkitTest.php (2/17)
-        >> coverage  running /www/sfpro/de...ContentTagHandlerTest.php (3/17)
-        >> coverage  running /www/sfpro/de...t/sfCallableArrayTest.php (4/17)
-        >> coverage  running /www/sfpro/de...acheTaggingPluginTest.php (5/17)
-        >> coverage  running /www/sfpro/de...ewCacheTagManagerTest.php (6/17)
-        >> coverage  running /www/sfpro/de...enerCachetaggableTest.php (7/17)
-        >> coverage  running /www/sfpro/de...nd/sfTaggingCacheTest.php (8/17)
-        >> coverage  running /www/sfpro/de...lateCachetaggableTest.php (9/17)
-        >> coverage  running /www/sfpro/de...actionWithLayoutTest.php (10/17)
-        >> coverage  running /www/sfpro/de...ctrineProxyCacheTest.php (11/17)
-        >> coverage  running /www/sfpro/de...ionWithoutLayoutTest.php (12/17)
-        >> coverage  running /www/sfpro/de...heTaggingToolkitTest.php (13/17)
-        >> coverage  running /www/sfpro/de...ontentTagHandlerTest.php (14/17)
-        >> coverage  running /www/sfpro/de...TagManagerBridgeTest.php (15/17)
-        >> coverage  running /www/sfpro/de...nerCachetaggableTest.php (16/17)
-        >> coverage  running /www/sfpro/de...heTaggingToolkitTest.php (17/17)
-        plugins/sfCacheTaggingPlugin/lib/cache/sfNoTaggingCache.class           21%
-        plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCache.class             83%
+        ./symfony test:coverage plugins/sfCacheTaggingPlugin/test plugins/sfCacheTaggingPlugin/
+        >> coverage  running …fTagNamespacedParameterHolderTest.php (1/23)
+        >> coverage  running …/test/unit/sfNoCacheTagLoggerTest.php (2/23)
+        >> coverage  running …ugin/test/unit/sfTaggingCacheTest.php (3/23)
+        >> coverage  running …/unit/sfTaggingCacheInterfaceTest.php (4/23)
+        >> coverage  running …est/unit/sfFileCacheTagLoggerTest.php (5/23)
+        >> coverage  running …st/unit/sfCacheTaggingToolkitTest.php (6/23)
+        >> coverage  running …in/test/unit/sfCacheTagLoggerTest.php (7/23)
+        >> coverage  running …in/test/unit/sfNoTaggingCacheTest.php (8/23)
+        >> coverage  running …test/unit/sfContentTagHandlerTest.php (9/23)
+        >> coverage  running …ugin/test/unit/CacheMetadataTest.php (10/23)
+        >> coverage  running …in/test/unit/sfCallableArrayTest.php (11/23)
+        >> coverage  running …rontend/sfCacheTaggingPluginTest.php (12/23)
+        >> coverage  running …ontend/sfViewCacheTagManagerTest.php (13/23)
+        >> coverage  running …octrineListenerCachetaggableTest.php (14/23)
+        >> coverage  running …octrineTemplateCachetaggableTest.php (15/23)
+        >> coverage  running …al/frontend/actionWithLayoutTest.php (16/23)
+        >> coverage  running …rontend/sfDoctrineProxyCacheTest.php (17/23)
+        >> coverage  running …frontend/actionWithoutLayoutTest.php (18/23)
+        >> coverage  running …ontend/sfCacheTaggingToolkitTest.php (19/23)
+        >> coverage  running …frontend/sfContentTagHandlerTest.php (20/23)
+        >> coverage  running …/sfViewCacheTagManagerBridgeTest.php (21/23)
+        >> coverage  running …octrineListenerCachetaggableTest.php (22/23)
+        >> coverage  running …/notag/sfCacheTaggingToolkitTest.php (23/23)
+        plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCacheInterface.class   100%
+        plugins/sfCacheTaggingPlugin/lib/cache/sfNoTaggingCache.class          100%
+        plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCache.class            100%
         lugins/sfCacheTaggingPlugin/lib/cache/extra/sfSQLiteTaggingCache.class 100%
         plugins/sfCacheTaggingPlugin/lib/cache/extra/sfFileTaggingCache.class  100%
-        lugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class  66%
+        plugins/sfCacheTaggingPlugin/lib/cache/extra/sfAPCTaggingCache.class    91%
+        /sfCacheTaggingPlugin/lib/cache/extra/sfEAcceleratorTaggingCache.class  25%
+        gins/sfCacheTaggingPlugin/lib/cache/extra/sfMemcacheTaggingCache.class 100%
+        lugins/sfCacheTaggingPlugin/lib/cache/extra/sfXCacheTaggingCache.class  20%
+        plugins/sfCacheTaggingPlugin/lib/cache/CacheMetadata.class             100%
+        lugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class 100%
         plugins/sfCacheTaggingPlugin/lib/util/sfCallableArray.class            100%
-        plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class       83%
-        plugins/sfCacheTaggingPlugin/lib/util/sfContentTagHandler.class         74%
-        ins/sfCacheTaggingPlugin/lib/util/sfTagNamespacedParameterHolder.class  83%
+        plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class       99%
+        plugins/sfCacheTaggingPlugin/lib/util/sfContentTagHandler.class        100%
+        ins/sfCacheTaggingPlugin/lib/util/sfTagNamespacedParameterHolder.class 100%
         plugins/sfCacheTaggingPlugin/lib/view/sfViewCacheTagManager.class       53%
-        ins/sfCacheTaggingPlugin/lib/doctrine/cache/sfDoctrineProxyCache.class  59%
-        ugins/sfCacheTaggingPlugin/lib/doctrine/collection/Cachetaggable.class  85%
+        plugins/sfCacheTaggingPlugin/lib/log/sfFileCacheTagLogger.class        100%
+        plugins/sfCacheTaggingPlugin/lib/log/sfCacheTagLogger.class            100%
+        plugins/sfCacheTaggingPlugin/lib/log/sfNoCacheTagLogger.class          100%
+        ins/sfCacheTaggingPlugin/lib/doctrine/cache/sfDoctrineProxyCache.class 100%
+        ugins/sfCacheTaggingPlugin/lib/doctrine/collection/Cachetaggable.class  96%
         cheTaggingPlugin/lib/doctrine/query/Cachetaggable_Doctrine_Query.class  79%
-        plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class  69%
-        plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  91%
-        fCacheTaggingPlugin/lib/exception/sfCacheMissingContextException.class   0%
+        plugins/sfCacheTaggingPlugin/lib/doctrine/listener/Cachetaggable.class  68%
+        plugins/sfCacheTaggingPlugin/lib/doctrine/template/Cachetaggable.class  95%
+        fCacheTaggingPlugin/lib/exception/sfCacheMissingContextException.class 100%
         gins/sfCacheTaggingPlugin/lib/exception/sfCacheDisabledException.class 100%
-        TOTAL COVERAGE:  74%
+        gins/sfCacheTaggingPlugin/test/unit/sfTagNamespacedParameterHolderTest  95%
+        plugins/sfCacheTaggingPlugin/test/unit/sfNoCacheTagLoggerTest          100%
+        plugins/sfCacheTaggingPlugin/test/unit/sfTaggingCacheTest              100%
+        plugins/sfCacheTaggingPlugin/test/unit/sfTaggingCacheInterfaceTest     100%
+        plugins/sfCacheTaggingPlugin/test/unit/sfFileCacheTagLoggerTest         97%
+        plugins/sfCacheTaggingPlugin/test/unit/sfCacheTaggingToolkitTest        90%
+        plugins/sfCacheTaggingPlugin/test/unit/sfCacheTagLoggerTest             80%
+        plugins/sfCacheTaggingPlugin/test/unit/sfNoTaggingCacheTest            100%
+        plugins/sfCacheTaggingPlugin/test/unit/sfContentTagHandlerTest         100%
+        plugins/sfCacheTaggingPlugin/test/unit/CacheMetadataTest                97%
+        plugins/sfCacheTaggingPlugin/test/unit/sfCallableArrayTest              92%
+        sfCacheTaggingPlugin/test/functional/frontend/sfCacheTaggingPluginTest  99%
+        fCacheTaggingPlugin/test/functional/frontend/sfViewCacheTagManagerTest  99%
+        ggingPlugin/test/functional/frontend/DoctrineListenerCachetaggableTest  99%
+        ggingPlugin/test/functional/frontend/DoctrineTemplateCachetaggableTest  97%
+        ins/sfCacheTaggingPlugin/test/functional/frontend/actionWithLayoutTest 100%
+        sfCacheTaggingPlugin/test/functional/frontend/sfDoctrineProxyCacheTest 100%
+        /sfCacheTaggingPlugin/test/functional/frontend/actionWithoutLayoutTest 100%
+        fCacheTaggingPlugin/test/functional/frontend/sfCacheTaggingToolkitTest  85%
+        /sfCacheTaggingPlugin/test/functional/frontend/sfContentTagHandlerTest  96%
+        TaggingPlugin/test/functional/frontend/sfViewCacheTagManagerBridgeTest  92%
+        eTaggingPlugin/test/functional/notag/DoctrineListenerCachetaggableTest  95%
+        s/sfCacheTaggingPlugin/test/functional/notag/sfCacheTaggingToolkitTest  91%
+        ns/sfCacheTaggingPlugin/config/sfCacheTaggingPluginConfiguration.class 100%
+        TOTAL COVERAGE:  91%
 
 Every combination is tested (data backend / locker backend) of listed below:
 
-  * sfMemcacheCache
-  * sfAPCCache
-  * sfSQLiteTaggingCache - file (extended from sfSQLiteCache)
-  * sfSQLiteTaggingCache - memory (extended from sfSQLiteCache)
-  * sfFileTaggingCache (extended from sfFilecache)
+  * sfMemcacheTaggingCache
+  * sfAPCTaggingCache
+  * sfSQLiteTaggingCache (file)
+  * sfSQLiteTaggingCache (memory)
+  * sfFileTaggingCache
 
 Partially tested listed below cache adapters. If anyone could help me to run functional tests
 for them, I will be thankful to you:
 
-  * sfXCacheCache
-  * sfEAcceleratorCache
+  * sfXCacheTaggingCache
+  * sfEAcceleratorTaggingCache
 
 ## Contacts ##
 
