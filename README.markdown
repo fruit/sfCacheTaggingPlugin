@@ -89,11 +89,14 @@ are not (atomic counter).
                                             # if "tags" is NULL (~), it will
                                             # be the same as cache (e.i. sfMemcacheTaggingCache)
 
+              metadata:
+                class: CacheMetadata        # this class responses to save/fetch data and tags
+                                            # from/to cache with custom serialization/de-serialization
               logger:
                 class: sfFileCacheTagLogger # to disable logger, set class to "sfNoCacheTagLogger"
                 param:
 
-                  file:         %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log   # log file location
+                  file:         %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
                   
                   file_mode:    0640              # -rw-r----- (default: 0640)
                   dir_mode:     0750              # drwxr-x--- (default: 0750)

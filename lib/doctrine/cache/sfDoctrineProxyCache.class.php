@@ -69,9 +69,6 @@
     }
 
     /**
-     * @todo sf*Cache::getCacheInfo() is protected to use from outside
-     *       base functionality works without this method implementation
-     *
      * @return array
      */
     protected function _getCacheKeys ()
@@ -82,7 +79,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        # be silent - sf_cache is disabled for this environment
+        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
       }
       
       return;

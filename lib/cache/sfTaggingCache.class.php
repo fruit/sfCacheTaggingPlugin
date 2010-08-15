@@ -651,8 +651,6 @@
     /**
      * @see sfCache::clean
      * @param int   $mode   One of sfCache::ALL, sfCache::OLD params
-     * @todo If locker is same as Tagger, but data differs
-     *       why should to initialize 2 similar engines?
      * @return void
      */
     public function clean ($mode = sfCache::ALL)
@@ -705,7 +703,6 @@
      * Return option "metadata.class".
      * If not set, returns default class name "CacheMetadata".
      *
-     * @todo describe this option in README
      * @return string
      */
     protected function getMetadataClassName ()

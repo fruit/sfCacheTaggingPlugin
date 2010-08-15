@@ -549,13 +549,13 @@
      */
     public function checkCacheKey (array & $parameters)
     {
-      $sfCacheTagsKey = 'sf_cache_tags';
+      $tagsKey = 'sf_cache_tags';
 
-      if (isset($parameters[$sfCacheTagsKey]))
+      if (isset($parameters[$tagsKey]))
       {
         $tags = true === sfConfig::get('sf_escaping_strategy')
-          ? sfOutputEscaper::unescape($parameters[$sfCacheTagsKey])
-          : $parameters[$sfCacheTagsKey];
+          ? sfOutputEscaper::unescape($parameters[$tagsKey])
+          : $parameters[$tagsKey];
 
         $this
           ->getContentTagHandler()
@@ -568,7 +568,7 @@
           );
         }
 
-        unset($parameters[$sfCacheTagsKey]);
+        unset($parameters[$tagsKey]);
       }
 
       return parent::checkCacheKey($parameters);

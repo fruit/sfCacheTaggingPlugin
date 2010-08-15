@@ -41,7 +41,7 @@
      * @param string $keyColumn
      * @see Doctrine_Collection::__construct()
      */
-    public function __construct($table, $keyColumn = null)
+    public function __construct ($table, $keyColumn = null)
     {
       parent::__construct($table, $keyColumn);
 
@@ -64,7 +64,7 @@
     /**
      * @return sfTaggingCache
      */
-    protected function getTaggingCache()
+    protected function getTaggingCache ()
     {
       return sfCacheTaggingToolkit::getTaggingCache();
     }
@@ -77,9 +77,7 @@
      */
     public function getTags ($deep = false)
     {
-      if (! $this->getTable()->hasTemplate(
-        sfCacheTaggingToolkit::TEMPLATE_NAME
-      ))
+      if (! $this->getTable()->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
       {
         throw new LogicException(sprintf(
           'Model "%s" has no "%s" templates',
@@ -96,6 +94,8 @@
       }
       catch (sfCacheDisabledException $e)
       {
+        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
+
         return array();
       }
 
@@ -181,13 +181,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        /**
-         * @todo
-         *
-         * Add message to log file about this exception
-         *
-         * sfProjectConfiguration::getActive()->getEventDispatcher()->notify()
-         */
+        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
       }
     }
 
@@ -208,7 +202,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-
+        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
       }
     }
 
@@ -227,7 +221,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-
+        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
       }
     }
 
@@ -245,7 +239,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-
+        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
       }
 
       return $returnValue;

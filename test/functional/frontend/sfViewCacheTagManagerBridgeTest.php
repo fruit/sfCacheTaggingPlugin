@@ -12,6 +12,12 @@
   $browser = new sfTestFunctional(new sfBrowser());
   $t = $browser->test();
 
+  
+  $connection = Doctrine::getConnectionByTableName('BlogPost');
+  $connection->beginTransaction();
+  
+  $cacheManager = sfContext::getInstance()->getViewCacheManager();
+
   try
   {
     $bridge = new sfViewCacheTagManagerBridge(
@@ -153,3 +159,45 @@
   {
     $t->fail($e->getMessage());
   }
+
+  # moved from sfViewCacheTagManager (should be fragmented)
+
+  $bridge = new sfViewCacheTagManagerBridge($cacheManager->getTaggingCache());
+
+  $posts = BlogPostTable::getInstance()->findAll();
+  $posts->delete();
+
+  $posts = BlogPostTable::getInstance()->findAll();
+  $bridge->addPartialTags($posts);
+
+  $postTagKey = BlogPostTable::getInstance()->getClassnameToReturn();
+  $postCollectionTag = array("{$postTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
+
+  $t->is(
+    $bridge->getPartialTags(),
+    $postCollectionTag,
+    'Tags stored in manager are full/same'
+  );
+
+  $bridge->addPartialTags(
+    array('SomeTag' => 1234567890)
+  );
+
+  $t->is(
+    $bridge->getPartialTags(),
+    array_merge(
+      array('SomeTag' => 1234567890),
+      $postCollectionTag
+    ),
+    'Tags with new tag are successfully saved'
+  );
+
+  $bridge->removePartialTags();
+
+  $t->is(
+    $bridge->getPartialTags(),
+    array(),
+    'All tags are cleared'
+  );
+
+  $connection->rollback();

@@ -176,9 +176,8 @@
       }
       catch (sfException $e)
       {
-        /**
-         * @todo notify logger
-         */
+        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
+        
         return;
       }
 
@@ -227,5 +226,13 @@
       }
 
       return $className;
+    }
+
+    public static function notifyApplicationLog ($message, $priority = null)
+    {
+      ProjectConfiguration::getActive()
+        ->getEventDispatcher()
+        ->notify(new sfEvent($this, 'application.log', array($message, $priority)))
+      ;
     }
   }

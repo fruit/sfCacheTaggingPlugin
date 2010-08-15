@@ -82,43 +82,7 @@
     ));
   }
 
-  $bridge = new sfViewCacheTagManagerBridge($cacheManager->getTaggingCache());
-
-  $posts = BlogPostTable::getInstance()->findAll();
-  $posts->delete();
-
-  $posts = BlogPostTable::getInstance()->findAll();
-  $bridge->addPartialTags($posts);
-
-  $postTagKey = BlogPostTable::getInstance()->getClassnameToReturn();
-  $postCollectionTag = array("{$postTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
-
-  $t->is(
-    $bridge->getPartialTags(),
-    $postCollectionTag,
-    'Tags stored in manager are full/same'
-  );
-
-  $bridge->addPartialTags(
-    array('SomeTag' => 1234567890)
-  );
-
-  $t->is(
-    $bridge->getPartialTags(),
-    array_merge(
-      array('SomeTag' => 1234567890),
-      $postCollectionTag
-    ),
-    'Tags with new tag are successfully saved'
-  );
-
-  $bridge->removePartialTags();
-
-  $t->is(
-    $bridge->getPartialTags(),
-    array(),
-    'All tags are cleared'
-  );
+  
 
   $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
   $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());
@@ -144,5 +108,65 @@
 
   sfConfig::set('sf_web_debug', $sfWebDebug);
 
+  # checkCacheKey
+
+  $params = array(
+    
+  );
+  $t->is(strlen($cacheManager->checkCacheKey($params)), 32, 'md5 random key');
+
+  $params = array(
+    'sf_cache_key' => 'my-super-customized-key',
+  );
+
+  $t->is($cacheManager->checkCacheKey($params) ,'my-super-customized-key', 'personal key');
+
+  $tests = array(
+    array(
+      'params' => array(
+        'sf_cache_key' => 'my-super-customized-key',
+        'sf_cache_tags' => null,
+      ),
+      'throw' => false,
+    ),
+    array(
+      'params' => array(
+        'sf_cache_tags' => array('T' => 12931923, 'G_TAG' => 1123.12381723),
+      ),
+      'throw' => true,
+    ),
+    array(
+      'params' => array(
+        'sf_cache_key' => 'my-super-customized-key',
+        'sf_cache_tags' => array('T' => 12931923, 'G_TAG' => 1123.12381723),
+      ),
+      'throw' => false,
+    ),
+    array(
+      'params' => array(
+        'sf_cache_key' => 'my-super-customized-key',
+        'sf_cache_tags' => 1,
+      ),
+      'throw' => true,
+    ),
+  );
+
+  foreach ($tests as $test)
+  {
+    $params = $test['params'];
+    $throw = $test['throw'];
+
+    try
+    {
+      $cacheManager->checkCacheKey($params);
+
+      $t->ok(! $throw);
+    }
+    catch (Exception $e)
+    {
+      $t->ok($throw, sprintf('type: %s, message: %s', get_class($e), $e->getMessage()));
+    }
+  }
 
   $connection->rollback();
+
