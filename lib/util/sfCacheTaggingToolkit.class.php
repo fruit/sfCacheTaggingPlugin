@@ -89,6 +89,14 @@
     }
 
     /**
+     * @return string
+     */
+    public static function getMetadataClassName ()
+    {
+      return sfConfig::get('app_sfcachetaggingplugin_metadata_class', 'CacheMetadata');
+    }
+    
+    /**
      * Format passed tags to the array
      *
      * @param mixed $tags array|Doctrine_Collection_Cachetaggable|
@@ -174,10 +182,20 @@
       {
         $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
       }
-      catch (sfException $e)
+      catch (sfCacheDisabledException $e)
       {
-        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
+        sfCacheTaggingToolkit::notifyApplicationLog(
+          __CLASS__, $e->getMessage(), sfLogger::NOTICE
+        );
         
+        return;
+      }
+      catch (sfConfigurationException $e)
+      {
+        sfCacheTaggingToolkit::notifyApplicationLog(
+          __CLASS__, $e->getMessage(), sfLogger::WARNING
+        );
+
         return;
       }
 
@@ -188,7 +206,8 @@
         );
 
         $event
-          ->setReturnValue(call_user_func_array($callable, $event['arguments']));
+          ->setReturnValue(call_user_func_array($callable, $event['arguments']))
+        ;
       }
       catch (BadMethodCallException $e)
       {
@@ -228,11 +247,16 @@
       return $className;
     }
 
-    public static function notifyApplicationLog ($message, $priority = null)
+    /**
+     * @param mixed   $object   object or string, or null
+     * @param string  $message
+     * @param int     $priority sfLogger::* see constants
+     */
+    public static function notifyApplicationLog ($object, $message, $priority = null)
     {
       ProjectConfiguration::getActive()
         ->getEventDispatcher()
-        ->notify(new sfEvent($this, 'application.log', array($message, $priority)))
+        ->notify(new sfEvent($object, 'application.log', array($message, $priority)))
       ;
     }
   }

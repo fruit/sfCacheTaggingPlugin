@@ -20,7 +20,7 @@
    * @param array $params
    * @return Doctrine_Collection the root collection
    */
-  class Cachetaggable_Doctrine_Query extends Doctrine_Query
+  class Doctrine_Query_Cachetaggable extends Doctrine_Query
   {
     /**
      * @see Doctrine_Query::execute()
@@ -71,7 +71,7 @@
           $cached = $this->getCachedForm($result);
 
           if (
-              $cacheDriver instanceof sfDoctrineProxyCache
+              $cacheDriver instanceof Doctrine_Cache_Proxy
             &&
               $result instanceof Doctrine_Collection_Cachetaggable)
           {

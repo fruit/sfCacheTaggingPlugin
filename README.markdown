@@ -89,9 +89,6 @@ are not (atomic counter).
                                             # if "tags" is NULL (~), it will
                                             # be the same as cache (e.i. sfMemcacheTaggingCache)
 
-              metadata:
-                class: CacheMetadata        # this class responses to save/fetch data and tags
-                                            # from/to cache with custom serialization/de-serialization
               logger:
                 class: sfFileCacheTagLogger # to disable logger, set class to "sfNoCacheTagLogger"
                 param:
@@ -250,19 +247,21 @@ are not (atomic counter).
                                         # 0: without micro time, version length 10 digits
                                         # 5: with micro time part, version length 15 digits
                                         # (allowed decimal numbers in range [0, 6]
+            
+            metadata_class: CacheMetadata   # this class responses to save/fetch data and tags
+                                            # from/to cache with custom serialization/de-serialization
 
             #object_class_tag_name_provider: # you can customize tag name naming
             #                                # useful for multi-environment models
             #  - ProjectToolkit              # [class name]
             #  - formatObjectClassName       # [static method name]
 
-   Minified ``app.yml`` content:
+   Minified recommended ``app.yml`` content:
 
         all:
           sfcachetaggingplugin:
             template_lock:        "%SF_ENVIRONMENT%_lock_%s"
-            template_tag:         "%SF_ENVIRONMENT%_tag_%s"
-            microtime_precision:  5
+            template_tag:         "%SF_ENVIRONMENT%_tag_%s"            
 
 ## Usage ##
 

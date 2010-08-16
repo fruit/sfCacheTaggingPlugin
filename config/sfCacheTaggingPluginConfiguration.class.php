@@ -8,11 +8,6 @@
    * file that was distributed with this source code.
   */
 
-  if (! defined('E_USER_DEPRECATED'))
-  {
-    define('E_USER_DEPRECATED', E_USER_WARNING);
-  }
-
   /**
    * sfCacheTaggingPlugin configuration
    *
@@ -44,12 +39,11 @@
       );
 
       $manager->setAttribute(
-        Doctrine_Core::ATTR_RESULT_CACHE, new sfDoctrineProxyCache()
+        Doctrine_Core::ATTR_RESULT_CACHE, new Doctrine_Cache_Proxy()
       );
 
       $manager->setAttribute(
-        Doctrine_Core::ATTR_QUERY_CLASS,
-        'Cachetaggable_Doctrine_Query'
+        Doctrine_Core::ATTR_QUERY_CLASS, 'Doctrine_Query_Cachetaggable'
       );
 
       $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);

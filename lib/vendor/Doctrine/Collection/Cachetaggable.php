@@ -94,7 +94,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
+        $this->notifyApplicationLog($e);
 
         return array();
       }
@@ -181,7 +181,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
+        $this->notifyApplicationLog($e);
       }
     }
 
@@ -202,7 +202,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
+        $this->notifyApplicationLog($e);
       }
     }
 
@@ -221,7 +221,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
+        $this->notifyApplicationLog($e);
       }
     }
 
@@ -239,10 +239,17 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
+        $this->notifyApplicationLog($e);
       }
 
       return $returnValue;
+    }
+
+    protected function notifyApplicationLog (Exception $e)
+    {
+      sfCacheTaggingToolkit::notifyApplicationLog(
+        $this, $e->getMessage(), sfLogger::NOTICE
+      );
     }
   }
 

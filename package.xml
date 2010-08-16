@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packagerversion="1.4.1" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+<package xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packagerversion="1.4.6" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
   <name>sfCacheTaggingPlugin</name>
-  <channel>pear.symfony-project.com</channel>
+  <channel>plugins.symfony-project.com</channel>
   <summary>Cache tagging plugin compatible with any cache backends</summary>
   <description>
-    The ``sfCacheTaggingPlugin`` is a Symfony plugin, that helps to store cache with
-    associated tags and to keep cache content up-to-date based by incrementing tag
-    version when cache objects are edited/removed or new objects are ready to be a
-    part of cache content.
+    The ``sfCacheTaggingPlugin`` is a Symfony plugin, that helps to keep cached
+    content up-to-date without setting cache lifetime.
+    So-called "Smart caching", stores cache with fetched models tags and its versions.
+    Each time you save/update/delete objects, plugin increments object tag version and
+    all linked cache by specific tag name will automatically spoiled.
   </description>
   <lead>
     <name>Ilya Sabelnikov</name>
@@ -17,8 +18,8 @@
   </lead>
   <date>2010-06-28</date>
   <version>
-    <release>1.5.0</release>
-    <api>2.0.0</api>
+    <release>2.0.0</release>
+    <api>3.0.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -26,10 +27,14 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [added] all tags now stored in symfony build in holder
-    * ilya: [added] more coverage tests (91%)
-    * ilya: [removed] all deprecated methods
-    * ilya: [added] added listener on sfComponents to enable short-handed methods to set tags from action or component (see README)
+    * ilya: [added] Storing doctrine objects/collections by using build-in Doctrine mechanism
+    * ilya: [added] Ability to specify differenct cache back-ends for data and tags cache
+    * ilya: [added] Easy customized logger
+    * ilya: [added] By switching cache off or migration to build-in cache manager will no
+                    affect code functionality
+    * ilya: [added] cache info block (blue/yellow box) now display linked to cache
+                    tags with its version
+    * ilya: [added] new tests - code coverage: XX%;
   </notes>
   <contents>
     <dir name="/">
@@ -40,36 +45,56 @@
       </dir>
       <dir name="lib">
         <dir name="cache">
-          <dir name="extra">
+          <dir name="drivers">
+            <file name="sfAPCTaggingCache.class.php" role="data" />
+            <file name="sfEAcceleratorTaggingCache.class.php" role="data" />
+            <file name="sfEAcceleratorTaggingCache.class.php" role="data" />
             <file name="sfFileTaggingCache.class.php" role="data" />
+            <file name="sfMemcacheTaggingCache.class.php" role="data" />
             <file name="sfSQLiteTaggingCache.class.php" role="data" />
+            <file name="sfXCacheTaggingCache.class.php" role="data" />
           </dir>
-          <file name="sfContentTagHandler.class.php" role="data" />
+          <file name="CacheMetadata.class.php" role="data" />
+          <file name="sfNoTaggingCache.class.php" role="data" />
           <file name="sfTaggingCache.class.php" role="data" />
+          <file name="sfTaggingCacheInterface.class.php" role="data" />
         </dir>
-        <dir name="doctrine">
-          <dir name="collection">
-            <file name="Cachetaggable.class.php" role="data" />
-          </dir>
-          <dir name="listener">
-            <file name="Cachetaggable.class.php" role="data" />
-          </dir>
-          <dir name="template">
-            <file name="Cachetaggable.class.php" role="data" />
-          </dir>
+        <dir name="exception">
+          <file name="sfCacheDisabledException.class.php" role="data" />
+          <file name="sfCacheMissingContextException.class.php" role="data" />
         </dir>
-        <dir name="helper">
-          <file name="CacheTagHelper.php" role="data" />
-          <file name="PartialTagHelper.php" role="data" />
+        <dir name="log">
+          <file name="sfCacheTagLogger.class.php" role="data" />
+          <file name="sfFileCacheTagLogger.class.php" role="data" />
+          <file name="sfNoCacheTagLogger.class.php" role="data" />
         </dir>
         <dir name="util">
           <file name="sfCacheTaggingToolkit.class.php" role="data" />
           <file name="sfCallableArray.class.php" role="data" />
+          <file name="sfContentTagHandler.class.php" role="data" />
           <file name="sfTagNamespacedParameterHolder.class.php" role="data" />
           <file name="sfViewCacheTagManagerBridge.class.php" role="data" />
         </dir>
+        <dir name="vendor">
+          <dir name="Doctrine">
+            <dir name="Cache">
+              <file name="Proxy.php" role="data" />
+            </dir>
+            <dir name="Collection">
+              <file name="Cachetaggable.php" role="data" />
+            </dir>
+            <dir name="Query">
+              <file name="Cachetaggable.php" role="data" />
+            </dir>
+            <dir name="Template">
+              <dir name="Listener">
+                <file name="Cachetaggable.class.php" role="data" />
+              </dir>
+              <file name="Cachetaggable.class.php" role="data" />
+            </dir>
+          </dir>
+        </dir>
         <dir name="view">
-          <file name="sfPartialTagView.class.php" role="data" />
           <file name="sfViewCacheTagManager.class.php" role="data" />
         </dir>
       </dir>
@@ -84,16 +109,14 @@
         </dir>
         <dir name="functional">
           <dir name="frontend">
-            <file name="CacheTagHelperTest.php" role="data" />
+            <file name="DoctrineCacheProxyTest.php" role="data" />
             <file name="DoctrineListenerCachetaggableTest.php" role="data" />
             <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
-            <file name="PartialTagHelperTest.php" role="data" />
             <file name="actionWithLayoutTest.php" role="data" />
             <file name="actionWithoutLayoutTest.php" role="data" />
             <file name="sfCacheTaggingPluginTest.php" role="data" />
             <file name="sfCacheTaggingToolkitTest.php" role="data" />
             <file name="sfContentTagHandlerTest.php" role="data" />
-            <file name="sfTaggingCacheTest.php" role="data" />
             <file name="sfViewCacheTagManagerBridgeTest.php" role="data" />
             <file name="sfViewCacheTagManagerTest.php" role="data" />
           </dir>
@@ -103,12 +126,17 @@
           </dir>
         </dir>
         <dir name="unit">
-          <file name="DoctrineListenerCachetaggableTest.php" role="data" />
-          <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
+          <file name="CacheMetadataTest.php" role="data" />
+          <file name="sfCacheTagLoggerTest.php" role="data" />
           <file name="sfCacheTaggingToolkitTest.php" role="data" />
           <file name="sfCallableArrayTest.php" role="data" />
-          <file name="sfCallableArrayTest.php" role="data" />
           <file name="sfContentTagHandlerTest.php" role="data" />
+          <file name="sfFileCacheTagLoggerTest.php" role="data" />
+          <file name="sfNoCacheTagLoggerTest.php" role="data" />
+          <file name="sfNoTaggingCacheTest.php" role="data" />
+          <file name="sfTagNamespacedParameterHolderTest.php" role="data" />
+          <file name="sfTaggingCacheInterfaceTest.php" role="data" />
+          <file name="sfTaggingCacheTest.php" role="data" />
         </dir>
       </dir>
     </dir>

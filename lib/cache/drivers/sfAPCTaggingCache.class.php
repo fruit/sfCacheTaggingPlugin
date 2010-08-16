@@ -17,12 +17,10 @@
   {
     public function getCacheKeys ()
     {
+      // apc_cache_info returns false, if APC is disabled
+      // no reasons to check it - all methods available after
+      // calling self::__construct
       $infos = apc_cache_info('user');
-
-      if (! is_array($infos['cache_list']))
-      {
-        return;
-      }
 
       $keys = array();
 

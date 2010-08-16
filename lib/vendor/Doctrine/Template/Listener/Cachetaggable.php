@@ -84,7 +84,7 @@
       }
       catch (sfCacheException $e)
       {
-
+        
       }
 
       $this->preDeleteTagName = null;

@@ -274,7 +274,7 @@
     {
       $cacheMetadata = $this->getDataCache()->get($key);
 
-      $cacheMetadataClassName = $this->getMetadataClassName();
+      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
 
       if ($cacheMetadata instanceof $cacheMetadataClassName)
       {
@@ -343,7 +343,7 @@
     {
       $cacheMetadata = $this->getDataCache()->get($key);
 
-      $cacheMetadataClassName = $this->getMetadataClassName();
+      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
 
       if ($cacheMetadata instanceof $cacheMetadataClassName)
       {
@@ -375,7 +375,7 @@
      */
     public function set ($key, $data, $timeout = null, array $tags = array())
     {
-      $cacheMetadataClassName = $this->getMetadataClassName();
+      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
 
       $cacheMetadata = new $cacheMetadataClassName($data, $tags);
 
@@ -482,7 +482,7 @@
     {
       $value = $this->getDataCache()->get($key);
 
-      $cacheMetadataClassName = $this->getMetadataClassName();
+      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
 
       if ($value instanceof $cacheMetadataClassName)
       {
@@ -536,7 +536,7 @@
     {
       $cacheMetadata = $this->getDataCache()->get($key, $default);
 
-      $cacheMetadataClassName = $this->getMetadataClassName();
+      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
 
       # check data exist in cache and data content is a tags container
       if ($cacheMetadata instanceof $cacheMetadataClassName)
@@ -672,7 +672,11 @@
     protected function generateLockKey ($key)
     {
       return sprintf(
-        sfConfig::get('app_sfcachetaggingplugin_template_lock', 'lock_%s'), $key
+        sfConfig::get(
+          'app_sfcachetaggingplugin_template_lock',
+          sprintf('%s_lock', sfConfig::get('sf_environment') . '_%s')
+        ),
+        $key
       );
     }
 
@@ -685,7 +689,11 @@
     protected function generateTagKey ($key)
     {
       return sprintf(
-        sfConfig::get('app_sfcachetaggingplugin_template_tag', 'tag_%s'), $key
+        sfConfig::get(
+          'app_sfcachetaggingplugin_template_tag',
+          sprintf('%s_tag', sfConfig::get('sf_environment') . '_%s')
+        ), 
+        $key
       );
     }
 
@@ -697,17 +705,6 @@
     public function getContentTagHandler ()
     {
       return $this->contentTagHandler;
-    }
-
-    /**
-     * Return option "metadata.class".
-     * If not set, returns default class name "CacheMetadata".
-     *
-     * @return string
-     */
-    protected function getMetadataClassName ()
-    {
-      return $this->getOption('metadata.class', 'CacheMetadata');
     }
 
     /**

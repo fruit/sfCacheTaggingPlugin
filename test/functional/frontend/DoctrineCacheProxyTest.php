@@ -21,7 +21,7 @@
   /* @var $cacheManager sfViewCacheTagManager */
 
   $q = BlogPostTable::getInstance()->createQuery('p');
-  $t->isa_ok($q->getResultCacheDriver(), 'sfDoctrineProxyCache', 'instance of Proxy');
+  $t->isa_ok($q->getResultCacheDriver(), 'Doctrine_Cache_Proxy', 'instance of Proxy');
 
   $connection->beginTransaction();
 

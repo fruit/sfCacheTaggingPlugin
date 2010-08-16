@@ -512,32 +512,34 @@
         $hash = $this->generateCacheKey($event['uri'])
       );
 
-      if (
-          $cacheMetadata instanceof stdClass
-        &&
-          isset($cacheMetadata->tags)
-        && 
-          is_array($cacheMetadata->tags)
-      )
+      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
+
+      /* @var $cacheMetadata CacheMetadata */
+      if (! $cacheMetadata instanceof $cacheMetadataClassName)
       {
-        $tags = sprintf('[cache&nbsp;tags]&nbsp;count:&nbsp;%d', $tagsCount = count($cacheMetadata->tags));
-
-        if (0 != $tagsCount)
-        {
-          $tags .= ',&nbsp;tags:';
-
-          foreach ($cacheMetadata->tags as $name => $version)
-          {
-            $tags .= sprintf('&nbsp;%s(%s),', $name, $version);
-          }
-
-          $tags = substr($tags, 0, -1) . '.';
-        }
-
-        $updatedContent = str_replace('&nbsp;<br />&nbsp;', "{$tags}&nbsp;<br />&nbsp;", $updatedContent);
+        return $content;
       }
 
-      return $updatedContent;
+      $tags = $cacheMetadata->getTags();
+      $tagsContent = sprintf('[cache&nbsp;tags]&nbsp;count:&nbsp;%d', $tagsCount = count($tags));
+
+      if (0 != $tagsCount)
+      {
+        $tagsContent .= ',&nbsp;tags:';
+
+        foreach ($tags as $name => $version)
+        {
+          $tagsContent .= sprintf(' %s(%s),', $name, $version);
+        }
+
+        $tagsContent = substr($tagsContent, 0, -1) . '.';
+      }
+
+      $textToReplace = '&nbsp;<br />&nbsp;';
+
+      return str_replace(
+        $textToReplace, "{$tagsContent}{$textToReplace}", $updatedContent
+      );
     }
 
     /**

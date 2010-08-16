@@ -17,7 +17,7 @@
    * @subpackage doctrine
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class sfDoctrineProxyCache extends Doctrine_Cache_Driver
+  class Doctrine_Cache_Proxy extends Doctrine_Cache_Driver
   {
     /**
      * Short method to retrieve sfTaggingCache for internal use
@@ -42,7 +42,9 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        # be silent - sf_cache is disabled for this environment
+        sfCacheTaggingToolkit::notifyApplicationLog(
+          __CLASS__, $e->getMessage(), sfLogger::NOTICE
+        );
       }
 
       return false;
@@ -62,7 +64,9 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        # be silent - sf_cache is disabled for this environment
+        sfCacheTaggingToolkit::notifyApplicationLog(
+          __CLASS__, $e->getMessage(), sfLogger::NOTICE
+        );
       }
 
       return false;
@@ -79,7 +83,9 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        sfCacheTaggingToolkit::notifyApplicationLog($e->getMessage(), sfLogger::NOTICE);
+        sfCacheTaggingToolkit::notifyApplicationLog(
+          __CLASS__, $e->getMessage(), sfLogger::NOTICE
+        );
       }
       
       return;
@@ -97,7 +103,9 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        # be silent - sf_cache is disabled for this environment
+        sfCacheTaggingToolkit::notifyApplicationLog(
+          __CLASS__, $e->getMessage(), sfLogger::NOTICE
+        );
       }
 
       return false;
@@ -115,7 +123,9 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        # be silent - sf_cache is disabled for this environment
+        sfCacheTaggingToolkit::notifyApplicationLog(
+          __CLASS__, $e->getMessage(), sfLogger::NOTICE
+        );
       }
 
       return false;
@@ -135,7 +145,9 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        # be silent - sf_cache is disabled for this environment
+        sfCacheTaggingToolkit::notifyApplicationLog(
+          __CLASS__, $e->getMessage(), sfLogger::NOTICE
+        );
       }
 
       return false;
