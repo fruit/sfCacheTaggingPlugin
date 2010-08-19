@@ -168,5 +168,28 @@
     }
   }
 
+
+  # initialize 
+  $optionSfCache = sfConfig::get('sf_cache');
+  sfConfig::set('sf_cache', false);
+
+  $cacheManager->initialize($sfContext, $taggingCache, array());
+
+  $t->isa_ok($cacheManager->getTaggingCache(), 'sfNoTaggingCache', 'sf_cache = Off, taggingCache is sfNoTaggingCache');
+
+  sfConfig::set('sf_cache', $optionSfCache);
+
+
+
+//  var_dump($cacheManager->getActionCache('/blog_post/actionWithoutLayout'));
+
+//  $optionSfWebDebug = sfConfig::get('sf_web_debug');
+//  sfConfig::set('sf_web_debug', true);
+//
+//
+//
+//  sfConfig::set('sf_web_debug', $optionSfWebDebug);
+
+  
   $connection->rollback();
 

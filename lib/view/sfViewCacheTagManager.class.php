@@ -119,9 +119,8 @@
      *
      * @see sfViewCacheManager::initialize()
      */
-    public function initialize ($context,
-                                sfCache $taggingCache,
-                                $options = array()
+    public function initialize ($context, sfCache $taggingCache,
+      $options = array()
     )
     {
       if (! $taggingCache instanceof sfTaggingCache)

@@ -99,7 +99,9 @@
     public function preSave (Doctrine_Event $event)
     {
       $object = $event->getInvoker();
-      
+
+      $lastModifiedColumns = $object->getLastModified();
+
       # do not set new object version if no fields are modified
       if (! $object->isNew() && 0 == count($object->getModified()))
       {
@@ -233,13 +235,6 @@
 
       /* @var $q Doctrine_Query */
       $q = clone $event->getQuery();
-
-      # conflicts with build-in SoftDelete behavior
-      # SoftDelete passes UPDATE query to the preDqlDelete event
-      if ($q->getType() != Doctrine_Query::DELETE)
-      {
-        return;
-      }
 
       $params = $q->getParams();
       $params['set'] = array();

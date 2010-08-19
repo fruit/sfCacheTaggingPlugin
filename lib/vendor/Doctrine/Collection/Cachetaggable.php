@@ -79,7 +79,7 @@
     {
       if (! $this->getTable()->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
       {
-        throw new LogicException(sprintf(
+        throw new sfConfigurationException(sprintf(
           'Model "%s" has no "%s" templates',
           $this->getTable()->getClassnameToReturn(),
           sfCacheTaggingToolkit::TEMPLATE_NAME
@@ -169,7 +169,7 @@
      * Acceptable array or Doctrine_Collection_Cachetaggable instance
      *
      * @param array|Doctrine_Collection_Cachetaggable|ArrayAccess $tags
-     * @return void
+     * @return boolean
      */
     public function addTags ($tags)
     {
@@ -178,11 +178,15 @@
         $this
           ->getContentTagHandler()
           ->addContentTags($tags, $this->getNamespace(true));
+
+        return true;
       }
       catch (sfCacheDisabledException $e)
       {
         $this->notifyApplicationLog($e);
       }
+
+      return false;
     }
 
     /**
@@ -190,7 +194,7 @@
      *
      * @param string $tagName
      * @param string|int $tagVersion
-     * @return void
+     * @return boolean
      */
     public function addTag ($tagName, $tagVersion)
     {
@@ -199,11 +203,15 @@
         $this->getContentTagHandler()->setContentTag(
           $tagName, $tagVersion, $this->getNamespace(true)
         );
+
+        return true;
       }
       catch (sfCacheDisabledException $e)
       {
         $this->notifyApplicationLog($e);
       }
+
+      return false;
     }
 
     /**
@@ -218,11 +226,15 @@
         $this->getContentTagHandler()->removeContentTags(
           $this->getNamespace(true)
         );
+
+        return true;
       }
       catch (sfCacheDisabledException $e)
       {
         $this->notifyApplicationLog($e);
       }
+
+      return false;
     }
 
     /**
@@ -233,14 +245,7 @@
     {
       $returnValue = parent::delete($conn, $clearColl);
 
-      try
-      {
-        $this->removeTags();
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        $this->notifyApplicationLog($e);
-      }
+      $this->removeTags();
 
       return $returnValue;
     }

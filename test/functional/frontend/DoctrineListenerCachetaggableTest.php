@@ -27,31 +27,31 @@
   BookTable::getInstance()->createQuery()->delete()->execute();
   FoodTable::getInstance()->createQuery()->delete()->execute();
 
-  $book = new Book();
-  $book->setLang('fr');
-  $book->setSlug('foobarbaz');
-  $book->save();
+  $post = new Book();
+  $post->setLang('fr');
+  $post->setSlug('foobarbaz');
+  $post->save();
 
-  $version = $book->getObjectVersion();
-  $id = $book->getId();
+  $version = $post->getObjectVersion();
+  $id = $post->getId();
 
-  $book = BookTable::getInstance()->findOneById($id);
+  $post = BookTable::getInstance()->findOneById($id);
 
-  $t->is($version, $book->getObjectVersion(), 'object version not changed since last save()');
+  $t->is($version, $post->getObjectVersion(), 'object version not changed since last save()');
 
-  $book->save();
+  $post->save();
 
-  $book = BookTable::getInstance()->findOneById($id);
+  $post = BookTable::getInstance()->findOneById($id);
 
-  $t->is($version, $book->getObjectVersion(), 'object not modified, but saved - object version not updated');
+  $t->is($version, $post->getObjectVersion(), 'object not modified, but saved - object version not updated');
 
-  $book->setSlug('cccc');
-  $book->save();
+  $post->setSlug('cccc');
+  $post->save();
 
-  $book = BookTable::getInstance()->findOneById($id);
+  $post = BookTable::getInstance()->findOneById($id);
 
-  $t->isnt($version, $book->getObjectVersion(), 'object version updated');
-  $t->is('cccc', $book->getSlug(), 'updated field "slug"');
+  $t->isnt($version, $post->getObjectVersion(), 'object version updated');
+  $t->is('cccc', $post->getSlug(), 'updated field "slug"');
 
 
   BlogPostTable::getInstance()->createQuery()->delete()->execute();
@@ -157,6 +157,123 @@
 
   $t->ok(! $sfTagger->hasTag($bananasTagName), 'After SoftDelete "deletes" objects - tag cache is removed too');
 
+  # postSave
+  $post = new BlogPost();
+  $post->save();
+  $id = $post->getId();
+  $version = $post->getObjectVersion();
+
+  $post->free();
+
+  $post = BlogPostTable::getInstance()->find($id);
+  $post->save();
+
+  $t->is($version, $post->getObjectVersion(), 'check for not to run skip postSave');
+
+  # preDqlUpdate
+
+  $blackSwan = new Book();
+  $blackSwan->setSlug('black-swan');
+  $blackSwan->save();
+
+  $blackSwanId = $blackSwan->getId();
+  $blackSwanVersion = $blackSwan->getObjectVersion();
+  
+  $optionSfCache = sfConfig::get('sf_cache');
+  sfConfig::set('sf_cache', false);
+
+  BookTable::getInstance()
+    ->createQuery()
+    ->update()
+    ->set('slug', '?',  'my-slug-123923')
+    ->addWhere('id = ?', $blackSwanId)
+    ->execute();
+
+
+  $post = BookTable::getInstance()->find($blackSwanId);
+
+  $t->is(
+    $post->getObjectVersion(),
+    $blackSwanVersion,
+    'Update DQL does not rewrites object version when cache is disabled'
+  );
+
+  sfConfig::set('sf_cache', $optionSfCache);
+
+  #postSave
+
+  $optionSfCache = sfConfig::get('sf_cache');
+  sfConfig::set('sf_cache', false);
+
+  $post = new BlogPost();
+  $post->setSlug('Review: Atlas shrugged');
+  $post->save();
+
+  sfConfig::set('sf_cache', $optionSfCache);
+
+  $t->ok(
+    ! $sfTagger->hasTag(sprintf('BlogPost_%d', $post->getId())),
+    'When cache is disabled, no tags was saved to backend'
+  );
+
+  # preDqlDelete
+
+  $post = new BlogPost();
+  $post->setSlug('Git-HowTo');
+  $post->save();
+
+  $t->ok(
+    $sfTagger->hasTag($key = sprintf('BlogPost_%d', $post->getId())),
+    sprintf('new tag saved to backend with key "%s"', $key)
+  );
+
+  $id = $post->getId();
+
+  $optionSfCache = sfConfig::get('sf_cache');
+  sfConfig::set('sf_cache', false);
+
+  BlogPostTable::getInstance()
+    ->createQuery()
+    ->delete()
+    ->addWhere('id = ?', $id)
+    ->execute();
+
+  sfConfig::set('sf_cache', $optionSfCache);
+
+  $t->ok(
+    $sfTagger->hasTag(sprintf('BlogPost_%d', $post->getId())),
+    'tag deletion skipped due the cache was disabled when preDqlDelete was runned'
+  );
+
+
+  $apple = new Food();
+  $apple->setTitle('Yellow apple');
+  $apple->save();
+
+  $key = $apple->getTagName();
+
+  $t->ok(
+    $sfTagger->hasTag($key),
+    sprintf('new tag saved to backend with key "%s"', $key)
+  );
+
+  $optionSfCache = sfConfig::get('sf_cache');
+  sfConfig::set('sf_cache', false);
+
+  FoodTable::getInstance()
+    ->createQuery()
+    ->delete()
+    ->addWhere('title = ?', 'Yellow apple')
+    ->execute()
+  ;
+  sfConfig::set('sf_cache', $optionSfCache);
+
+  $key = $apple->getTagName();
+  $t->ok(
+    $sfTagger->hasTag($key),
+    sprintf('key still exists "%s"', $key)
+  );
+
   $connection->rollback();
 
   $univeristies = UniversityTable::getInstance()->findAll();
@@ -167,7 +284,7 @@
 
     $t->pass('Running getTags() on NON-Cachetaggable model');
   }
-  catch (LogicException $e)
+  catch (sfConfigurationException $e)
   {
     $t->pass($e->getMessage());
   }
