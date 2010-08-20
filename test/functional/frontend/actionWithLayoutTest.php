@@ -10,7 +10,7 @@
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
-  Doctrine::loadData(dirname(__FILE__) . '/../../data/fixtures/fixtures.yml');
+  BlogPostTable::getInstance()->getConnection()->beginTransaction();
 
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
@@ -60,3 +60,4 @@
     ->checkElement('.posts a[id*="bar"]', 'BarBar')
     ->end();
 
+  BlogPostTable::getInstance()->getConnection()->rollback();

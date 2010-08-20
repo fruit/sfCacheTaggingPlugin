@@ -15,7 +15,6 @@
   $t = new lime_test();
 
   $connection = Doctrine::getConnectionByTableName('BlogPost');
-  
 
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
   /* @var $cacheManager sfViewCacheTagManager */
@@ -138,8 +137,11 @@
   );
 
   $connection->rollback();
-
+  
+  sfConfig::set('sf_cache', $optionSfCache);
 
   $q->clearResultCache();
 
-  sfConfig::set('sf_cache', $optionSfCache);
+
+
+  

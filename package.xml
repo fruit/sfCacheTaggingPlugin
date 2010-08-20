@@ -2,7 +2,7 @@
 <package xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packagerversion="1.4.6" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
   <name>sfCacheTaggingPlugin</name>
   <channel>plugins.symfony-project.com</channel>
-  <summary>Cache tagging plugin compatible with any cache backends</summary>
+  <summary>Smart caching based on incrementing object tag version</summary>
   <description>
     The ``sfCacheTaggingPlugin`` is a Symfony plugin, that helps to keep cached
     content up-to-date without setting cache lifetime.

@@ -11,6 +11,9 @@
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
+  $connection = Doctrine::getConnectionByTableName('BlogPost');
+  $connection->beginTransaction();
+
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
 
@@ -121,6 +124,8 @@
   sfConfig::set('sf_cache', false);
 
   $t->ok(! $posts->removeTags());
+
+  $connection->rollback();
 
   sfConfig::set('sf_cache', $optionSfCache);
 

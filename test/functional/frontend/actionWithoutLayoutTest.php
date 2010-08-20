@@ -10,15 +10,15 @@
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
-  Doctrine::loadData(dirname(__FILE__) . '/../../data/fixtures/fixtures.yml');
-
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
+
+  BlogPostTable::getInstance()->getConnection()->beginTransaction();
 
   $browser = new sfTestFunctional(new sfBrowser());
 
   $browser->getAndCheck('blog_post', 'actionWithoutLayout', '/blog_post/actionWithoutLayout', 200);
-
+  
   $browser
     ->with('response')
     ->begin()
@@ -60,4 +60,4 @@
     ->checkElement('.posts a[id*="bar"]', 'Bar_new_fresh')
     ->end();
 
-  
+  BlogPostTable::getInstance()->getConnection()->rollback();

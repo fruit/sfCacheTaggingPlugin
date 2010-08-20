@@ -94,7 +94,7 @@
     /**
      * @return sfEventDispatcher
      */
-    protected function getEventDispatcher ()
+    public function getEventDispatcher ()
     {
       return $this->dispatcher;
     }
@@ -193,14 +193,28 @@
     }
 
     /**
+     * Due to an optimized version (self::_get) and compatibility
+     *
+     * @param string $internalUri
+     * @return mixed
+     */
+    public function get ($internalUri)
+    {
+      return serialize($this->_get($internalUri));
+    }
+
+    /**
      * Retrieves content in the cache.
      *
      * Match duplicated as a parent::get()
      *
+     * Optimezed version, does not call to serialize/unserialize when cache
+     * is stored as opcode
+     *
      * @param string $internalUri Internal uniform resource identifier
      * @return mixed The content in the cache
      */
-    public function get ($internalUri)
+    protected function _get ($internalUri)
     {
       // no cache or no cache set for this action
       if (! $this->isCacheable($internalUri) || $this->ignore())
@@ -303,7 +317,7 @@
       }
 
       // retrieve content from cache
-      $data = $this->get($uri);
+      $data = $this->_get($uri);
 
       if (null === $data)
       {
@@ -406,7 +420,7 @@
 
       // save content in cache
       $saved = $this->set(
-        serialize($this->context->getResponse()), $uri, $pageTags
+        $this->context->getResponse(), $uri, $pageTags
       );
 
       if ($saved && sfConfig::get('sf_web_debug'))
@@ -442,7 +456,7 @@
      * @param string $content
      * @return string
      */
-    public function setPartialCache($module, $action, $cacheKey, $content)
+    public function setPartialCache ($module, $action, $cacheKey, $content)
     {
       $uri = $this->getPartialUri($module, $action, $cacheKey);
 
@@ -456,9 +470,9 @@
       $partialTags = $tagHandler->getContentTags(self::NAMESPACE_PARTIAL);
 
       $saved = $this->set(
-        serialize(array(
+        array(
           'content' => $content,
-          'response' => $this->context->getResponse())
+          'response' => $this->context->getResponse()
         ),
         $uri,
         $partialTags
@@ -573,5 +587,96 @@
       }
 
       return parent::checkCacheKey($parameters);
+    }
+
+    /**
+     * Code is much dublicated (enough same)
+     * with one distinction - it work already with unserialized data
+     *
+     * @see parent::getPageCache();
+     * @param string $uri
+     * @return boolean
+     */
+    public function getPageCache ($uri)
+    {
+      $cachedResponse = $this->_get($uri);
+
+      if (null === $cachedResponse)
+      {
+        return false;
+      }
+      
+      $cachedResponse->setEventDispatcher($this->getEventDispatcher());
+
+      if (sfView::RENDER_VAR == $this->controller->getRenderMode())
+      {
+        $this->controller->getActionStack()->getLastEntry()->setPresentation($cachedResponse->getContent());
+        $this->context->getResponse()->setContent('');
+      }
+      else
+      {
+        $this->context->setResponse($cachedResponse);
+
+        if (sfConfig::get('sf_web_debug'))
+        {
+          $content = $this
+            ->getEventDispatcher()
+            ->filter(
+              new sfEvent(
+                $this,
+                'view.cache.filter_content',
+                array(
+                  'response' => $this->context->getResponse(),
+                  'uri' => $uri,
+                  'new' => false,
+                )
+              ),
+              $this->context->getResponse()->getContent()
+            )
+            ->getReturnValue()
+            ;
+
+          $this->context->getResponse()->setContent($content);
+        }
+      }
+
+      return true;
+    }
+
+    /**
+     * Gets a partial template from the cache.
+     *
+     * @param  string $module    The module name
+     * @param  string $action    The action name
+     * @param  string $cacheKey  The cache key
+     *
+     * @return string The cache content
+     */
+    public function getPartialCache ($module, $action, $cacheKey)
+    {
+      $uri = $this->getPartialUri($module, $action, $cacheKey);
+
+      if (!$this->isCacheable($uri))
+      {
+        return null;
+      }
+
+      // retrieve content from cache
+      $cache = $this->_get($uri);
+
+      if (null === $cache)
+      {
+        return null;
+      }
+
+      $content = $cache['content'];
+      $this->context->getResponse()->merge($cache['response']);
+
+      if (sfConfig::get('sf_web_debug'))
+      {
+        $content = $this->dispatcher->filter(new sfEvent($this, 'view.cache.filter_content', array('response' => $this->context->getResponse(), 'uri' => $uri, 'new' => false)), $content)->getReturnValue();
+      }
+
+      return $content;
     }
   }

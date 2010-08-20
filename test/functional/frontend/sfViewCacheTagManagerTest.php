@@ -18,8 +18,10 @@
 
   $sfContext = sfContext::getInstance();
   $sfEventDispatcher = $sfContext->getEventDispatcher();
-  $cacheManager = $sfContext->getViewCacheManager();
 
+
+  $cacheManager = $sfContext->getViewCacheManager();
+  /* @var $cacheManager sfViewCacheTagManager */
   
   $taggingCache = $cacheManager->getTaggingCache();
   /* @var $taggingCache sfTaggingCache */
@@ -56,19 +58,157 @@
       )
     );
 
-    $content = $cacheManager->get($internalUri);
+    $serializedContent = $cacheManager->get($internalUri);
 
     $t->is(
-      $content,
-      $is_cacheable ? 'mycontent' : null,
+      $serializedContent,
+      $is_cacheable ? 's:9:"mycontent";' : 'N;',
       sprintf(
         'sfViewCacheManager->get("%s") returns "%s"',
         $internalUri,
-        var_export($content, true)
+        var_export($serializedContent, true)
       )
     );
   }
 
+
+  # ->decorateContentWithDebug()
+  $t->diag('->decorateContentWithDebug()');
+
+  $response = $sfContext->getResponse();
+
+  $response->setContent('Existing Content');
+
+  $event = new sfEvent(
+    $this,
+    'view.cache.filter_content',
+    array(
+      'response' => $response,
+      'uri' => '/blog_post/actionWithDisabledLayout',
+      'new' => true,
+    )
+  );
+
+
+  $t->is($cacheManager->decorateContentWithDebug($event, ''), '');
+
+  $output = $cacheManager->decorateContentWithDebug($event, 'MyTempContent');
+
+  $t->is($output, 'MyTempContent', 'Cache is not a object(CacheMetadata), return not decorated content');
+
+  
+  # (set|get)ActionCache
+
+  $t->diag('(set|get)ActionCache');
+
+  $sfWebDebug = sfConfig::get('sf_web_debug');
+  sfConfig::set('sf_web_debug', true);
+
+  $cacheManager->getEventDispatcher()->connect(
+    'view.cache.filter_content',
+    array($cacheManager, 'decorateContentWithDebug')
+  );
+
+  $t->is($cacheManager->getActionCache('/blog_post/actionWithDisabledLayout'), null);
+
+  $cacheManager->getContentTagHandler()->setContentTag('Magnolia_731', 9127561923, sfViewCacheTagManager::NAMESPACE_ACTION);
+
+  $match = '/ContentActionText.*cache.*tags.*Magnolia_731.*9127561923/';
+
+  $layout = '/home/fruit/www/sfpro/dev/sfcachetaggingplugin/apps/frontend/templates/layout.php';
+  $t->like(
+    $cacheManager->setActionCache('blog_post/actionWithoutLayout', 'ContentActionText&nbsp;<br />&nbsp;', $layout),
+    $match
+  );
+
+  list($paramContent, $paramLayout) = $cacheManager->getActionCache('/blog_post/actionWithoutLayout');
+
+  $t->is($paramLayout, $layout);
+
+  $t->like($paramContent, $match);
+
+  sfConfig::set('sf_web_debug', $sfWebDebug);
+
+  $cacheManager->getContentTagHandler()->removeContentTags(sfViewCacheTagManager::NAMESPACE_ACTION);
+
+
+
+  # (set|get)PageCache
+
+
+  $t->diag('(set|get)PageCache');
+
+  $sfWebDebug = sfConfig::get('sf_web_debug');
+  sfConfig::set('sf_web_debug', true);
+
+  $cacheManager->getContentTagHandler()->setContentTag('VivaLaVida_1788', 190126012976, sfViewCacheTagManager::NAMESPACE_PAGE);
+
+  $match = '/ContentPageText.*cache.*tags.*VivaLaVida_1788.*190126012976/';
+
+  $t->is($cacheManager->setPageCache('/blog_post/actionWithoutLayout'), null, 'page is not in cached.yml with true value');
+  $cacheManager->setPageCache('/blog_post/actionWithLayout');
+
+  $t->ok($cacheManager->getPageCache('/blog_post/actionWithLayout'));
+
+  sfConfig::set('sf_web_debug', $sfWebDebug);
+
+  $cacheManager->getContentTagHandler()->removeContentTags(sfViewCacheTagManager::NAMESPACE_PAGE);
+
+  # (set|get)PartialCache
+
+  $t->diag('(set|get)PartialCache');
+
+  $sfWebDebug = sfConfig::get('sf_web_debug');
+  sfConfig::set('sf_web_debug', true);
+
+  $t->is(
+    $cacheManager->getPartialCache(
+      'blog_post',
+      '_ten_posts_partial_not_cached',
+      'index-page-ten-posts-disabled-partial'
+    ),
+    null
+  );
+
+  $t->is(
+    $cacheManager->setPartialCache(
+      'blog_post',
+      '_ten_posts_partial_not_cached',
+      'index-page-ten-posts-disabled-partial',
+      'BazBazBaz&nbsp;<br />&nbsp;'
+    ),
+    'BazBazBaz&nbsp;<br />&nbsp;',
+    'partial is not cachable'
+  );
+
+  $match = '/BazBazBaz.*cache.*tags.*RunLolaRun_98186.*1261029732/';
+
+  $cacheManager->getContentTagHandler()->setContentTag('RunLolaRun_98186', 1261029732, sfViewCacheTagManager::NAMESPACE_PARTIAL);
+
+  $content = $cacheManager->setPartialCache(
+    'blog_post',
+    '_ten_posts_partial_cached',
+    'index-page-ten-posts-enabled-partial',
+    'BazBazBaz&nbsp;<br />&nbsp;'
+  );
+
+  $t->like($content, $match);
+
+  $content = $cacheManager->getPartialCache(
+    'blog_post',
+    '_ten_posts_partial_cached',
+    'index-page-ten-posts-enabled-partial'
+  );
+
+  $t->like($content, $match);
+
+  $cacheManager->getContentTagHandler()->removeContentTags(sfViewCacheTagManager::NAMESPACE_PARTIAL);
+
+  sfConfig::set('sf_web_debug', $sfWebDebug);
+
+  
+
+  $t->comment('listeners counts');
   try
   {
     $cacheManager->initialize($sfContext, new sfAPCCache(), array());
@@ -82,8 +222,6 @@
     ));
   }
 
-  
-
   $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
   $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());
   $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
@@ -95,7 +233,7 @@
 
   $sfWebDebug = sfConfig::get('sf_web_debug');
 
-  sfConfig::set('sf_web_debug', ! $sfWebDebug);
+  sfConfig::set('sf_web_debug', true);
 
   $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
   $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());
@@ -168,6 +306,9 @@
     }
   }
 
+
+  
+  
 
   # initialize 
   $optionSfCache = sfConfig::get('sf_cache');
