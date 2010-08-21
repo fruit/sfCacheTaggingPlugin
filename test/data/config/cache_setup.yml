@@ -24,6 +24,16 @@
     prefix: "" # does not have prefixes
     database: ":memory:"
 -
+  class: sfSQLitePDOTaggingCache
+  param:
+    prefix: "" # does not have prefixes
+    dsn: "sqlite:<?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite-pdo.db"
+-
+  class: sfSQLitePDOTaggingCache
+  param:
+    prefix: "" # does not have prefixes
+    dsn: "sqlite::memory:"
+-
   class: sfFileTaggingCache
   param:
     prefix: "" # does not have prefixes

@@ -553,7 +553,7 @@ are not (atomic counter).
 
 ## TDD ##
 
-  * Unit/funcational tests report (1649 of 1649):
+  * Unit/funcational tests report (2626 of 2626):
 
         $ ./symfony test:all
         [sfCacheTagging] functional/frontend/DoctrineCacheProxyTest..........ok
@@ -579,11 +579,12 @@ are not (atomic counter).
         [sfCacheTagging] unit/sfFileCacheTagLoggerTest.......................ok
         [sfCacheTagging] unit/sfNoCacheTagLoggerTest.........................ok
         [sfCacheTagging] unit/sfNoTaggingCacheTest...........................ok
+        [sfCacheTagging] unit/sfSQLitePDOCacheTest...........................ok
         [sfCacheTagging] unit/sfTagNamespacedParameterHolderTest.............ok
         [sfCacheTagging] unit/sfTaggingCacheInterfaceTest....................ok
         [sfCacheTagging] unit/sfTaggingCacheTest.............................ok
          All tests successful.
-         Files=26, Tests=1649
+         Files=27, Tests=2626
 
 
   * Coverage report (98%):

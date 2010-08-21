@@ -17,11 +17,11 @@
    * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class sfSQLiteTaggingCache extends sfSQLiteCache
+  class sfSQLitePDOTaggingCache extends sfSQLitePDOCache
     implements sfTaggingCacheInterface
   {
     /**
-     * @see sfSQLiteCache::get()
+     * @see sfSQLitePDOCache::get()
      */
     public function get ($key, $default = null)
     {
@@ -31,7 +31,7 @@
     }
 
     /**
-     * @see sfSQLiteCache::set()
+     * @see sfSQLitePDOCache::set()
      */
     public function set ($key, $data, $lifetime = null)
     {
@@ -43,14 +43,14 @@
      */
     public function getCacheKeys ()
     {
-      $keys = array();
-      $rows = $this->dbh->arrayQuery('SELECT key FROM cache WHERE 1', SQLITE_ASSOC);
+      $query = 'SELECT key FROM cache WHERE timeout > ?';
 
-      foreach ($rows as $row)
-      {
-        $keys[] = $row['key'];
-      }
+      $stmt = $this->getBackend()->prepare($query);
 
-      return $keys;
+      $stmt->bindValue(1, time(), PDO::PARAM_INT);
+
+      $stmt->execute();
+
+      return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
     }
   }

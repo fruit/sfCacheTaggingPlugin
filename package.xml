@@ -46,11 +46,15 @@
       <dir name="lib">
         <dir name="cache">
           <dir name="drivers">
+            <file name="sfSQLitePDOCache.class.php" role="data">
+          </dir>
+          <dir name="extended">
             <file name="sfAPCTaggingCache.class.php" role="data" />
             <file name="sfEAcceleratorTaggingCache.class.php" role="data" />
             <file name="sfEAcceleratorTaggingCache.class.php" role="data" />
             <file name="sfFileTaggingCache.class.php" role="data" />
             <file name="sfMemcacheTaggingCache.class.php" role="data" />
+            <file name="sfSQLitePDOTaggingCache.class.php" role="data" />
             <file name="sfSQLiteTaggingCache.class.php" role="data" />
             <file name="sfXCacheTaggingCache.class.php" role="data" />
           </dir>
