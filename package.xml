@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packagerversion="1.4.6" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+<package 
+  xmlns="http://pear.php.net/dtd/package-2.0"
+  xmlns:tasks="http://pear.php.net/dtd/tasks-1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  packagerversion="1.4.6"
+  version="2.0"
+  xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
   <name>sfCacheTaggingPlugin</name>
-  <channel>plugins.symfony-project.com</channel>
+  <channel>pear.symfony-project.com</channel>
   <summary>Smart caching based on incrementing object tag version</summary>
   <description>
     The ``sfCacheTaggingPlugin`` is a Symfony plugin, that helps to keep cached
@@ -16,10 +22,11 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-06-28</date>
+  <date>2010-08-22</date>
+  <time>16:37:11</time>
   <version>
     <release>2.0.0</release>
-    <api>3.0.0</api>
+    <api>2.1.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -27,6 +34,7 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
+    * ilya: [info]  API upgraded and not compatible with previous version
     * ilya: [added] Storing doctrine objects/collections by using build-in Doctrine mechanism
     * ilya: [added] Ability to specify differenct cache back-ends for data and tags cache
     * ilya: [added] Easy customized logger
@@ -34,7 +42,8 @@
                     affect code functionality
     * ilya: [added] cache info block (blue/yellow box) now display linked to cache
                     tags with its version
-    * ilya: [added] new tests - code coverage: XX%;
+    * ilya: [added] SQLite via PDO Cache backend
+    * ilya: [added] new tests - code coverage: 98%;
   </notes>
   <contents>
     <dir name="/">
@@ -46,11 +55,10 @@
       <dir name="lib">
         <dir name="cache">
           <dir name="drivers">
-            <file name="sfSQLitePDOCache.class.php" role="data">
+            <file name="sfSQLitePDOCache.class.php" role="data" />
           </dir>
           <dir name="extended">
             <file name="sfAPCTaggingCache.class.php" role="data" />
-            <file name="sfEAcceleratorTaggingCache.class.php" role="data" />
             <file name="sfEAcceleratorTaggingCache.class.php" role="data" />
             <file name="sfFileTaggingCache.class.php" role="data" />
             <file name="sfMemcacheTaggingCache.class.php" role="data" />
@@ -92,9 +100,9 @@
             </dir>
             <dir name="Template">
               <dir name="Listener">
-                <file name="Cachetaggable.class.php" role="data" />
+                <file name="Cachetaggable.php" role="data" />
               </dir>
-              <file name="Cachetaggable.class.php" role="data" />
+              <file name="Cachetaggable.php" role="data" />
             </dir>
           </dir>
         </dir>
@@ -114,10 +122,13 @@
         <dir name="functional">
           <dir name="frontend">
             <file name="DoctrineCacheProxyTest.php" role="data" />
+            <file name="DoctrineCollectionCachetaggableTest.php" role="data" />
             <file name="DoctrineListenerCachetaggableTest.php" role="data" />
+            <file name="DoctrineQueryCachetaggableTest.php" role="data" />
             <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
             <file name="actionWithLayoutTest.php" role="data" />
             <file name="actionWithoutLayoutTest.php" role="data" />
+            <file name="browserViewCacheTest.php" role="data" />
             <file name="sfCacheTaggingPluginTest.php" role="data" />
             <file name="sfCacheTaggingToolkitTest.php" role="data" />
             <file name="sfContentTagHandlerTest.php" role="data" />
@@ -138,6 +149,7 @@
           <file name="sfFileCacheTagLoggerTest.php" role="data" />
           <file name="sfNoCacheTagLoggerTest.php" role="data" />
           <file name="sfNoTaggingCacheTest.php" role="data" />
+          <file name="sfSQLitePDOCacheTest.php" role="data" />
           <file name="sfTagNamespacedParameterHolderTest.php" role="data" />
           <file name="sfTaggingCacheInterfaceTest.php" role="data" />
           <file name="sfTaggingCacheTest.php" role="data" />
@@ -157,8 +169,8 @@
         <name>symfony</name>
         <channel>pear.symfony-project.com</channel>
         <min>1.3.0</min>
-        <max>2.0.0</max>
-        <exclude>2.0.0</exclude>
+	      <max>1.5.0</max>
+	      <exclude>1.5.0</exclude>
       </package>
     </required>
   </dependencies>
@@ -166,20 +178,25 @@
   <changelog>
     <release>
       <version>
-        <release>1.5.0</release>
-        <api>2.0.0</api>
+        <release>3.0.1</release>
+        <api>3.0.0</api>
       </version>
       <stability>
         <release>stable</release>
         <api>stable</api>
       </stability>
-      <date>2010-06-28</date>
+      <date>2010-08-22</date>
       <license uri="http://www.symfony-project.com/license">MIT</license>
       <notes>
-        * ilya: [added] all tags now stored in symfony build in holder
-        * ilya: [added] more coverage tests (91%)
-        * ilya: [removed] all deprecated methods
-        * ilya: [added] added listener on sfComponents to enable short-handed methods to set tags from action or component (see README)
+        * ilya: [added] Storing doctrine objects/collections by using build-in Doctrine mechanism
+        * ilya: [added] Ability to specify differenct cache back-ends for data and tags cache
+        * ilya: [added] Easy customized logger
+        * ilya: [added] By switching cache off or migration to build-in cache manager will no
+                        affect code functionality
+        * ilya: [added] cache info block (blue/yellow box) now display linked to cache
+                        tags with its version
+        * ilya: [added] SQLite via PDO Cache backend
+        * ilya: [added] new tests - code coverage: 98%;
       </notes>
     </release>
     <release>

@@ -70,7 +70,7 @@
 
   try
   {
-    $cacheManager->initialize($sfContext, new sfAPCCache(), $options);
+    $cacheManager->initialize($sfContext, new sfAPCCache(), array());
     $t->fail('Exception "InvalidArgumentException" was trigged');
   }
   catch (InvalidArgumentException $e)

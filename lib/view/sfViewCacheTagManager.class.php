@@ -542,7 +542,11 @@
 
         foreach ($tags as $name => $version)
         {
-          $tagsContent .= sprintf(' %s(%s),', $name, $version);
+          $tagsContent .= sprintf(
+            ' %s(%s),',
+            htmlspecialchars($name, ENT_QUOTES, sfConfig::get('sf_charset')),
+            htmlspecialchars($version, ENT_QUOTES, sfConfig::get('sf_charset'))
+          );
         }
 
         $tagsContent = substr($tagsContent, 0, -1) . '.';

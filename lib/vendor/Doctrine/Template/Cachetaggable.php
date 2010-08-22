@@ -267,13 +267,15 @@
 
       $uniqueColumns = (array) $this->getOption('uniqueColumn');
 
+      $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
+
       if (0 === count($uniqueColumns))
       {
         if (! array_key_exists($objectClassName, $this->objectIdentifiers))
         {
           $uniqueColumns = $table->getIdentifierColumnNames();
 
-          $keyFormat = implode('_', array_fill(0, count($uniqueColumns), '%s'));
+          $keyFormat = implode($separator, array_fill(0, count($uniqueColumns), '%s'));
 
           $this->objectIdentifiers[$objectClassName] = array(
             $uniqueColumns,
@@ -292,7 +294,7 @@
 
         if (! $keyFormat)
         {
-          $keyFormat = implode('_', array_fill(0, count($uniqueColumns), '%s'));
+          $keyFormat = implode($separator, array_fill(0, count($uniqueColumns), '%s'));
         }
       }
 
@@ -316,7 +318,7 @@
       );
 
       return call_user_func_array(
-        'sprintf', array_merge(array("%s_{$keyFormat}"), $columnValues)
+        'sprintf', array_merge(array("%s{$separator}{$keyFormat}"), $columnValues)
       );
     }
 

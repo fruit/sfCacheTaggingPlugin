@@ -14,6 +14,8 @@
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
 
+  $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
+
   $sfContext = sfContext::getInstance();
   $cacheManager = $sfContext->getViewCacheManager();
 
@@ -212,7 +214,7 @@
   sfConfig::set('sf_cache', $optionSfCache);
 
   $t->ok(
-    ! $sfTagger->hasTag(sprintf('BlogPost_%d', $post->getId())),
+    ! $sfTagger->hasTag(sprintf('BlogPost%s%d', $separator, $post->getId())),
     'When cache is disabled, no tags was saved to backend'
   );
 
@@ -223,7 +225,7 @@
   $post->save();
 
   $t->ok(
-    $sfTagger->hasTag($key = sprintf('BlogPost_%d', $post->getId())),
+    $sfTagger->hasTag($key = sprintf('BlogPost%s%d', $separator, $post->getId())),
     sprintf('new tag saved to backend with key "%s"', $key)
   );
 
@@ -241,7 +243,7 @@
   sfConfig::set('sf_cache', $optionSfCache);
 
   $t->ok(
-    $sfTagger->hasTag(sprintf('BlogPost_%d', $post->getId())),
+    $sfTagger->hasTag(sprintf('BlogPost%s%d', $separator, $post->getId())),
     'tag deletion skipped due the cache was disabled when preDqlDelete was runned'
   );
 

@@ -14,6 +14,7 @@
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
 
+  $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
 
   $sfContext = sfContext::getInstance();
   $cacheManager = $sfContext->getViewCacheManager();
@@ -69,7 +70,7 @@
 
   $t->isa_ok($article->setObjectVersion(213213213213), 'Book', 'setObjectVersion() returns self object');
 
-  $t->is($article->getTagName(), 'Book_fr-foobarbaz', 'Multy unique column tables are compatible with tag names');
+  $t->is($article->getTagName(), "Book{$separator}fr-foobarbaz", 'Multy unique column tables are compatible with tag names');
 
   $connection->rollback();
 
@@ -106,7 +107,7 @@
   $tagsKeys = array_keys($tags);
 
   $expected = array('BlogPostComment');
-  for ($i = 1; $i <= 8; $expected[] = "BlogPostComment_{$i}", $i++);
+  for ($i = 1; $i <= 8; $expected[] = "BlogPostComment{$separator}{$i}", $i++);
 
   sort($expected);
   sort($tagsKeys);
@@ -158,13 +159,13 @@
   $vote->setBlogPost($post);
   $vote->save();
 
-  $t->is($vote->getTagName(), "BlogPostVote_{$vote->getId()}");
+  $t->is($vote->getTagName(), "BlogPostVote{$separator}{$vote->getId()}");
 
   $votepost = new PostVote();
   $votepost->setBlogPost($post);
   $votepost->setBlogPostVote($vote);
   $votepost->save();
-  $t->is($votepost->getTagName(), "PostVote_{$vote->getId()}_{$post->getId()}");
+  $t->is($votepost->getTagName(), "PostVote{$separator}{$vote->getId()}{$separator}{$post->getId()}");
 
   $connection->rollback();
 

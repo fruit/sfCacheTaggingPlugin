@@ -674,7 +674,7 @@
       return sprintf(
         sfConfig::get(
           'app_sfcachetaggingplugin_template_lock',
-          sprintf('%s_lock', sfConfig::get('sf_environment') . '_%s')
+          sprintf('%s:lock:%%s', sfConfig::get('sf_environment'))
         ),
         $key
       );
@@ -691,7 +691,7 @@
       return sprintf(
         sfConfig::get(
           'app_sfcachetaggingplugin_template_tag',
-          sprintf('%s_tag', sfConfig::get('sf_environment') . '_%s')
+          sprintf('%s:tag:%%s', sfConfig::get('sf_environment'))
         ), 
         $key
       );

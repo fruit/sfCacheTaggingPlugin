@@ -12,7 +12,7 @@
   $t = new lime_test();
 
 
-  $optionSfCache = sfConfig::get('sf_cache');
+  $option = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', true);
 
   try
@@ -25,4 +25,18 @@
     $t->pass($e->getMessage());
   }
 
-  sfConfig::set('sf_cache', $optionSfCache);
+  sfConfig::set('sf_cache', $option);
+
+  # getModelTagNameSeparator
+  
+  $t->is(sfCacheTaggingToolkit::getModelTagNameSeparator(), sfCache::SEPARATOR);
+
+  $option = sfConfig::get('app_sfcachetaggingplugin_model_tag_name_separator');
+
+  sfConfig::set('app_sfcachetaggingplugin_model_tag_name_separator', '_');
+
+  $t->is(sfCacheTaggingToolkit::getModelTagNameSeparator(), '_');
+
+  sfConfig::set('app_sfcachetaggingplugin_model_tag_name_separator', $option);
+
+
