@@ -23,9 +23,9 @@
     <active>yes</active>
   </lead>
   <date>2010-08-22</date>
-  <time>16:37:11</time>
+  <time>17:08:14</time>
   <version>
-    <release>2.0.0</release>
+    <release>2.0.1</release>
     <api>2.1.0</api>
   </version>
   <stability>
@@ -34,16 +34,7 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [info]  API upgraded and not compatible with previous version
-    * ilya: [added] Storing doctrine objects/collections by using build-in Doctrine mechanism
-    * ilya: [added] Ability to specify differenct cache back-ends for data and tags cache
-    * ilya: [added] Easy customized logger
-    * ilya: [added] By switching cache off or migration to build-in cache manager will no
-                    affect code functionality
-    * ilya: [added] cache info block (blue/yellow box) now display linked to cache
-                    tags with its version
-    * ilya: [added] SQLite via PDO Cache backend
-    * ilya: [added] new tests - code coverage: 98%;
+    * ilya: [updated] README
   </notes>
   <contents>
     <dir name="/">
@@ -176,6 +167,21 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>2.0.1</release>
+        <api>2.1.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2010-08-22</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [updated] README
+      </notes>
+    </release>
     <release>
       <version>
         <release>2.0.0</release>
