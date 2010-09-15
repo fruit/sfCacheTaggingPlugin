@@ -84,7 +84,7 @@
       }
       catch (sfCacheException $e)
       {
-        
+
       }
 
       $this->preDeleteTagName = null;
@@ -145,7 +145,7 @@
       {
         $softDeleteTemplate = $object->getTable()->getTemplate('SoftDelete');
         $deleteAtField = $softDeleteTemplate->getOption('name');
-        
+
         if (array_key_exists($deleteAtField, $lastModifiedColumns))
         {
           # skip if SoftDeletes sets deleted_at field
@@ -208,7 +208,7 @@
       {
         $taggingCache->setTag($object->getTagName(), $updateVersion);
       }
-      
+
       $taggingCache->setTag(
         sfCacheTaggingToolkit::getBaseClassName(get_class($object)),
         $updateVersion,
@@ -235,6 +235,12 @@
 
       /* @var $q Doctrine_Query */
       $q = clone $event->getQuery();
+
+      # SoftDelete mix DELETE with UPDATE type
+      if ($q->getType() != Doctrine_Query::DELETE)
+      {
+        return;
+      }
 
       $params = $q->getParams();
       $params['set'] = array();
