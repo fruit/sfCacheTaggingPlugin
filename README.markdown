@@ -25,6 +25,7 @@ are not (atomic counter).
 
 * Upgrading
 
+        $ ./symfony cc
         $ ./symfony plugin:upgrade sfCacheTaggingPlugin
 
 ## Setup ##
@@ -65,7 +66,7 @@ are not (atomic counter).
           view_cache:
             class: sfTaggingCache
             param:
-              cache:
+              data:
                 class: sfMemcacheTaggingCache   # Content will be stored in Memcache
                                                 # Here you can switch to any other backend
                                                 # (see Restrictions block for more info)
@@ -86,13 +87,13 @@ are not (atomic counter).
                 param:
 
                   file:         %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
-                  
+
                   file_mode:    0640              # -rw-r----- (default: 0640)
                   dir_mode:     0750              # drwxr-x--- (default: 0750)
                   time_format:  "%Y-%b-%d %T%z"   # e.g. 2010-Sep-01 15:20:58+0300 (default: "%Y-%b-%d %T%z")
-                  
+
                   format:       %char%        # %char%              - Operation char (see char explanation in sfCacheTagLogger::explainChar())
-                                              # %char_explanation%  - Operation explanation string 
+                                              # %char_explanation%  - Operation explanation string
                                               # %time%              - Time, when data/tag was accessed
                                               # %key%               - Cache name or tag name with its version
                                               # %microtime%         - Microtime timestamp when data/tag was accessed
@@ -117,7 +118,7 @@ are not (atomic counter).
           view_cache:
             class: sfTaggingCache
             param:
-              cache:
+              data:
                 class: sfAPCTaggingCache
                 param: []
               tags: ~
@@ -134,7 +135,7 @@ are not (atomic counter).
               cache_key_use_host_name:    true
 
   > **Restrictions**: Backend's class should be inherited from ``sfCache``
-    class. Then, it should be implement sfTaggingCacheInterface 
+    class. Then, it should be implement sfTaggingCacheInterface
     (due a Doctrine cache engine compatibility).
     Also, it should support the caching of objects and/or arrays.
 
@@ -214,14 +215,14 @@ are not (atomic counter).
 
             template_lock: "%SF_ENVIRONMENT%:lock:%s"    # Name for locks.
             template_tag: "%SF_ENVIRONMENT%:tag:%s"      # Name for tags.
-            
+
             model_tag_name_separator: ":"   # (constant sfCache::SEPARATOR)
 
             microtime_precision: 5      # Version precision.
                                         # 0: without micro time, version length 10 digits
                                         # 5: with micro time part, version length 15 digits
                                         # (allowed decimal numbers in range [0, 6]
-            
+
             metadata_class: CacheMetadata   # this class responses to save/fetch data and tags
                                             # from/to cache with custom serialization/de-serialization
 

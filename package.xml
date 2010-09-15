@@ -22,10 +22,10 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-08-22</date>
-  <time>17:08:14</time>
+  <date>2010-09-15</date>
+  <time>17:33:08</time>
   <version>
-    <release>2.0.1</release>
+    <release>2.0.2</release>
     <api>2.1.0</api>
   </version>
   <stability>
@@ -167,6 +167,22 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>2.0.2</release>
+        <api>2.1.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2010-09-15</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [updated] README
+        * ilya: [fixed] SoftDelete behavior conflict
+      </notes>
+    </release>
     <release>
       <version>
         <release>2.0.1</release>
