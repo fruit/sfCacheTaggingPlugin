@@ -146,4 +146,23 @@
       return 0;
     }
 
+    /**
+     * @see sfTaggingCache
+     *
+     * @return sfNoCache
+     */
+    public function getDataCache ()
+    {
+      return new sfNoCache();
+    }
+
+    /**
+     * @see sfTaggingCache
+     *
+     * @return sfNoCache
+     */
+    public function getTagsCache ()
+    {
+      return new sfNoCache();
+    }
   }
