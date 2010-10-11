@@ -27,6 +27,7 @@
       'uniqueColumn'    => array(),
       'uniqueKeyFormat' => '',
       'versionColumn'   => 'object_version',
+      'skipOnChange'    => array(),
     );
 
     /**

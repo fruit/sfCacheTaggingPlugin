@@ -100,12 +100,24 @@
     {
       $object = $event->getInvoker();
 
-      $lastModifiedColumns = $object->getLastModified();
+      $modifiedColumns = $object->getModified();
 
       # do not set new object version if no fields are modified
-      if (! $object->isNew() && 0 == count($object->getModified()))
+      if (! $object->isNew() && 0 == count($modifiedColumns))
       {
         return;
+      }
+
+      $skipOnChange = (array) $this->getOption('skipOnChange');
+
+      if (0 < count($skipOnChange))
+      {
+        $columnsChanged = array_keys($modifiedColumns);
+
+        if (0 === count(array_diff($columnsChanged, $skipOnChange)))
+        {
+          return;
+        }
       }
 
       $object->setObjectVersion(sfCacheTaggingToolkit::generateVersion());
