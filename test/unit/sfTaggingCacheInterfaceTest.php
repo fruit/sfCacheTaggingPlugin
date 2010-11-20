@@ -35,7 +35,7 @@
     }
     catch (Exception $e)
     {
-      $t->comment($e->getMessage());
+      $t->fail($e->getMessage());
       continue;
     }
 

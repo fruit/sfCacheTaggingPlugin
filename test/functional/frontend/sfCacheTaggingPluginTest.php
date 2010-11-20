@@ -105,7 +105,7 @@
       }
       catch (sfInitializationException $e)
       {
-        $t->comment(sprintf(
+        $t->fail(sprintf(
           'Skipping combination %s/%s. %s.',
           $dataCache['class'],
           $tagsCache['class'],

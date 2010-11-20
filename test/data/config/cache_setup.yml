@@ -38,11 +38,11 @@
   param:
     prefix: "" # does not have prefixes
     cache_dir: <?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/file
--
-  class: sfEAcceleratorTaggingCache
-  param:
-    prefix: test
--
-  class: sfXCacheTaggingCache
-  param:
-    prefix: test
+#-
+#  class: sfEAcceleratorTaggingCache
+#  param:
+#    prefix: test
+#-
+#  class: sfXCacheTaggingCache
+#  param:
+#    prefix: test

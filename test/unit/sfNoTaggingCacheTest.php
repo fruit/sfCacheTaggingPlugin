@@ -34,3 +34,5 @@
   $t->is($c->clean(), true);
   $t->is($c->getLastModified('name'), 0);
   $t->is($c->getTimeout('name'), 0);
+
+  $t->isa_ok($c->getTagsCache(), 'sfNoCache');
