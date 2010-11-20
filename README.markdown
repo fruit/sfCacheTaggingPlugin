@@ -177,6 +177,10 @@ are not (atomic counter).
             #  uniqueColumn: [id, is_enabled]
             #  uniqueKeyFormat: '%d-%02b'      # the order of unique columns
             #                                  # matches the "uniqueKeyFormat" template variables order
+            #  skipOnChange:
+            #    - column_name_1               # to skip updating the column "object_version"
+            #    - column_name_2               # if given column (-s) was changed.
+            #                                  # (e.g. useful for sf_guard_user.last_login column)
 
 
 1.  Enable cache in ``settings.yml`` and add additional helpers to
@@ -530,35 +534,12 @@ are not (atomic counter).
         Files=27, Tests=2628
 
 
-  * Code coverage (total 98%):
+  * Code coverage:
 
         ./symfony test:coverage plugins/sfCacheTaggingPlugin/test plugins/sfCacheTaggingPlugin/
-        plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCacheInterface.class   100%
-        plugins/sfCacheTaggingPlugin/lib/cache/sfNoTaggingCache.class          100%
-        gins/sfCacheTaggingPlugin/lib/cache/drivers/sfSQLiteTaggingCache.class 100%
-        lugins/sfCacheTaggingPlugin/lib/cache/drivers/sfFileTaggingCache.class 100%
-        plugins/sfCacheTaggingPlugin/lib/cache/drivers/sfAPCTaggingCache.class 100%
-        fCacheTaggingPlugin/lib/cache/drivers/sfEAcceleratorTaggingCache.class  25%
-        ns/sfCacheTaggingPlugin/lib/cache/drivers/sfMemcacheTaggingCache.class 100%
-        gins/sfCacheTaggingPlugin/lib/cache/drivers/sfXCacheTaggingCache.class  20%
-        plugins/sfCacheTaggingPlugin/lib/cache/sfTaggingCache.class            100%
-        plugins/sfCacheTaggingPlugin/lib/cache/CacheMetadata.class             100%
-        lugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class 100%
-        plugins/sfCacheTaggingPlugin/lib/util/sfCallableArray.class            100%
-        plugins/sfCacheTaggingPlugin/lib/util/sfCacheTaggingToolkit.class      100%
-        plugins/sfCacheTaggingPlugin/lib/util/sfContentTagHandler.class        100%
-        ins/sfCacheTaggingPlugin/lib/util/sfTagNamespacedParameterHolder.class 100%
-        /sfCacheTaggingPlugin/lib/vendor/Doctrine/Template/Cachetaggable.class 100%
-        CacheTaggingPlugin/lib/vendor/Doctrine/Template/Listener/Cachetaggable 100%
-        plugins/sfCacheTaggingPlugin/lib/vendor/Doctrine/Query/Cachetaggable    87%
-        plugins/sfCacheTaggingPlugin/lib/vendor/Doctrine/Cache/Proxy           100%
-        gins/sfCacheTaggingPlugin/lib/vendor/Doctrine/Collection/Cachetaggable 100%
-        plugins/sfCacheTaggingPlugin/lib/view/sfViewCacheTagManager.class       99%
-        plugins/sfCacheTaggingPlugin/lib/log/sfFileCacheTagLogger.class        100%
-        plugins/sfCacheTaggingPlugin/lib/log/sfCacheTagLogger.class            100%
-        plugins/sfCacheTaggingPlugin/lib/log/sfNoCacheTagLogger.class          100%
-        fCacheTaggingPlugin/lib/exception/sfCacheMissingContextException.class 100%
-        gins/sfCacheTaggingPlugin/lib/exception/sfCacheDisabledException.class 100%
+
+        ...
+
         TOTAL COVERAGE:  98%
 
 
