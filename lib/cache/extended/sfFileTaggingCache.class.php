@@ -48,6 +48,11 @@
 
       foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->getOption('cache_dir'))) as $path)
       {
+        if (! is_file($path))
+        {
+          continue;
+        }
+        
         $key = str_replace($this->getOption('cache_dir').DIRECTORY_SEPARATOR, '', $path);
         $key = str_replace(DIRECTORY_SEPARATOR, self::SEPARATOR, $key);
         $key = substr($key, 0, - strlen(self::EXTENSION));

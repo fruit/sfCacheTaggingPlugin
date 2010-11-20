@@ -26,6 +26,8 @@
 
   foreach (sfYaml::load($cacheSetupLocation) as $engineConfiguration)
   {
+    $t->info(sprintf('Class "%s"', $engineConfiguration['class']));
+
     try
     {
       $engine = new $engineConfiguration['class']($engineConfiguration['param']);
@@ -36,6 +38,8 @@
       $t->comment($e->getMessage());
       continue;
     }
+
+    $engine->clean(sfCache::ALL);
 
     $t->is($engine->getCacheKeys(), array(), $engineConfiguration['class']);
 
