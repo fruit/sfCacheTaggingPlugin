@@ -22,11 +22,11 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-09-15</date>
-  <time>17:33:08</time>
+  <date>2010-11-21</date>
+  <time>00:01:00</time>
   <version>
     <release>2.0.2</release>
-    <api>2.1.0</api>
+    <api>2.1.1</api>
   </version>
   <stability>
     <release>stable</release>
@@ -35,6 +35,8 @@
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
     * ilya: [updated] README
+    * ilya: [added] "skipOnChange" directive (schema.yml)
+    * ilya: [fixed] sfFileTaggingCache::getCacheKeys
   </notes>
   <contents>
     <dir name="/">
@@ -117,6 +119,7 @@
             <file name="DoctrineListenerCachetaggableTest.php" role="data" />
             <file name="DoctrineQueryCachetaggableTest.php" role="data" />
             <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
+            <file name="SkipOnColumnUpdateTest.php" role="data" />
             <file name="actionWithLayoutTest.php" role="data" />
             <file name="actionWithoutLayoutTest.php" role="data" />
             <file name="browserViewCacheTest.php" role="data" />
@@ -167,6 +170,23 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>2.0.2</release>
+        <api>2.1.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2010-11-21</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [updated] README
+        * ilya: [added] "skipOnChange" directive (schema.yml)
+        * ilya: [fixed] sfFileTaggingCache::getCacheKeys
+      </notes>
+    </release>
     <release>
       <version>
         <release>2.0.2</release>
