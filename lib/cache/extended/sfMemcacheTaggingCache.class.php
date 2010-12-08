@@ -27,4 +27,18 @@
 
       return $keys;
     }
+
+    /**
+     * @see sfCache
+     * @return array
+     */
+    public function getMany ($keys)
+    {
+      foreach ($keys as $i => $key)
+      {
+        $key[$i] = $this->getOption('prefix') . $key;
+      }
+
+      return $this->memcache->get($keys);
+    }
   }

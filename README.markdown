@@ -459,64 +459,73 @@ are not (atomic counter).
     result cache by calling ``Doctrine_Query::useResultCache()``:
 
         [php]
-        class carActions extends sfActions
+        class blogPostActions extends sfActions
         {
-          // Somewhere in component/action, you need to print out latest posts
-          $posts = Doctrine::getTable('BlogPost')
-            ->createQuery()
-            ->useResultCache()
-            ->addWhere('lang = ?', 'en_GB')
-            ->addWhere('is_visible = ?', true)
-            ->limit(15)
-            ->execute();
+          public function executePosts (sfWebRequest $request)
+          {
+            // Somewhere in component/action, you need to print out latest posts
+            $posts = Doctrine::getTable('BlogPost')
+              ->createQuery()
+              ->useResultCache()
+              ->addWhere('lang = ?', 'en_GB')
+              ->addWhere('is_visible = ?', true)
+              ->limit(15)
+              ->execute();
 
-          $this->posts = $posts;
+            $this->setActionTags($posts);
 
-          // if you run this action again - you will pleasantly surprised
-          // $posts now stored in cache and with object tags ;)
-          // (object serialization powered by Doctrine build-in mechanism)
-          // and expired as soon as you edit one of them
-          // or add new record to table "blog_post"
+            $this->posts = $posts;
 
-          // when Doctrine_Query has many joins, tags will be fetched
-          // recursively from all joined models
+            // if you run this action again - you will pleasantly surprised
+            // $posts now stored in cache and with object tags ;)
+            // (object serialization powered by Doctrine build-in mechanism)
+            // and expired as soon as you edit one of them
+            // or add new record to table "blog_post"
+
+            // when Doctrine_Query has many joins, tags will be fetched
+            // recursively from all joined models
+          }
         }
 
 
   * Appending tags to existing Doctrine tags:
 
         [php]
-        class carActions extends sfActions
+        class blogPostActions extends sfActions
         {
-          // Somewhere in component/action, you need to print out latest posts
-          //
-          $posts = Doctrine::getTable('BlogPost')
-            ->createQuery()
-            ->useResultCache()
-            ->addWhere('lang = ?')
-            ->addWhere('is_visible = ?')
-            ->limit(15)
-            ->execute(array('en_GB', true));
+          public function executePosts (sfWebRequest $request)
+          {
+            // Somewhere in component/action, you need to print out latest posts
+            //
+            $posts = Doctrine::getTable('BlogPost')
+              ->createQuery()
+              ->useResultCache()
+              ->addWhere('lang = ?')
+              ->addWhere('is_visible = ?')
+              ->limit(15)
+              ->execute(array('en_GB', true));
 
-          // objects are written to cache with it tags
+            // ? $this->setActionTags($posts);
+            // objects are written to cache with it tags
 
-          // For example, want to $posts will be invalidated if something was changed
-          // in table "culture":
-          $q = Doctrine::getTable('Culture')->createQuery();
-          $cultures = $q->execute();
+            // For example, want to $posts will be invalidated if something was changed
+            // in table "culture":
+            $q = Doctrine::getTable('Culture')->createQuery();
+            $cultures = $q->execute();
 
-          // when execute was runned without params "$q->execute();"
-          $this->addDoctrineTags($cultures, $q);
+            // when execute was runned without params "$q->execute();"
+            $this->addDoctrineTags($cultures, $q);
 
-          // when execute was runned with params "$q->execute(array(true, 1, 'foo'));"
-          // $this->addDoctrineTags($cultures, $q->getResultCacheHash($q->getParams()));
-          // or
-          // shorter
-          // $this->addDoctrineTags($posts, $q, $q->getParams());
+            // when execute was runned with params "$q->execute(array(true, 1, 'foo'));"
+            // $this->addDoctrineTags($cultures, $q->getResultCacheHash($q->getParams()));
+            // or
+            // shorter
+            // $this->addDoctrineTags($posts, $q, $q->getParams());
 
-          // now if you update something in culture table, $posts will be expired
+            // now if you update something in culture table, $posts will be expired
 
-          $this->posts = $posts;
+            $this->posts = $posts;
+          }
         }
 
 ## Limitations / Specificity ##
@@ -559,6 +568,11 @@ are not (atomic counter).
 
       * sfXCacheTaggingCache
       * sfEAcceleratorTaggingCache
+
+  * Fine multi-key-get performance in:
+      * sfAPCTaggingCache
+      * sfMemcacheTaggingCache
+      * sfSQLite*TaggingCache
 
 ## Contribution ##
 

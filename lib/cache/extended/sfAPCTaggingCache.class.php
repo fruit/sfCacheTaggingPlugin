@@ -39,11 +39,9 @@
      */
     public function getMany ($keys)
     {
-      foreach ($keys as & $key)
+      foreach ($keys as $i => $key)
       {
-        $key = $this->getOption('prefix')  . $key;
-
-        unset($key);
+        $key[$i] = $this->getOption('prefix') . $key;
       }
 
       return apc_fetch($keys);
