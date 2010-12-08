@@ -217,6 +217,7 @@ are not (atomic counter).
         all:
           sfcachetaggingplugin:
 
+            # lock and tag templates DEPRECATED in v2.1.0
             template_lock: "%SF_ENVIRONMENT%:lock:%s"    # Name for locks.
             template_tag: "%SF_ENVIRONMENT%:tag:%s"      # Name for tags.
 

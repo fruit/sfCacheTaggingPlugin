@@ -541,47 +541,75 @@
       # check data exist in cache and data content is a tags container
       if ($cacheMetadata instanceof $cacheMetadataClassName)
       {
-        # check for data tags is expired
-        $hasExpired = false;
+        $tags = $cacheMetadata->getTags();
 
-        foreach ($cacheMetadata->getTags() as $tagName => $tagVersion)
+        if (0 !== count($tags))
         {
-          # reding tag version
-          $tagLatestVersion = $this->getTag($tagName);
+          /**
+           * speed up multi tag selection from backend
+           */
+          $tagKeys = array_keys($tags);
+          
+          $multiTags = $this->getManyTags($tagKeys);
 
-          $tagKey = $this->generateTagKey($tagName);
-
-          # tag is exprired or version is old
-          if (! $tagLatestVersion || $tagVersion < $tagLatestVersion)
+          if (count($tags) > count($multiTags))
           {
             $this->getLogger()->log(
-              'v', sprintf('%s(%s=>%s)', $tagKey, $tagVersion, $tagLatestVersion)
+  //            'v', sprintf('%s(%s=>%s)', $tagKey, $tagVersion, $tagLatestVersion)
+              'v', 'multi fetch'
             );
 
             # one tag is expired, no reasons to continue
             # (should revalidate cache data)
             $hasExpired = true;
-
-            break;
-          }
-
-          $this->getLogger()->log(
-            'V', sprintf('%s(%s)', $tagKey, $tagLatestVersion)
-          );
-        }
-
-        // some cache tags is invalidated
-        if ($hasExpired)
-        {
-          if ($this->isLocked($key))
-          {
-            # return old cache coz new data is writing to the current cache
-            $cacheMetadata = $cacheMetadata->getData();
           }
           else
           {
-            # cache no locked, but cache is expired
-            $cacheMetadata = null;
+            $extendedKeysWithCurrentVersions = array_combine(array_keys($multiTags), array_values($tags));
+
+            # check for data tags is expired
+            $hasExpired = false;
+
+            foreach ($multiTags as $tagKey => $tagLatestVersion)
+            {
+              $tagVersion = $extendedKeysWithCurrentVersions[$tagKey];
+              # tag is exprired or version is old
+              if (! $tagLatestVersion || $tagVersion < $tagLatestVersion)
+              {
+                $this->getLogger()->log(
+                  'v', sprintf('%s(%s=>%s)', $tagKey, $tagVersion, $tagLatestVersion)
+                );
+
+                # one tag is expired, no reasons to continue
+                # (should revalidate cache data)
+                $hasExpired = true;
+
+                break;
+              }
+
+              $this->getLogger()->log(
+                'V', sprintf('%s(%s)', $tagKey, $tagLatestVersion)
+              );
+            }
+          }
+
+          // some cache tags is invalidated
+          if ($hasExpired)
+          {
+            if ($this->isLocked($key))
+            {
+              # return old cache coz new data is writing to the current cache
+              $cacheMetadata = $cacheMetadata->getData();
+            }
+            else
+            {
+              # cache no locked, but cache is expired
+              $cacheMetadata = null;
+            }
+          }
+          else
+          {
+            $cacheMetadata = $cacheMetadata->getData();
           }
         }
         else
@@ -671,6 +699,7 @@
      */
     protected function generateLockKey ($key)
     {
+      return $key . '_lock';
       return sprintf(
         sfConfig::get(
           'app_sfcachetaggingplugin_template_lock',
@@ -688,6 +717,7 @@
      */
     protected function generateTagKey ($key)
     {
+      return $key;
       return sprintf(
         sfConfig::get(
           'app_sfcachetaggingplugin_template_tag',
@@ -713,5 +743,10 @@
     public function getCacheKeys ()
     {
       return $this->getDataCache()->getCacheKeys();
+    }
+
+    public function getManyTags ($keys)
+    {
+      return $this->getTagsCache()->getMany($keys);
     }
   }

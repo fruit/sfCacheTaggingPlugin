@@ -14,6 +14,7 @@
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
   class sfAPCTaggingCache extends sfAPCCache
+    implements sfTaggingCacheInterface
   {
     public function getCacheKeys ()
     {
@@ -30,5 +31,21 @@
       }
 
       return $keys;
+    }
+
+    /**
+     * @see sfCache
+     * @return array
+     */
+    public function getMany ($keys)
+    {
+      foreach ($keys as & $key)
+      {
+        $key = $this->getOption('prefix')  . $key;
+
+        unset($key);
+      }
+
+      return apc_fetch($keys);
     }
   }
