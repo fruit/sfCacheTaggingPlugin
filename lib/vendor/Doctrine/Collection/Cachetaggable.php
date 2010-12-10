@@ -86,6 +86,8 @@
         ));
       }
 
+      $namespace = $this->getNamespace();
+
       try
       {
         $taggingCache = $this->getTaggingCache();
@@ -117,7 +119,7 @@
 
           $tags = $deep ? $object->getTags(true) : $object->getTags();
 
-          $tagHandler->addContentTags($tags, $this->getNamespace());
+          $tagHandler->addContentTags($tags, $namespace);
         }
 
         $existingCollectionVersion = $taggingCache->getTag($formatedClassName);
@@ -132,7 +134,7 @@
         }
 
         $tagHandler->setContentTag(
-          $formatedClassName, $newCollectionVersion, $this->getNamespace()
+          $formatedClassName, $newCollectionVersion, $namespace
         );
       }
       else
@@ -148,18 +150,18 @@
         $tagHandler->setContentTag(
           $formatedClassName,
           sfCacheTaggingToolkit::generateVersion(strtotime('today')),
-          $this->getNamespace()
+          $namespace
         );
       }
 
-      $tags = $tagHandler->addContentTags(
+      $tagHandler->addContentTags(
         $tagHandler->getContentTags($this->getNamespace(true)),
-        $this->getNamespace()
+        $namespace
       );
 
-      $tags = $tagHandler->getContentTags($this->getNamespace());
+      $tags = $tagHandler->getContentTags($namespace);
 
-      $tagHandler->removeContentTags($this->getNamespace());
+      $tagHandler->removeContentTags($namespace);
 
       return $tags;
     }
