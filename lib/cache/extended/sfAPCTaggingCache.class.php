@@ -41,7 +41,7 @@
     {
       foreach ($keys as $i => $key)
       {
-        $key[$i] = $this->getOption('prefix') . $key;
+        $keys[$i] = $this->getOption('prefix') . $key;
       }
 
       return apc_fetch($keys);

@@ -405,15 +405,13 @@
     /**
      * Saves tag with its version
      *
-     * @param string  $tagName      tag name
+     * @param string  $key      tag name
      * @param string  $tagVersion   tag version
      * @param int     $lifetime     optional tag time to live
      * @return boolean
      */
-    public function setTag ($tagName, $tagVersion, $lifetime = null)
+    public function setTag ($key, $tagVersion, $lifetime = null)
     {
-      $key = $this->generateTagKey($tagName);
-
       $result = $this->getTagsCache()->set($key, $tagVersion, $lifetime);
 
       $this->getLogger()->log($result ? 'P' :'p', sprintf('%s(%s)', $key, $tagVersion));
@@ -438,13 +436,11 @@
     /**
      * Returns version of the tag by key
      *
-     * @param string $tagName
+     * @param string $key
      * @return string version of the tag
      */
-    public function getTag ($tagName)
+    public function getTag ($key)
     {
-      $key = $this->generateTagKey($tagName);
-
       $result = $this->getTagsCache()->get($key);
 
       $this->getLogger()->log(
@@ -458,13 +454,11 @@
     /**
      * Checks tag key exists
      *
-     * @param string $tagName
+     * @param string $key
      * @return boolean
      */
-    public function hasTag ($tagName)
+    public function hasTag ($key)
     {
-      $key = $this->generateTagKey($tagName);
-
       $has = $this->getTagsCache()->has($key);
 
       $this->getLogger()->log($has ? 'I' : 'i', $key);
@@ -495,13 +489,11 @@
     /**
      * Removes tag version (basicly called on physical object removing)
      *
-     * @param string $tagName
+     * @param string $key
      * @return boolean
      */
-    public function deleteTag ($tagName)
+    public function deleteTag ($key)
     {
-      $key = $this->generateTagKey($tagName);
-
       $result = $this->getTagsCache()->remove($key);
 
       $this->getLogger()->log($result ? 'E' : 'e', $key);
@@ -550,7 +542,7 @@
            */
           $tagKeys = array_keys($tags);
           
-          $multiTags = $this->getManyTags($tagKeys);
+          $multiTags = $this->getTagsCache()->getMany($tagKeys);
 
           if (count($tags) > count($multiTags))
           {
@@ -699,14 +691,7 @@
      */
     protected function generateLockKey ($key)
     {
-      return $key . '_lock';
-      return sprintf(
-        sfConfig::get(
-          'app_sfcachetaggingplugin_template_lock',
-          sprintf('%s:lock:%%s', sfConfig::get('sf_environment'))
-        ),
-        $key
-      );
+      return "{$key}_lock";
     }
 
     /**
@@ -718,13 +703,13 @@
     protected function generateTagKey ($key)
     {
       return $key;
-      return sprintf(
-        sfConfig::get(
-          'app_sfcachetaggingplugin_template_tag',
-          sprintf('%s:tag:%%s', sfConfig::get('sf_environment'))
-        ), 
-        $key
-      );
+//      return sprintf(
+//        sfConfig::get(
+//          'app_sfcachetaggingplugin_template_tag',
+//          sprintf('%s:tag:%%s', sfConfig::get('sf_environment'))
+//        ),
+//        $key
+//      );
     }
 
     /**
@@ -743,10 +728,5 @@
     public function getCacheKeys ()
     {
       return $this->getDataCache()->getCacheKeys();
-    }
-
-    public function getManyTags ($keys)
-    {
-      return $this->getTagsCache()->getMany($keys);
     }
   }

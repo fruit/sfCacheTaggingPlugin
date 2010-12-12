@@ -32,7 +32,7 @@
   $taggingCache = $cacheManager->getTaggingCache();
 
   /* @var $taggingCache sfTaggingCache */
-  
+
   $dataCacheSetups = sfYaml::load(PLUGIN_DATA_DIR . '/config/cache_setup.yml');
   $tagCacheSetups = $dataCacheSetups;
 
@@ -95,7 +95,7 @@
         $taggingCache->initialize(array(
           'logger'  => array('class' => 'sfFileCacheTagLogger', 'param' => array(
             'file' => sfConfig::get('sf_log_dir') . '/cache.log',
-            'format' => '%microtime% [%char%] %key%%EOL%',
+            'format' => '%microtime% [%char%] %key% (%char_explanation%)%EOL%',
           )),
           'data'   => $dataCache,
           'tags'   => $tagsCache,
@@ -144,7 +144,7 @@
 
       $connection->beginTransaction();
       
-      $t->is($taggingCache->get('posts'), false, 'cache is NOT empty');
+      $t->is($taggingCache->get('posts'), false, '"posts" cache is empty');
 
       $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 

@@ -56,4 +56,21 @@
 
       return $keys;
     }
+
+    /**
+     * @see sfCache
+     * @param array $keys
+     * @return array
+     */
+    public function getMany ($keys)
+    {
+      $rows = parent::getMany($keys);
+
+      foreach ($rows as $key => $value)
+      {
+        $rows[$key] = unserialize($value);
+      }
+
+      return $rows;
+    }
   }

@@ -53,4 +53,47 @@
 
       return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
     }
+
+    /**
+     * @see sfCache
+     * @param array $keys
+     * @return array
+     */
+    public function getMany ($keys)
+    {
+      $list = '';
+      foreach ($keys as $key)
+      {
+        $list .= ($list != '' ? ', ' : '') . $this->getBackend()->quote($key);
+      }
+
+      if ($list == '')
+      {
+        return array();
+      }
+
+      $query = "SELECT key, data FROM cache WHERE key IN ({$list}) AND timeout > ?";
+
+      $stmt = $this->getBackend()->prepare($query);
+
+      $stmt->bindValue(1, time(), PDO::PARAM_INT);
+
+      $stmt->execute();
+
+      $rows = array();
+      
+      while ($row = $stmt->fetch(PDO::FETCH_ASSOC))
+      {
+        $rows[$row['key']] = unserialize($row['data']);
+      }
+
+      # reorder based on passed keys
+      $results = array();
+      foreach ($keys as $key)
+      {
+        $results[$key] = $rows[$key];
+      }
+
+      return $results;
+    }
   }

@@ -8,36 +8,51 @@
     port: 11211
     timeout: 1
     lifetime: 900
+    automatic_cleaning_factor: 0
 -
   class: sfAPCTaggingCache
   param:
     prefix: test
+    automatic_cleaning_factor: 0
     lifetime: 600
+
+# since 5.3.0 Sqlite3 (@todo add driver to cache with sqlite3 support)
+<?php if (version_compare(PHP_VERSION, '5.3.0', '<')) { ?>
 -
   class: sfSQLiteTaggingCache
   param:
     prefix: "" # does not have prefixes
+    automatic_cleaning_factor: 0
     database: <?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite.db
 -
   class: sfSQLiteTaggingCache
   param:
     prefix: "" # does not have prefixes
+    automatic_cleaning_factor: 0
     database: ":memory:"
+<?php } ?>
+
 -
   class: sfSQLitePDOTaggingCache
   param:
     prefix: "" # does not have prefixes
-    dsn: "sqlite:<?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite-pdo.db"
+    automatic_cleaning_factor: 0
+    dsn: "sqlite:<?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite_pdo.db"
 -
   class: sfSQLitePDOTaggingCache
   param:
     prefix: "" # does not have prefixes
+    automatic_cleaning_factor: 0
     dsn: "sqlite::memory:"
 -
   class: sfFileTaggingCache
   param:
     prefix: "" # does not have prefixes
+    automatic_cleaning_factor: 0
     cache_dir: <?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/file
+
+
+
 #-
 #  class: sfEAcceleratorTaggingCache
 #  param:

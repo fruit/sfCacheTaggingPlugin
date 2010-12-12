@@ -14,7 +14,9 @@
   $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
   $cc->run();
 
-  $sfContext = sfContext::getInstance();
+  $sfContext = sfContext::createInstance(
+    ProjectConfiguration::getApplicationConfiguration('notag', 'test', true)
+  );
 
   $cacheManager = $sfContext->getViewCacheManager();
 
@@ -32,8 +34,6 @@
     $p->setTitle('no-cached');
     $p->save();
 
-    print $p->getTagName() . ' / ' . $p->getObjectVersion() . "\n";
-
     $t->pass('no exception throw with disabled sf_cache');
   }
   catch (Exception $e)
@@ -42,3 +42,5 @@
   }
 
   $connection->rollback();
+
+  sfContext::switchTo('frontend');

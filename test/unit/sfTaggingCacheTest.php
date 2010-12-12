@@ -137,11 +137,15 @@
       'class' => 'sfAPCTaggingCache',
       'param' => array(
         'cache_dir' => sfConfig::get('sf_cache_dir') . '/test',
+        'automatic_cleaning_factor' => 0,
       )
     ),
     'tags' => array(
-      'class' => 'sfSQLiteTaggingCache',
-      'param' => array('database' => ':memory:')
+      'class' => 'sfSQLitePDOTaggingCache',
+      'param' => array(
+        'dsn' => 'sqlite::memory:',
+        'automatic_cleaning_factor' => 0,
+      )
     ),
     'logger' => array(
       'class' => 'sfFileCacheTagLogger',
@@ -305,7 +309,7 @@
   $t->is($c->getTag('X_1'), 928);
   $t->is($c->getTag('X_3'), '187');
 
-  $t->is($c->get('file'), 'robots.txt');
+  $t->is($c->get('file'), 'robots.txt', 'File is "robots.txt"');
 
   $c->clean(sfCache::ALL);
 

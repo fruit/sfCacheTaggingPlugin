@@ -149,6 +149,9 @@
         case 'S': return 'new values are saved to the data cache';
         case 'u': return 'could not unlock the cache';
         case 'U': return 'cache was unlocked';
+        case 'r': return 'data cache with no locks';
+        case 'R': return 'data cache with lock';
+
         # Tags:
         case 'v': return 'cache tag version is expired';
         case 'V': return 'cache tag version is up-to-date';
