@@ -114,7 +114,7 @@
       {
         $columnsChanged = array_keys($modifiedColumns);
 
-        if (0 === count(array_diff($columnsChanged, $skipOnChange)))
+        if (0 == count(array_diff($columnsChanged, $skipOnChange)))
         {
           return;
         }
@@ -151,11 +151,14 @@
         return;
       }
 
+      $table = $object->getTable();
+      /* @var $table Doctrine_Table */
+
       # When SoftDelete behavior saves "deleted" object
       # do not update object version on when "deleted" object is saving
-      if ($object->getTable()->hasTemplate('SoftDelete'))
+      if ($table->hasTemplate('SoftDelete'))
       {
-        $softDeleteTemplate = $object->getTable()->getTemplate('SoftDelete');
+        $softDeleteTemplate = $table->getTemplate('SoftDelete');
         $deleteAtField = $softDeleteTemplate->getOption('name');
 
         if (array_key_exists($deleteAtField, $lastModifiedColumns))
@@ -200,6 +203,26 @@
 
       /* @var $q Doctrine_Query */
       $q = $event->getQuery();
+
+      $skipOnChange = (array) $this->getOption('skipOnChange');
+
+      if (0 < count($skipOnChange))
+      {
+        $columnNames = array();
+
+        foreach ($q->getDqlPart('set') as $set)
+        {
+          if (preg_match('/(\w+)\ =\ /', $set, $m))
+          {
+            $columnNames[] = $m[1];
+          }
+        }
+
+        if (0 == count(array_intersect($columnNames, $skipOnChange)))
+        {
+          return false;
+        }
+      }
 
       $updateVersion = sfCacheTaggingToolkit::generateVersion();
       $q->set($this->getOption('versionColumn'), $updateVersion);
