@@ -91,7 +91,7 @@
       $results = array();
       foreach ($keys as $key)
       {
-        $results[$key] = $rows[$key];
+        $results[$key] = isset($rows[$key]) ? $rows[$key] : null;
       }
 
       return $results;

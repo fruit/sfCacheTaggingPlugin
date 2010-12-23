@@ -62,4 +62,36 @@
     }
 
     $engine->clean(sfCache::ALL);
+
+    # getMany
+
+    $t->is(
+      $engine->getMany(array('key_A', 'key_B', 'key_O')),
+      array('key_A' => null, 'key_B' => null, 'key_O' => null),
+      'Requested keys has no values in cache backend'
+    );
+
+    $engine->set('key_A', 100);
+    $engine->set('key_B', 130);
+    $engine->set('key_C', 11);
+
+    $t->is(
+      $engine->getMany(array('key_A', 'key_B', 'key_O')),
+      array('key_A' => 100, 'key_B' => 130, 'key_O' => null),
+      '2 values with values, 1 is null'
+    );
+
+    $t->is(
+      $engine->getMany(array('key_A', 'key_B', 'key_C')),
+      array('key_A' => 100, 'key_B' => 130, 'key_C' => 11),
+      'All requested keys has values'
+    );
+
+    $t->is(
+      $engine->getMany(array()),
+      array(),
+      'No keys = no values ;>'
+    );
+
+    $engine->clean(sfCache::ALL);
   }

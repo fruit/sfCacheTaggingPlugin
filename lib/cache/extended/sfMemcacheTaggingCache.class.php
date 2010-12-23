@@ -34,11 +34,25 @@
      */
     public function getMany ($keys)
     {
+      $prefix = $this->getOption('prefix');
+
       foreach ($keys as $i => $key)
       {
-        $keys[$i] = $this->getOption('prefix') . $key;
+        $keys[$i] = $prefix . $key;
       }
 
-      return $this->memcache->get($keys);
+      $values = $this->getBackend()->get($keys);
+
+      $results = array();
+
+      $prefixLength = strlen($prefix);
+
+      foreach ($keys as $i => $key)
+      {
+        $shortKey = substr($key, $prefixLength);
+        $results[$shortKey] = isset($values[$key]) ? $values[$key] : null;
+      }
+
+      return $results;
     }
   }
