@@ -111,7 +111,7 @@
 
         foreach ($this as $object)
         {
-          $objectVersion = $object->getObjectVersion();
+          $objectVersion = $object->obtainObjectVersion();
 
           $freshestVersion = $freshestVersion < $objectVersion
             ? $objectVersion

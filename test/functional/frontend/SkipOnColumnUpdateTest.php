@@ -30,25 +30,25 @@
   $obj->setName('Flower shop');
   $obj->save();
 
-  $v = $obj->getObjectVersion();
+  $v = $obj->obtainObjectVersion();
 
   $obj->setAuthor('Stefano Alfano');
   $obj->save();
 
-  $t->is($obj->getObjectVersion(), $v, 'Version not changed');
+  $t->is($obj->obtainObjectVersion(), $v, 'Version not changed');
 
   $obj->setName('Toys shop');
   $obj->save();
 
-  $t->isnt($obj->getObjectVersion(), $v, 'Version changed');
+  $t->isnt($obj->obtainObjectVersion(), $v, 'Version changed');
 
-  $v = $obj->getObjectVersion();
+  $v = $obj->obtainObjectVersion();
 
   $obj->setAuthor('Dustin Latimer');
   $obj->setName('Skate shop');
 
   $obj->save();
-  $t->isnt($obj->getObjectVersion(), $v, 'Version changed');
+  $t->isnt($obj->obtainObjectVersion(), $v, 'Version changed');
 
   $connection->rollback();
 
@@ -60,7 +60,7 @@
   $obj1->setCount(2);
   $obj1->save();
 
-  $objectVersion1 = $obj1->getObjectVersion();
+  $objectVersion1 = $obj1->obtainObjectVersion();
 
   $obj2 = new SkipOnColumnUpdateTest();
   $obj2->setAuthor('Stefano Alfano');
@@ -68,7 +68,7 @@
   $obj2->setCount(1);
   $obj2->save();
 
-  $objectVersion2 = $obj2->getObjectVersion();
+  $objectVersion2 = $obj2->obtainObjectVersion();
 
   $obj3 = new SkipOnColumnUpdateTest();
   $obj3->setAuthor('Brain Shime');
@@ -76,7 +76,7 @@
   $obj3->setCount(4);
   $obj3->save();
 
-  $objectVersion3 = $obj3->getObjectVersion();
+  $objectVersion3 = $obj3->obtainObjectVersion();
 
   $table = Doctrine::getTable('SkipOnColumnUpdateTest');
 
@@ -93,13 +93,13 @@
   $obj2 = $table->find($obj2->getId());
   $obj3 = $table->find($obj3->getId());
 
-  $t->is($obj1->getObjectVersion(), $objectVersion1, "Version '{$objectVersion1}' NOT invalidated");
-  $t->isnt($obj2->getObjectVersion(), $objectVersion2, "Version '{$objectVersion2}' invalidated");
-  $t->is($obj3->getObjectVersion(), $objectVersion3, "Version '{$objectVersion3}' NOT invalidated");
+  $t->is($obj1->obtainObjectVersion(), $objectVersion1, "Version '{$objectVersion1}' NOT invalidated");
+  $t->isnt($obj2->obtainObjectVersion(), $objectVersion2, "Version '{$objectVersion2}' invalidated");
+  $t->is($obj3->obtainObjectVersion(), $objectVersion3, "Version '{$objectVersion3}' NOT invalidated");
 
-  $objectVersion1 = $obj1->getObjectVersion();
-  $objectVersion2 = $obj2->getObjectVersion();
-  $objectVersion3 = $obj3->getObjectVersion();
+  $objectVersion1 = $obj1->obtainObjectVersion();
+  $objectVersion2 = $obj2->obtainObjectVersion();
+  $objectVersion3 = $obj3->obtainObjectVersion();
 
   $c = $table
     ->createQuery()
@@ -114,13 +114,13 @@
   $obj2 = $table->find($obj2->getId());
   $obj3 = $table->find($obj3->getId());
 
-  $t->isnt($obj1->getObjectVersion(), $objectVersion1, "Version '{$objectVersion1}' invalidated");
-  $t->is($obj2->getObjectVersion(), $objectVersion2, "Version '{$objectVersion2}' NOT invalidated");
-  $t->isnt($obj3->getObjectVersion(), $objectVersion3, "Version '{$objectVersion3}' invalidated");
+  $t->isnt($obj1->obtainObjectVersion(), $objectVersion1, "Version '{$objectVersion1}' invalidated");
+  $t->is($obj2->obtainObjectVersion(), $objectVersion2, "Version '{$objectVersion2}' NOT invalidated");
+  $t->isnt($obj3->obtainObjectVersion(), $objectVersion3, "Version '{$objectVersion3}' invalidated");
 
-  $objectVersion1 = $obj1->getObjectVersion();
-  $objectVersion2 = $obj2->getObjectVersion();
-  $objectVersion3 = $obj3->getObjectVersion();
+  $objectVersion1 = $obj1->obtainObjectVersion();
+  $objectVersion2 = $obj2->obtainObjectVersion();
+  $objectVersion3 = $obj3->obtainObjectVersion();
 
   $c = $table
     ->createQuery()
@@ -135,8 +135,8 @@
   $obj2 = $table->find($obj2->getId());
   $obj3 = $table->find($obj3->getId());
 
-  $t->is($obj1->getObjectVersion(), $objectVersion1, "Version '{$objectVersion1}' NOT invalidated");
-  $t->is($obj2->getObjectVersion(), $objectVersion2, "Version '{$objectVersion2}' NOT invalidated");
-  $t->is($obj3->getObjectVersion(), $objectVersion3, "Version '{$objectVersion3}' NOT invalidated");
+  $t->is($obj1->obtainObjectVersion(), $objectVersion1, "Version '{$objectVersion1}' NOT invalidated");
+  $t->is($obj2->obtainObjectVersion(), $objectVersion2, "Version '{$objectVersion2}' NOT invalidated");
+  $t->is($obj3->obtainObjectVersion(), $objectVersion3, "Version '{$objectVersion3}' NOT invalidated");
 
   $connection->rollback();

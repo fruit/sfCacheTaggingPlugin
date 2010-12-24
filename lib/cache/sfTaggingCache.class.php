@@ -546,10 +546,7 @@
 
           if (count($tags) > count($multiTags))
           {
-            $this->getLogger()->log(
-  //            'v', sprintf('%s(%s=>%s)', $tagKey, $tagVersion, $tagLatestVersion)
-              'v', 'multi fetch'
-            );
+            $this->getLogger()->log('v', 'multi fetch');
 
             # one tag is expired, no reasons to continue
             # (should revalidate cache data)
@@ -703,13 +700,6 @@
     protected function generateTagKey ($key)
     {
       return $key;
-//      return sprintf(
-//        sfConfig::get(
-//          'app_sfcachetaggingplugin_template_tag',
-//          sprintf('%s:tag:%%s', sfConfig::get('sf_environment'))
-//        ),
-//        $key
-//      );
     }
 
     /**

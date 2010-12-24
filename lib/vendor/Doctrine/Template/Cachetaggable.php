@@ -143,7 +143,7 @@
 
       $className = sfCacheTaggingToolkit::getBaseClassName(get_class($invoker));
 
-      $objectVersion = $this->getObjectVersion();
+      $objectVersion = $this->obtainObjectVersion();
       
       $tagHandler->addContentTags(
         array(
@@ -329,7 +329,7 @@
      * @param string $version
      * @return Doctrine_Record
      */
-    public function setObjectVersion ($version)
+    public function assignObjectVersion ($version)
     {
       return $this->getInvoker()->set($this->getOption('versionColumn'), $version);
     }
@@ -339,7 +339,7 @@
      *
      * @return Doctrine_Record
      */
-    public function getObjectVersion ()
+    public function obtainObjectVersion ()
     {
       return $this->getInvoker()->get($this->getOption('versionColumn'));
     }
@@ -350,7 +350,7 @@
      */
     public function updateObjectVersion ()
     {
-      return $this->setObjectVersion(sfCacheTaggingToolkit::generateVersion());
+      return $this->assignObjectVersion(sfCacheTaggingToolkit::generateVersion());
     }
 
     /**

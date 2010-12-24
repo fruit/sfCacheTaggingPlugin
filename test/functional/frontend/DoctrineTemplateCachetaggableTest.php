@@ -68,7 +68,7 @@
   $article->setSlug('foobarbaz');
   $article->save();
 
-  $t->isa_ok($article->setObjectVersion(213213213213), 'Book', 'setObjectVersion() returns self object');
+  $t->isa_ok($article->assignObjectVersion(213213213213), 'Book', 'assignObjectVersion() returns self object');
 
   $t->is($article->getTagName(), "Book{$separator}fr-foobarbaz", 'Multy unique column tables are compatible with tag names');
 
@@ -169,17 +169,17 @@
 
   $connection->rollback();
 
-  # setObjectVersion
+  # assignObjectVersion
 
 
   $v = sfCacheTaggingToolkit::generateVersion();
   $post = new BlogPost();
   $post->setTitle('How to search in WEB?');
-  $t->isa_ok($samePost = $post->setObjectVersion($v), 'BlogPost');
+  $t->isa_ok($samePost = $post->assignObjectVersion($v), 'BlogPost');
   $t->is($post->getOId(), $samePost->getOid(), "OID is === {$post->getOId()}");
 
-  $t->is($post->getObjectVersion(), $v);
+  $t->is($post->obtainObjectVersion(), $v);
 
   $t->isa_ok($post->updateObjectVersion(), 'BlogPost');
 
-  $t->cmp_ok($v, '<', $post->getObjectVersion());
+  $t->cmp_ok($v, '<', $post->obtainObjectVersion());

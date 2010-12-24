@@ -34,25 +34,25 @@
   $post->setSlug('foobarbaz');
   $post->save();
 
-  $version = $post->getObjectVersion();
+  $version = $post->obtainObjectVersion();
   $id = $post->getId();
 
   $post = BookTable::getInstance()->findOneById($id);
 
-  $t->is($version, $post->getObjectVersion(), 'object version not changed since last save()');
+  $t->is($version, $post->obtainObjectVersion(), 'object version not changed since last save()');
 
   $post->save();
 
   $post = BookTable::getInstance()->findOneById($id);
 
-  $t->is($version, $post->getObjectVersion(), 'object not modified, but saved - object version not updated');
+  $t->is($version, $post->obtainObjectVersion(), 'object not modified, but saved - object version not updated');
 
   $post->setSlug('cccc');
   $post->save();
 
   $post = BookTable::getInstance()->findOneById($id);
 
-  $t->isnt($version, $post->getObjectVersion(), 'object version updated');
+  $t->isnt($version, $post->obtainObjectVersion(), 'object version updated');
   $t->is('cccc', $post->getSlug(), 'updated field "slug"');
 
 
@@ -63,7 +63,7 @@
   $post->save();
 
   $captionOneTagName = $post->getTagName();
-  $captionOneVersion = $post->getObjectVersion();
+  $captionOneVersion = $post->obtainObjectVersion();
 
   $t->ok($sfTagger->hasTag($captionOneTagName), 'Object tag exists in cache');
   $t->ok($sfTagger->hasTag(get_class($post)), 'Object\'s collection tag exists in cache');
@@ -163,14 +163,14 @@
   $post = new BlogPost();
   $post->save();
   $id = $post->getId();
-  $version = $post->getObjectVersion();
+  $version = $post->obtainObjectVersion();
 
   $post->free();
 
   $post = BlogPostTable::getInstance()->find($id);
   $post->save();
 
-  $t->is($version, $post->getObjectVersion(), 'check for not to run skip postSave');
+  $t->is($version, $post->obtainObjectVersion(), 'check for not to run skip postSave');
 
   # preDqlUpdate
 
@@ -179,7 +179,7 @@
   $blackSwan->save();
 
   $blackSwanId = $blackSwan->getId();
-  $blackSwanVersion = $blackSwan->getObjectVersion();
+  $blackSwanVersion = $blackSwan->obtainObjectVersion();
   
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
@@ -195,7 +195,7 @@
   $post = BookTable::getInstance()->find($blackSwanId);
 
   $t->is(
-    $post->getObjectVersion(),
+    $post->obtainObjectVersion(),
     $blackSwanVersion,
     'Update DQL does not rewrites object version when cache is disabled'
   );

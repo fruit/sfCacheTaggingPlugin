@@ -22,11 +22,11 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2010-11-21</date>
-  <time>00:01:00</time>
+  <date>2010-12-24</date>
+  <time>20:14:00</time>
   <version>
-    <release>2.0.2</release>
-    <api>2.1.1</api>
+    <release>2.1.0</release>
+    <api>2.2.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -37,6 +37,9 @@
     * ilya: [updated] README
     * ilya: [added] "skipOnChange" directive (schema.yml)
     * ilya: [fixed] sfFileTaggingCache::getCacheKeys
+    * ilya: [added] optimized sf*TaggingCache::getMany
+    * ilya: [removed] app_sfcachetaggingplugin_template_* directives
+    * ilya: [changed] Renamed getObjectVersion to obtainObjectVersion, setObjectVersion to assignObjectVersion
   </notes>
   <contents>
     <dir name="/">
@@ -46,6 +49,9 @@
         <file name="sfCacheTaggingPluginConfiguration.class.php" role="data" />
       </dir>
       <dir name="lib">
+        <dir name="doctrine">
+          <file name="sfCachetaggableDoctrineRecord.class.php" role="data" />
+        </dir>
         <dir name="cache">
           <dir name="drivers">
             <file name="sfSQLitePDOCache.class.php" role="data" />
@@ -172,19 +178,22 @@
   <changelog>
     <release>
       <version>
-        <release>2.0.2</release>
-        <api>2.1.1</api>
+        <release>2.1.0</release>
+        <api>2.2.0</api>
       </version>
       <stability>
         <release>stable</release>
         <api>stable</api>
       </stability>
-      <date>2010-11-21</date>
+      <date>2010-12-24</date>
       <license uri="http://www.symfony-project.com/license">MIT</license>
       <notes>
         * ilya: [updated] README
         * ilya: [added] "skipOnChange" directive (schema.yml)
         * ilya: [fixed] sfFileTaggingCache::getCacheKeys
+        * ilya: [added] optimized sf*TaggingCache::getMany
+        * ilya: [removed] app_sfcachetaggingplugin_template_* directives
+        * ilya: [changed] Renamed getObjectVersion to obtainObjectVersion, setObjectVersion to assignObjectVersion
       </notes>
     </release>
     <release>

@@ -120,7 +120,7 @@
         }
       }
 
-      $object->setObjectVersion(sfCacheTaggingToolkit::generateVersion());
+      $object->assignObjectVersion(sfCacheTaggingToolkit::generateVersion());
     }
 
     /**
@@ -168,19 +168,19 @@
         }
       }
 
-      $taggingCache->setTag($object->getTagName(), $object->getObjectVersion());
+      $taggingCache->setTag($object->getTagName(), $object->obtainObjectVersion());
 
       $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
         get_class($object)
       );
 
-      $taggingCache->setTag($formatedClassName, $object->getObjectVersion());
+      $taggingCache->setTag($formatedClassName, $object->obtainObjectVersion());
 
       # updating object tags
-      $object->addTag($object->getTagName(), $object->getObjectVersion());
+      $object->addTag($object->getTagName(), $object->obtainObjectVersion());
       $object->addTag(
         $formatedClassName,
-        $object->getObjectVersion()
+        $object->obtainObjectVersion()
       );
     }
 

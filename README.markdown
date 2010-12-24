@@ -14,7 +14,7 @@ and, perhaps, by somebody else)
 This software was developed inspired by Andrey Smirnoff's theoretical work
 ["Cache tagging with Memcached (on Russian)"](http://www.smira.ru/tag/memcached/).
 Some ideas are implemented in the real world (e.g. tag versions based on datetime
-and microtime, cache hit/set logging, cache locking) and part of them
+and micro time, cache hit/set logging, cache locking) and part of them
 are not (atomic counter).
 
 ## Installation/Upgrading ##
@@ -96,14 +96,14 @@ are not (atomic counter).
                                               # %char_explanation%  - Operation explanation string
                                               # %time%              - Time, when data/tag was accessed
                                               # %key%               - Cache name or tag name with its version
-                                              # %microtime%         - Microtime timestamp when data/tag was accessed
+                                              # %microtime%         - Micro time timestamp when data/tag was accessed
                                               # %EOL%               - Whether to append \n in the end of line
                                               # (e.g. "%microtime% %char% (%char_explanation%) %key%%EOL%")
 
           view_cache_manager:
             class: sfViewCacheTagManager    # Extended sfViewCacheManager class
             #param:
-            #  … your params here
+            #  … your parameters here
 
     **Short working example to start caching with tags using APC (location: ``/config/factories.yml``)**
 
@@ -154,7 +154,7 @@ are not (atomic counter).
 
 1.  Add "Cachetaggable" behavior to each model, which you want to cache
 
-  Example of file ``/config/doctrine/schema.yml``
+  Example of file ``./config/doctrine/schema.yml``
 
         YourModel:
           tableName: your_model
@@ -216,10 +216,6 @@ are not (atomic counter).
 
         all:
           sfcachetaggingplugin:
-
-            # lock and tag templates REMOVED in v2.1.0
-            # template_lock: "%SF_ENVIRONMENT%:lock:%s"    # Name for locks.
-            # template_tag: "%SF_ENVIRONMENT%:tag:%s"      # Name for tags.
 
             model_tag_name_separator: ":"   # (constant sfCache::SEPARATOR)
 
@@ -395,7 +391,7 @@ are not (atomic counter).
 
 #### *Adding tags to the whole page (action with layout)*
 
-  * Without a doubt, you have to enable the cache for that action in ``config/cache.yml``:
+  * Without a doubt, you have to enable the cache for that action in ``./config/cache.yml``:
 
         showSuccess:
           with_layout: true
@@ -425,7 +421,7 @@ are not (atomic counter).
 
 #### *Adding tags to the specific action (action without layout)*
 
-  * You have to disable "with_layout" and enable the cache for that action in ``config/cache.yml``:
+  * You have to disable "with_layout" and enable the cache for that action in ``./config/cache.yml``:
 
         showSuccess:
           with_layout: false
@@ -455,7 +451,9 @@ are not (atomic counter).
 
 #### *Caching Doctrine_Records/Doctrine_Collections with its tags*
 
-  * To start caching objects/collection with its tags you have just to enable
+  * Does not depends on ``./config/cache.yml`` files.
+
+  * To cache objects/collection with its tags you have just to enable
     result cache by calling ``Doctrine_Query::useResultCache()``:
 
         [php]
@@ -471,8 +469,6 @@ are not (atomic counter).
               ->addWhere('is_visible = ?', true)
               ->limit(15)
               ->execute();
-
-            $this->setActionTags($posts);
 
             $this->posts = $posts;
 
@@ -505,19 +501,16 @@ are not (atomic counter).
               ->limit(15)
               ->execute(array('en_GB', true));
 
-            // ? $this->setActionTags($posts);
-            // objects are written to cache with it tags
-
             // For example, want to $posts will be invalidated if something was changed
             // in table "culture":
             $q = Doctrine::getTable('Culture')->createQuery();
             $cultures = $q->execute();
 
-            // when execute was runned without params "$q->execute();"
+            // when execute was called without parameters "$q->execute();"
             $this->addDoctrineTags($cultures, $q);
 
-            // when execute was runned with params "$q->execute(array(true, 1, 'foo'));"
-            // $this->addDoctrineTags($cultures, $q->getResultCacheHash($q->getParams()));
+            // when execute was called with parameters "$q->execute(array(true, 1, 'foo'));"
+            // $this->addDoctrineTags($posts, $q->getResultCacheHash($q->getParams()));
             // or
             // shorter
             // $this->addDoctrineTags($posts, $q, $q->getParams());
@@ -528,32 +521,104 @@ are not (atomic counter).
           }
         }
 
+## Hacks / Enhancements / Recommendations
+
+  * Remember to enable Doctrine query cache in production:
+
+    For ease of configuration (enable/disable) add following lines to ``./config/app.yml``:
+
+        [yml]
+        # config/app.yml
+        dev:
+          doctrine:
+            query_cache: ~
+
+        prod:
+          doctrine:
+            query_cache:
+              class: Doctrine_Cache_Apc # or another backend class Doctrine_Cache_*
+              param:
+                prefix: doctrine_dql_query_cache
+
+    And plug in query cache:
+
+        [php]
+        class ProjectConfiguration extends sfProjectConfiguration
+        {
+          public function configureDoctrine (Doctrine_Manager $manager)
+          {
+            $doctrineQueryCache = sfConfig::get('app_doctrine_query_cache');
+
+            if ($doctrineQueryCache)
+            {
+              list($class, $param) = array_values($doctrineQueryCache);
+              $manager->setAttribute(Doctrine_Core::ATTR_QUERY_CACHE, new $class($param));
+            }
+          }
+        }
+
+  * All we want to make our application fast, so here goes some tips, how to speed up this plugin.
+
+    One of solutions to create direct proxy methods to ``Doctrine_Template_Cachetaggable`` class.
+
+    By extending sfDoctrineRecord class with build-in ``sfCachetaggableDoctrineRecord``
+    we make frequently used methods as proxy (i.e. faster):
+
+        [php]
+        class ProjectConfiguration extends sfProjectConfiguration
+        {
+          # …
+
+          public function configureDoctrine (Doctrine_Manager $manager)
+          {
+            sfConfig::set(
+              'doctrine_model_builder_options',
+              array('baseClassName' => 'sfCachetaggableDoctrineRecord')
+            );
+          }
+        }
+
+    And DO NOT FORGET TO rebuild your models
+
+        ./symfony doctrine:build-model --env=YOUR_ENV
+
+
 ## Limitations / Specificity ##
 
   * In case, when model has translations (I18n behavior), it is enough to add
     "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
     behavior.
 
+  * Doctrine $q->count() DQL could no be cached with tags
+
+        [php]
+
+        # Example (somewhere in action) never be cached:
+        $q = Doctrine::getTable('Car')->createQuery();
+        $q->where('sipp_code = ?', 'A');
+        $this->count = $q->count();
+
+  * To make count query cached with tags, the only one solution is to hydrate first all
+    and collect object tags:
+
+        [php]
+
+        # Example:
+        $q = Doctrine::getTable('Car')->createQuery();
+        $q->where('sipp_code = ?', 'A');
+        $collection = $q->execute();
+
+        $this->count = $collection->count();
+        $this->setActionTags($collection);
+
+
 ## TDD ##
 
-  * Unit/funcational tests:
+  * Environments: PHP 5.2, PHP 5.3
+  * Unit/functional tests: > 2000 tests and all are successful
+  * Code coverage: ~ 97%
 
-        $ ./symfony test:all
-        ...
-        All tests successful.
-        Files=27, Tests=2628
-
-
-  * Code coverage:
-
-        ./symfony test:coverage plugins/sfCacheTaggingPlugin/test plugins/sfCacheTaggingPlugin/
-
-        ...
-
-        TOTAL COVERAGE:  98%
-
-
-  *  Every combination is tested (data backend / locker backend) of listed below:
+  *  Every combination is tested (data backend / tags backend) of listed below:
 
       * sfMemcacheTaggingCache
       * sfAPCTaggingCache
