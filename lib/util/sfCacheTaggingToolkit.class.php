@@ -269,7 +269,7 @@
     {
       ProjectConfiguration::getActive()
         ->getEventDispatcher()
-        ->notify(new sfEvent($object, 'application.log', array($message, $priority)))
+        ->notify(new sfEvent($object, 'application.log', array($message)))
       ;
     }
   }
