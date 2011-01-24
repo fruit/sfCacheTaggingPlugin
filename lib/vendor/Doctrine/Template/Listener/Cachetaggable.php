@@ -246,8 +246,7 @@
 
       $taggingCache->setTag(
         sfCacheTaggingToolkit::getBaseClassName(get_class($object)),
-        $updateVersion,
-        $lifetime
+        $updateVersion
       );
     }
 
