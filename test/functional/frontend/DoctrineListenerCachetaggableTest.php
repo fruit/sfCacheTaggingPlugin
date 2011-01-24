@@ -200,8 +200,39 @@
     'Update DQL does not rewrites object version when cache is disabled'
   );
 
-  sfConfig::set('sf_cache', $optionSfCache);
+  $t->is(
+    $sfTagger->getTag(
+      sfCacheTaggingToolkit::getBaseClassName($post->getTable()->getClassnameToReturn())
+    ),
+    $blackSwanVersion,
+    'Object collection stays unchanged'
+  );
 
+  sfConfig::set('sf_cache', true);
+
+  BookTable::getInstance()
+    ->createQuery()
+    ->update()
+    ->set('slug', '?',  'my-slug-1111')
+    ->addWhere('id = ?', $blackSwanId)
+    ->execute();
+
+  $post = BookTable::getInstance()->find($blackSwanId);
+
+  $t->isnt(
+    $post->obtainObjectVersion(),
+    $blackSwanVersion,
+    'DQL Update updates tags when sf_cache = true'
+  );
+
+  $t->is(
+    $sfTagger->getTag(
+      sfCacheTaggingToolkit::getBaseClassName($post->getTable()->getClassnameToReturn())
+    ),
+    $post->obtainObjectVersion(),
+    'Object collection also has the same version as last updated object version'
+  );
+  
   #postSave
 
   $optionSfCache = sfConfig::get('sf_cache');
