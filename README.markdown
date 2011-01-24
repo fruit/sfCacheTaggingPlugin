@@ -19,14 +19,29 @@ are not (atomic counter).
 
 ## Installation/Upgrading ##
 
-* Installation
+### As Symfony plugin
+
+ * Installation
 
         $ ./symfony plugin:install sfCacheTaggingPlugin
 
-* Upgrading
+ * Upgrading
 
         $ ./symfony cc
         $ ./symfony plugin:upgrade sfCacheTaggingPlugin
+
+### As a git submodule
+
+ * Installation
+
+        $ git submodule add git://github.com/fruit/sfCacheTaggingPlugin.git plugins/sfCacheTaggingPlugin
+        $ git submodule init plugins/sfCacheTaggingPlugin
+
+ * Upgrading
+
+        $ cd plugins/sfCacheTaggingPlugin
+        $ git pull origin master
+        $ cd ../..
 
 ## Setup ##
 
@@ -41,6 +56,7 @@ are not (atomic counter).
             $this->enablePlugins('sfCacheTaggingPlugin');
           }
         }
+
 
 1.  Create a new file ``/config/factories.yml`` (common for all applications)
     or edit application-level ``/apps/%application_name%/config/factories.yml`` file.
@@ -589,11 +605,11 @@ are not (atomic counter).
     "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
     behavior.
 
-  * Doctrine $q->count() DQL could no be cached with tags
+  * Doctrine $q->count() DQL can't be cached with tags
 
         [php]
 
-        # Example (somewhere in action) never be cached:
+        # Example (somewhere in action) can't be cached:
         $q = Doctrine::getTable('Car')->createQuery();
         $q->where('sipp_code = ?', 'A');
         $this->count = $q->count();
