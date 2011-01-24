@@ -227,7 +227,9 @@
       $updateVersion = sfCacheTaggingToolkit::generateVersion();
       $q->set($this->getOption('versionColumn'), $updateVersion);
 
-      $selectQuery = $event->getInvoker()->getTable()->createQuery();
+      $table = $event->getInvoker()->getTable();
+
+      $selectQuery = $table->createQuery();
       $selectQuery->select();
 
       foreach ($q->getDqlPart('where') as $whereCondition)
@@ -245,7 +247,7 @@
       }
 
       $taggingCache->setTag(
-        sfCacheTaggingToolkit::getBaseClassName(get_class($object)),
+        sfCacheTaggingToolkit::getBaseClassName($table->getClassnameToReturn()),
         $updateVersion
       );
     }
