@@ -555,7 +555,7 @@
       $textToReplace = '&nbsp;<br />&nbsp;';
 
       return str_replace(
-        $textToReplace, "{$tagsContent}{$textToReplace}", $updatedContent
+        $textToReplace, $tagsContent, $updatedContent
       );
     }
 
