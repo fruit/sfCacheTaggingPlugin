@@ -91,7 +91,7 @@
         $this->getOption('versionColumn'),
         'string',
         10 + sfCacheTaggingToolkit::getPrecision(),
-        array('notnull' => false)
+        array('notnull' => false, 'default'=>'0')
       );
 
       $this->addListener(
