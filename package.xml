@@ -14,7 +14,7 @@
     content up-to-date without setting cache lifetime.
     So-called "Smart caching", stores cache with fetched models tags and its versions.
     Each time you save/update/delete objects, plugin increments object tag version and
-    all linked cache by specific tag name will automatically spoiled.
+    all linked cache by specific tag name will automatically spoil.
   </description>
   <lead>
     <name>Ilya Sabelnikov</name>
@@ -22,10 +22,10 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2011-01-24</date>
-  <time>22:21:00</time>
+  <date>2011-02-01</date>
+  <time>22:15:00</time>
   <version>
-    <release>2.1.1</release>
+    <release>2.1.2</release>
     <api>2.2.0</api>
   </version>
   <stability>
@@ -34,9 +34,8 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [updated] README
-    * ilya: [fixed] Doctrine_Template_Listener_Cachetaggable::preDqlUpdate + tests
-    * ilya: [fixed] sfWebDebugLogInfo contains extra-incorrect message, sent by sfViewCacheTagManager
+    * ilya: [updated] README (added i18n limitation)
+    * ilya: [fixed] Conclicts with SoftDelete in "preDqlDelete" + tests
   </notes>
   <contents>
     <dir name="/">
@@ -173,6 +172,22 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>2.1.2</release>
+        <api>2.2.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2011-02-01</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [updated] README (added i18n limitation)
+        * ilya: [fixed] Conclicts with SoftDelete in "preDqlDelete" + tests
+      </notes>
+    </release>
     <release>
       <version>
         <release>2.1.1</release>

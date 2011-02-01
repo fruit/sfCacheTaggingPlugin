@@ -272,10 +272,17 @@
       /* @var $q Doctrine_Query */
       $q = clone $event->getQuery();
 
-      # SoftDelete mix DELETE with UPDATE type
-      if ($q->getType() != Doctrine_Query::DELETE)
+      /**
+       * This happens, when SoftDelete is declared before Cachetaggable
+       */
+      if (Doctrine_Query::UPDATE === $q->getType())
       {
-        return;
+        $event->getQuery()->set(
+          $this->getOption('versionColumn'),
+          sfCacheTaggingToolkit::generateVersion()
+        );
+
+        $q->removeDqlQueryPart('set');
       }
 
       $params = $q->getParams();

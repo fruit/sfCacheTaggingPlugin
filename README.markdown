@@ -244,7 +244,7 @@ are not (atomic counter).
                                             # from/to cache with custom serialization/de-serialization
 
             #object_class_tag_name_provider: # you can customize tag name naming
-            #                                # useful for multi-environment models
+            #                                # useful for multi-application models
             #  - ProjectToolkit              # [class name]
             #  - formatObjectClassName       # [static method name]
 
@@ -627,6 +627,7 @@ are not (atomic counter).
         $this->count = $collection->count();
         $this->setActionTags($collection);
 
+  * Be careful with caching DQL with joined I18n tables. Due the [unresolved ticket](http://trac.symfony-project.org/ticket/7220) it is impossible.
 
 ## TDD ##
 

@@ -273,6 +273,52 @@
 
   sfConfig::set('sf_cache', $optionSfCache);
 
+  # preDqlDelete + SoftDelete plugin conflict
+
+  $nutName = 'Indian Nuts';
+  $nut = new Food();
+  $nut->setTitle('Indian Nuts');
+  $nut->save();
+
+  $nutVersion = $nut->getObjectVersion();
+
+  $t->ok(
+    $sfTagger->hasTag(sprintf('Food%s%d', $separator, $nut->getId())),
+    'Tag exists'
+  );
+
+  $q = FoodTable::getInstance()->createQuery();
+  $rows = $q->delete()->where('title = ?', $nutName)->execute();
+
+  $t->is($rows, 1, 'One row "teoreticaly" (softly) removed');
+
+  $t->ok(
+    ! $sfTagger->hasTag(sprintf('Food%s%d', $separator, $nut->getId())),
+    'Tag is removed'
+  );
+
+  $c = FoodTable::getInstance()->getConnection();
+
+  $stmt = $c->execute(
+    sprintf(
+      'SELECT id, object_version FROM `food` WHERE `title` = %s LIMIT 1',
+      $c->quote($nutName)
+    )
+  );
+
+  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+  $t->isnt($row, false, '1 row found (skipped SoftDelete to check object_version');
+
+  $rowVersion = $row['object_version'];
+
+  $t->cmp_ok(
+    $nutVersion, '<', $rowVersion,
+    sprintf('Object version increased from %s to %s', $nutVersion, $rowVersion)
+  );
+
+  # next test
+
   $t->ok(
     $sfTagger->hasTag(sprintf('BlogPost%s%d', $separator, $post->getId())),
     'tag deletion skipped due the cache was disabled when preDqlDelete was runned'
