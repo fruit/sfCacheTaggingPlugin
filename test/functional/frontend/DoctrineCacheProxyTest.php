@@ -9,7 +9,6 @@
    */
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
-
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
   $t = new lime_test();

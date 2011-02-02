@@ -11,9 +11,6 @@
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
-
   $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
 
   $sfContext = sfContext::getInstance();

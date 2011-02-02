@@ -12,9 +12,6 @@
 
   BlogPostTable::getInstance()->getConnection()->beginTransaction();
 
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
-
   $browser = new sfTestFunctional(new sfBrowser());
 
   $browser->getAndCheck('blog_post', 'actionWithLayout', '/blog_post/actionWithLayout', 200);

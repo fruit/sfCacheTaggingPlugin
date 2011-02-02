@@ -10,9 +10,6 @@
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
-
   BlogPostTable::getInstance()->getConnection()->beginTransaction();
 
   $browser = new sfTestFunctional(new sfBrowser());

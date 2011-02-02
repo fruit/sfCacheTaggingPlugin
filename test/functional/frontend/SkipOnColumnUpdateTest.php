@@ -12,10 +12,6 @@
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
   $connection = Doctrine::getConnectionByTableName('SkipOnColumnUpdateTest');
-  
-
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
 
   $sfContext = sfContext::getInstance();
   $cacheManager = $sfContext->getViewCacheManager();

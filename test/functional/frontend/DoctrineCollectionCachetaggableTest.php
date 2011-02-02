@@ -14,9 +14,6 @@
   $connection = Doctrine::getConnectionByTableName('BlogPost');
   $connection->beginTransaction();
 
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
-
   $sfContext = sfContext::getInstance();
   $cacheManager = $sfContext->getViewCacheManager();
 

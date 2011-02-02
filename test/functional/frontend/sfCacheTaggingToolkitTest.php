@@ -9,7 +9,6 @@
    */
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
-
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
   $optionMicrotimePrecision = sfConfig::get('app_sfcachetaggingplugin_microtime_precision');
@@ -28,9 +27,6 @@
       return new ArrayIterator($this->tags);
     }
   }
-
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
 
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
 

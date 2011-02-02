@@ -12,9 +12,6 @@
   
   $browser = new sfTestFunctional(new sfBrowser());
 
-  $cc = new sfCacheClearTask(sfContext::getInstance()->getEventDispatcher(), new sfFormatter());
-  $cc->run();
-
   define('PLUGIN_DATA_DIR', realpath(dirname(__FILE__) . '/../../data'));
 
   define('SF_VIEW_CACHE_MANAGER_EVENT_NAME', 'view.cache.filter_content');
@@ -362,8 +359,6 @@
       $t->is(null === ($taggingCache->get('posts+comments')), true, '"posts+comments" are expired (first associated comment was saved)');
 
       $connection->rollback();
-
-      $cc->run();
 
       $taggingCache->clean();
     }
