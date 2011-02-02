@@ -22,11 +22,11 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2011-02-01</date>
-  <time>22:15:00</time>
+  <date>2011-02-03</date>
+  <time>00:01:00</time>
   <version>
-    <release>2.1.2</release>
-    <api>2.2.0</api>
+    <release>2.1.3</release>
+    <api>2.2.1</api>
   </version>
   <stability>
     <release>stable</release>
@@ -34,8 +34,8 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [updated] README (added i18n limitation)
-    * ilya: [fixed] Conclicts with SoftDelete in "preDqlDelete" + tests
+    * ilya: [fixed] By using doctrine migration, default column "object_version" contains NULL value (throws an exception on frontend) (thanks Serg Puhoff)
+    * ilya: [notice] API changes, "object_version" default value now is "1" (was NULL)
   </notes>
   <contents>
     <dir name="/">
@@ -116,6 +116,7 @@
         </dir>
         <dir name="functional">
           <dir name="frontend">
+            <file name="DefaultObjectVersionValueTest.php" role="data" />
             <file name="DoctrineCacheProxyTest.php" role="data" />
             <file name="DoctrineCollectionCachetaggableTest.php" role="data" />
             <file name="DoctrineListenerCachetaggableTest.php" role="data" />
@@ -172,6 +173,21 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>2.1.3</release>
+        <api>2.2.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2011-02-03</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [fixed] By using doctrine migration, default column "object_version" contains NULL value (throws an exception on frontend)
+      </notes>
+    </release>
     <release>
       <version>
         <release>2.1.2</release>
