@@ -66,9 +66,9 @@
     /**
      * @return string
      */
-    public function getTagName ()
+    public function obtainTagName ()
     {
-      return $this->getCachetaggable('getTagName')->getTagName();
+      return $this->getCachetaggable('obtainTagName')->obtainTagName();
     }
 
     /**

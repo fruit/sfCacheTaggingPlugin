@@ -34,6 +34,9 @@
      */
     protected $preDeleteTagName = null;
 
+
+    protected $wasObjectNew = null;
+
     /**
      * __construct
      *
@@ -63,7 +66,7 @@
      */
     public function preDelete (Doctrine_Event $event)
     {
-      $this->preDeleteTagName = $event->getInvoker()->getTagName();
+      $this->preDeleteTagName = $event->getInvoker()->obtainTagName();
     }
 
     /**
@@ -81,6 +84,14 @@
         {
           $taggingCache->deleteTag($this->preDeleteTagName);
         }
+
+        $invoker = $event->getInvoker();
+
+        $taggingCache->setTag(
+          $invoker->obtainCollectionName(),
+          sfCacheTaggingToolkit::generateVersion()
+        );
+
       }
       catch (sfCacheException $e)
       {
@@ -107,6 +118,8 @@
       {
         return;
       }
+
+      $this->wasObjectNew = $object->isNew();
 
       $skipOnChange = (array) $this->getOption('skipOnChange');
 
@@ -141,9 +154,9 @@
         return;
       }
 
-      $object = $event->getInvoker();
+      $invoker = $event->getInvoker();
 
-      $lastModifiedColumns = $object->getLastModified();
+      $lastModifiedColumns = $invoker->getLastModified();
 
       # do not update tags in cache if no fields was modified
       if (0 == count($lastModifiedColumns))
@@ -151,7 +164,7 @@
         return;
       }
 
-      $table = $object->getTable();
+      $table = $invoker->getTable();
       /* @var $table Doctrine_Table */
 
       # When SoftDelete behavior saves "deleted" object
@@ -168,20 +181,27 @@
         }
       }
 
-      $taggingCache->setTag($object->getTagName(), $object->obtainObjectVersion());
+      $invokerObjectVersion = $invoker->obtainObjectVersion();
 
-      $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
-        get_class($object)
-      );
+      if ($this->wasObjectNew)
+      {
+        $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
+          $table->getClassnameToReturn()
+        );
 
-      $taggingCache->setTag($formatedClassName, $object->obtainObjectVersion());
+        $taggingCache->setTag($formatedClassName, $invokerObjectVersion);
+
+        $invoker->addTag($formatedClassName, $invokerObjectVersion);
+      }
+
+      $invokerTagName = $invoker->obtainTagName();
+
+      $taggingCache->setTag($invokerTagName, $invokerObjectVersion);
 
       # updating object tags
-      $object->addTag($object->getTagName(), $object->obtainObjectVersion());
-      $object->addTag(
-        $formatedClassName,
-        $object->obtainObjectVersion()
-      );
+      $invoker->addTag($invokerTagName, $invokerObjectVersion);
+
+      $this->wasObjectNew = null;
     }
 
     /**
@@ -206,28 +226,44 @@
 
       $skipOnChange = (array) $this->getOption('skipOnChange');
 
-      if (0 < count($skipOnChange))
+      $columnNamesToSet = array();
+
+      foreach ($q->getDqlPart('set') as $set)
       {
-        $columnNames = array();
-
-        foreach ($q->getDqlPart('set') as $set)
+        if (preg_match('/(\w+)\ =\ /', $set, $m))
         {
-          if (preg_match('/(\w+)\ =\ /', $set, $m))
-          {
-            $columnNames[] = $m[1];
-          }
+          $columnNamesToSet[] = $m[1];
         }
+      }
 
-        if (0 == count(array_intersect($columnNames, $skipOnChange)))
+      if (
+          (0 < count($skipOnChange))
+        &&
+          (0 == count(array_intersect($columnNamesToSet, $skipOnChange)))
+      )
+      {
+        return false;
+      }
+      
+      $table = $event->getInvoker()->getTable();
+
+      if ($table->hasTemplate('SoftDelete'))
+      {
+        $softDeleteTemplate = $table->getTemplate('SoftDelete');
+        if (in_array($softDeleteTemplate->getOption('name'), $columnNamesToSet))
         {
-          return false;
+          # invalidate collection, if soft delete sets deleted_at field
+          $taggingCache->setTag(
+            sfCacheTaggingToolkit::getBaseClassName(
+              $table->getClassnameToReturn()
+            ),
+            sfCacheTaggingToolkit::generateVersion()
+          );
         }
       }
 
       $updateVersion = sfCacheTaggingToolkit::generateVersion();
       $q->set($this->getOption('versionColumn'), $updateVersion);
-
-      $table = $event->getInvoker()->getTable();
 
       $selectQuery = $table->createQuery();
       $selectQuery->select();
@@ -243,13 +279,8 @@
 
       foreach ($selectQuery->execute() as $object)
       {
-        $taggingCache->setTag($object->getTagName(), $updateVersion);
+        $taggingCache->setTag($object->obtainTagName(), $updateVersion);
       }
-
-      $taggingCache->setTag(
-        sfCacheTaggingToolkit::getBaseClassName($table->getClassnameToReturn()),
-        $updateVersion
-      );
     }
 
     /**
@@ -268,6 +299,8 @@
       {
         return;
       }
+
+      $table = $event->getInvoker()->getTable();
 
       /* @var $q Doctrine_Query */
       $q = clone $event->getQuery();
@@ -291,7 +324,14 @@
 
       foreach ($q->select()->execute() as $object)
       {
-        $taggingCache->deleteTag($object->getTagName());
+        $taggingCache->deleteTag($object->obtainTagName());
       }
+
+      $taggingCache->setTag(
+        sfCacheTaggingToolkit::getBaseClassName(
+          $table->getClassnameToReturn()
+        ),
+        sfCacheTaggingToolkit::generateVersion()
+      );
     }
   }

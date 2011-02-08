@@ -67,7 +67,7 @@
 
   $t->isa_ok($article->assignObjectVersion(213213213213), 'Book', 'assignObjectVersion() returns self object');
 
-  $t->is($article->getTagName(), "Book{$separator}fr-foobarbaz", 'Multy unique column tables are compatible with tag names');
+  $t->is($article->obtainTagName(), "Book{$separator}fr-foobarbaz", 'Multy unique column tables are compatible with tag names');
 
   $connection->rollback();
 
@@ -131,14 +131,14 @@
     $t->is(count($comment->getTags()), 4);
   }
 
-  # getTagName
+  # obtainTagName
 
 
   try
   {
     $post = new BlogPost();
 
-    $post->getTagName();
+    $post->obtainTagName();
     $t->fail();
   }
   catch (LogicException $e)
@@ -156,13 +156,13 @@
   $vote->setBlogPost($post);
   $vote->save();
 
-  $t->is($vote->getTagName(), "BlogPostVote{$separator}{$vote->getId()}");
+  $t->is($vote->obtainTagName(), "BlogPostVote{$separator}{$vote->getId()}");
 
   $votepost = new PostVote();
   $votepost->setBlogPost($post);
   $votepost->setBlogPostVote($vote);
   $votepost->save();
-  $t->is($votepost->getTagName(), "PostVote{$separator}{$vote->getId()}{$separator}{$post->getId()}");
+  $t->is($votepost->obtainTagName(), "PostVote{$separator}{$vote->getId()}{$separator}{$post->getId()}");
 
   $connection->rollback();
 

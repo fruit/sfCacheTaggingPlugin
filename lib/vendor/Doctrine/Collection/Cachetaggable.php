@@ -77,11 +77,13 @@
      */
     public function getTags ($deep = false)
     {
-      if (! $this->getTable()->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
+      $table = $this->getTable();
+
+      if (! $table->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
       {
         throw new sfConfigurationException(sprintf(
           'Model "%s" has no "%s" templates',
-          $this->getTable()->getClassnameToReturn(),
+          $table->getClassnameToReturn(),
           sfCacheTaggingToolkit::TEMPLATE_NAME
         ));
       }
@@ -101,41 +103,16 @@
         return array();
       }
 
-      $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
-        $this->getTable()->getClassnameToReturn()
-      );
-
       if ($this->count())
       {
-        $freshestVersion = 0;
-
         foreach ($this as $object)
         {
           $objectVersion = $object->obtainObjectVersion();
-
-          $freshestVersion = $freshestVersion < $objectVersion
-            ? $objectVersion
-            : $freshestVersion;
 
           $tags = $deep ? $object->getTags(true) : $object->getTags();
 
           $tagHandler->addContentTags($tags, $namespace);
         }
-
-        $existingCollectionVersion = $taggingCache->getTag($formatedClassName);
-
-        if (! $existingCollectionVersion || ($existingCollectionVersion < $freshestVersion))
-        {
-          $newCollectionVersion = $freshestVersion;
-        }
-        else
-        {
-          $newCollectionVersion = $existingCollectionVersion;
-        }
-
-        $tagHandler->setContentTag(
-          $formatedClassName, $newCollectionVersion, $namespace
-        );
       }
       else
       {
@@ -147,6 +124,10 @@
          * repeating calls with relative microtime always refresh collection tag
          * so, here is day-fixed value
          */
+        $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
+          $table->getClassnameToReturn()
+        );
+
         $tagHandler->setContentTag(
           $formatedClassName,
           sfCacheTaggingToolkit::generateVersion(strtotime('today')),

@@ -59,7 +59,7 @@
   $post->fromArray(array('title' => 'Caption_1', 'slug' => 'caption-one'));
   $post->save();
 
-  $captionOneTagName = $post->getTagName();
+  $captionOneTagName = $post->obtainTagName();
   $captionOneVersion = $post->obtainObjectVersion();
 
   $t->ok($sfTagger->hasTag($captionOneTagName), 'Object tag exists in cache');
@@ -70,7 +70,7 @@
 
   $t->ok(! $sfTagger->hasTag($captionOneTagName), 'Object\'s tag name was removed from the cache');
   $t->ok($sfTagger->hasTag(get_class($post)), 'Object\'s collection tag still in cache');
-  $t->is($captionOneVersion, $sfTagger->getTag(get_class($post)), 'Object\'s collection tag is not updated');
+  $t->cmp_ok($captionOneVersion, '<', $sfTagger->getTag(get_class($post)), 'Object\'s collection tag changed (coz deleted $post) and new collection verions is newer');
 
   $post = new BlogPost();
   $post->fromArray(array('title' => 'Caption_2', 'slug' => 'caption-two'));
@@ -81,7 +81,7 @@
   $post->setSlug('caption-two-point-one');
   $post->save();
 
-  $t->isnt($collectionTagVersion, $sfTagger->getTag(get_class($post)), 'Object\'s collection tag was updated');
+  $t->is($collectionTagVersion, $sfTagger->getTag(get_class($post)), 'Object\'s collection tag stays unchanged');
 
   $newCollectionTagVersion = $sfTagger->getTag(get_class($post));
 
@@ -113,7 +113,7 @@
   {
     if (1 == $post->getId() % 2)
     {
-      $tagNamesToDelete[] = $post->getTagName();
+      $tagNamesToDelete[] = $post->obtainTagName();
     }
   }
 
@@ -127,7 +127,7 @@
     'Updated records count matched with expected'
   );
 
-  $t->isnt($collectionVersion, $sfTagger->getTag('BlogPost'), 'Collection tag after DQL update is updated');
+  $t->is($collectionVersion, $sfTagger->getTag('BlogPost'), 'Collection tag after DQL update not changed');
 
   $collectionVersion = $sfTagger->getTag('BlogPost');
 
@@ -137,7 +137,7 @@
     'Deleted records count matched with expected'
   );
 
-  $t->is($collectionVersion, $sfTagger->getTag('BlogPost'), 'Collection tag after DQL delete is not updated');
+  $t->cmp_ok($collectionVersion, '<', $sfTagger->getTag('BlogPost'), 'Collection tag after DQL delete is increased');
 
   foreach ($tagNamesToDelete as $removedTagName)
   {
@@ -149,7 +149,7 @@
   $food->setTitle('Bananas');
   $food->save();
 
-  $bananasTagName = $food->getTagName();
+  $bananasTagName = $food->obtainTagName();
   $t->ok($sfTagger->hasTag($bananasTagName), 'Bananas (Food object) tag name exists in cache');
 
   $t->ok($food->delete(), 'Food is "deleted" (really - NOT)');
@@ -207,6 +207,10 @@
 
   sfConfig::set('sf_cache', true);
 
+  $bookCollectionVersion = $sfTagger->getTag(
+    sfCacheTaggingToolkit::getBaseClassName(BookTable::getInstance()->getClassnameToReturn())
+  );
+
   BookTable::getInstance()
     ->createQuery()
     ->update()
@@ -222,12 +226,13 @@
     'DQL Update updates tags when sf_cache = true'
   );
 
+  $currentBookCollectionVersion = $sfTagger->getTag(
+    sfCacheTaggingToolkit::getBaseClassName(BookTable::getInstance()->getClassnameToReturn())
+  );
   $t->is(
-    $sfTagger->getTag(
-      sfCacheTaggingToolkit::getBaseClassName($post->getTable()->getClassnameToReturn())
-    ),
-    $post->obtainObjectVersion(),
-    'Object collection also has the same version as last updated object version'
+    $bookCollectionVersion,
+    $currentBookCollectionVersion,
+    'Object collection is not changed'
   );
   
   #postSave
@@ -326,7 +331,7 @@
   $apple->setTitle('Yellow apple');
   $apple->save();
 
-  $key = $apple->getTagName();
+  $key = $apple->obtainTagName();
 
   $t->ok(
     $sfTagger->hasTag($key),
@@ -344,7 +349,7 @@
   ;
   sfConfig::set('sf_cache', $optionSfCache);
 
-  $key = $apple->getTagName();
+  $key = $apple->obtainTagName();
   $t->ok(
     $sfTagger->hasTag($key),
     sprintf('key still exists "%s"', $key)

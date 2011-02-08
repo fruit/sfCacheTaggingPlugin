@@ -91,7 +91,7 @@
         $this->getOption('versionColumn'),
         'string',
         10 + sfCacheTaggingToolkit::getPrecision(),
-        array('notnull' => false, 'default'=> 1)
+        array('notnull' => false, 'default' => 1)
       );
 
       $this->addListener(
@@ -141,14 +141,10 @@
         ? Doctrine_Record::STATE_LOCKED
         : Doctrine_Record::STATE_TLOCKED;
 
-      $className = sfCacheTaggingToolkit::getBaseClassName(get_class($invoker));
-
-      $objectVersion = $this->obtainObjectVersion();
-      
       $tagHandler->addContentTags(
         array(
-          $this->getTagName() => $objectVersion,
-          $className          => $objectVersion,
+          $this->obtainTagName()        => $this->obtainObjectVersion(),
+          $this->obtainCollectionName() => $this->obtainCollectionVersion(),
         ),
         $this->getInvokerNamespace()
       );
@@ -238,29 +234,43 @@
     }
 
     /**
+     * Collections tag name
+     *
+     * @return string
+     */
+    public function obtainCollectionName ()
+    {
+      $invoker = $this->getInvoker();
+
+      return sfCacheTaggingToolkit::getBaseClassName(
+        $invoker->getTable()->getClassnameToReturn()
+      );
+    }
+
+    /**
      * Retrieves object unique tag name based on its class
      *
      * @throws LogicException
      * @return string
      */
-    public function getTagName ()
+    public function obtainTagName ()
     {
-      /* @var $object Doctrine_Record */
-      $object = $this->getInvoker();
+      /* @var $invoker Doctrine_Record */
+      $invoker = $this->getInvoker();
 
-      $objectClassName = get_class($object);
+      $objectClassName = $invoker->getTable()->getClassnameToReturn();
 
-      if ($object->isNew())
+      if ($invoker->isNew())
       {
         throw new LogicException(
           sprintf(
-            'Method %s::getTagName() is allowed only for saved objects',
+            'Method %s::obtainTagName() is allowed only for saved objects',
             $objectClassName
           )
         );
       }
 
-      $table = $object->getTable();
+      $table = $invoker->getTable();
 
       $columnValues = array(
         sfCacheTaggingToolkit::getBaseClassName($objectClassName)
@@ -302,25 +312,46 @@
       /**
        * Hack to speed-up Doctrine_Record::get()
        */
-      $accessorOverrideAttribute = $table->getAttribute(
-        Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE
-      );
+
+      $accessorOverrideFlag = Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE;
+
+      $accessorOverrideAttribute = $table->getAttribute($accessorOverrideFlag);
 
       $table->setAttribute(Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE, false);
 
       foreach ($uniqueColumns as $columnName)
       {
-        $columnValues[] = $object->get($columnName);
+        $columnValues[] = $invoker->get($columnName);
       }
 
-      $table->setAttribute(
-        Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE,
-        $accessorOverrideAttribute
-      );
+      $table->setAttribute($accessorOverrideFlag, $accessorOverrideAttribute);
 
       return call_user_func_array(
         'sprintf', array_merge(array("%s{$separator}{$keyFormat}"), $columnValues)
       );
+    }
+
+    /**
+     * Retrieves collections tags version or initialize new version if
+     * nothing was before
+     *
+     * @return string Version
+     */
+    public function obtainCollectionVersion ()
+    {
+      $invoker = $this->getInvoker();
+
+      $collectionVersion = $this
+        ->getTaggingCache()
+        ->getTag($this->obtainCollectionName())
+      ;
+
+      if (null === $collectionVersion)
+      {
+        $collectionVersion = sfCacheTaggingToolkit::generateVersion();
+      }
+
+      return $collectionVersion;
     }
 
     /**
@@ -360,6 +391,16 @@
      */
     protected function getContentTagHandler ()
     {
-      return sfCacheTaggingToolkit::getTaggingCache()->getContentTagHandler();
+      return $this->getTaggingCache()->getContentTagHandler();
+    }
+
+    /**
+     * Retrieves sfTaggigCache object
+     *
+     * @return sfTaggigCache
+     */
+    protected function getTaggingCache ()
+    {
+      return sfCacheTaggingToolkit::getTaggingCache();
     }
   }

@@ -41,26 +41,26 @@
   try
   {
     $article = new BlogPost();
-    $article->getTagName();
+    $article->obtainTagName();
 
-    $t->fail('called ->getTagName() on new object');
+    $t->fail('called ->obtainTagName() on new object');
   }
   catch (LogicException $e)
   {
-    $t->pass('could not call ->getTagName() on not saved object');
+    $t->pass('could not call ->obtainTagName() on not saved object');
   }
 
   try
   {
     $article = new BlogPost();
     $article->save();
-    $article->getTagName();
+    $article->obtainTagName();
 
-    $t->pass('called ->getTagName() on saved object');
+    $t->pass('called ->obtainTagName() on saved object');
   }
   catch (LogicException $e)
   {
-    $t->fail('could not call ->getTagName() on saved object');
+    $t->fail('could not call ->obtainTagName() on saved object');
   }
 
   $connection->rollback();
