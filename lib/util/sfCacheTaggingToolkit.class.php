@@ -21,9 +21,9 @@
     const TEMPLATE_NAME        = 'Cachetaggable';
 
     /**
-     * @throws sfCacheDisabledException   when "sf_cache" is OFF
-     * @throws sfInitializationException  if context is not initialized
-     * @throws sfConfigurationException   on plugin configuration issues
+     * @throws sfCacheDisabledException         when "sf_cache" is OFF
+     * @throws sfCacheMissingContextException   if context is not initialized
+     * @throws sfConfigurationException         on plugin configuration issues
      * 
      * @return sfCacheTagging
      */
@@ -113,7 +113,8 @@
      * Format passed tags to the array
      *
      * @param mixed $tags array|Doctrine_Collection_Cachetaggable|
-     *                    Doctrine_Record|ArrayIterator|Iterator
+     *                    Doctrine_Record|ArrayIterator|
+     *                    IteratorAggregate|Iterator
      * @throws InvalidArgumentException
      * @return array
      */
@@ -189,42 +190,26 @@
      */
     public static function listenOnComponentMethodNotFoundEvent (sfEvent $event)
     {
-      $event->setProcessed(true);
+      $callable = array(new sfViewCacheTagManagerBridge(), $event['method']);
 
       try
       {
-        $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        sfCacheTaggingToolkit::notifyApplicationLog(
-          __CLASS__, $e->getMessage(), sfLogger::NOTICE
-        );
-        
-        return;
-      }
-      catch (sfConfigurationException $e)
-      {
-        sfCacheTaggingToolkit::notifyApplicationLog(
-          __CLASS__, $e->getMessage(), sfLogger::WARNING
-        );
+        $value = call_user_func_array($callable, $event['arguments']);
+        $event->setReturnValue($value);
 
-        return;
-      }
-
-      try
-      {
-        $callable = array(
-          new sfViewCacheTagManagerBridge($taggingCache), $event['method']
-        );
-
-        $event
-          ->setReturnValue(call_user_func_array($callable, $event['arguments']))
-        ;
+        $event->setProcessed(true);
       }
       catch (BadMethodCallException $e)
       {
         $event->setProcessed(false);
+      }
+      catch (sfException $e)
+      {
+        $event->setProcessed(true);
+
+        sfCacheTaggingToolkit::notifyApplicationLog(
+          __CLASS__, $e->getMessage(), sfLogger::NOTICE
+        );
       }
     }
 

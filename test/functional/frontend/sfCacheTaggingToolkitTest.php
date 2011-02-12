@@ -38,7 +38,6 @@
   try
   {
     $p = new BlogPost();
-//    $p->setTitle('Blog post title "AAAA"');
     $p->save();
 
     sfCacheTaggingToolkit::formatTags($p);

@@ -1,5 +1,4 @@
 <?php
-
   /*
    * This file is part of the sfCacheTaggingPlugin package.
    * (c) 2009-2011 Ilya Sabelnikov <fruit.dev@gmail.com>
@@ -7,33 +6,19 @@
    * For the full copyright and license information, please view the LICENSE
    * file that was distributed with this source code.
    */
-  
+
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
   $browser = new sfTestFunctional(new sfBrowser());
   $t = $browser->test();
 
-  
+
   $connection = Doctrine::getConnectionByTableName('BlogPost');
   $connection->beginTransaction();
-  
+
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
 
-  try
-  {
-    $bridge = new sfViewCacheTagManagerBridge(
-      new sfTaggingCache(array(
-        'data' => array('class' => 'sfAPCCache'),
-        'logger' => array('class' => 'sfNoCacheTagLogger'),
-      ))
-    );
-
-    $t->pass('Bridge initialized');
-  }
-  catch (Exception $e)
-  {
-    $t->fail($e->getMessage());
-  }
+  $bridge = new sfViewCacheTagManagerBridge();
 
   $validPatternMethods = array(
     'get%sTags' => array(),
@@ -72,13 +57,12 @@
         $c = new sfCallableArray(array($bridge, $method));
         $c->callArray($arguments);
 
-        $t->pass(sprintf('Callable method %s()', $method));
+        $t->pass(sprintf('Calling a valid method %s()', $method));
       }
       catch (Exception $e)
       {
-        $t->fail(sprintf('%s: ', get_class($e), $e->getMessage()));
+        $t->fail(sprintf('Calling a valid method %s(). Catched "%s" with messsage: %s', $method, get_class($e), $e->getMessage()));
       }
-
     }
 
     foreach ($invalidPatternMethods as $callable)
@@ -91,29 +75,27 @@
         $c = new sfCallableArray(array($bridge, $method));
         $c->callArray($arguments);
 
-        $t->fail(sprintf('Method %s() was successfully called', $method));
+        $t->fail(sprintf('Calling a invalid method %s()', $method));
       }
       catch (Exception $e)
       {
-        $t->pass(sprintf('%s, %s', get_class($e), $e->getMessage()));
+        $t->pass(sprintf('Calling a invalid method %s(). Catched "%s" with messsage: %s', $method, get_class($e), $e->getMessage()));
       }
-
     }
   }
 
-
-  $t->can_ok($bridge, array('addDoctrineTags'));
+  $t->can_ok($bridge, array('addDoctrineTags'), 'Method addDoctrineTags() is callable');
 
   try
   {
-     $t->isa_ok(
-       $bridge->addDoctrineTags(
-         array('TAG_1' => 12321839123, 'TAG_2' => 12738725), null
-       ),
-       'sfViewCacheTagManagerBridge'
-     );
+    $t->isa_ok(
+      $bridge->addDoctrineTags(
+        array('TAG_1' => 12321839123, 'TAG_2' => 12738725), null
+      ),
+      'sfViewCacheTagManagerBridge'
+    );
 
-     $t->fail();
+    $t->fail('Exception InvalidArgumentException is not thrown');
   }
   catch (InvalidArgumentException $e)
   {
@@ -130,10 +112,11 @@
         array('TAG_1' => 12321839123, 'TAG_2' => 12738725),
         $q->getResultCacheHash($q->getParams())
       ),
-     'sfViewCacheTagManagerBridge'
+      'sfViewCacheTagManagerBridge',
+      'addDoctrineTags() gets valid arguments, with query hash'
     );
 
-    $t->pass();
+    $t->pass('No exceptions are thrown');
   }
   catch (Exception $e)
   {
@@ -151,10 +134,11 @@
         $q,
         $q->getParams()
       ),
-      'sfViewCacheTagManagerBridge'
+      'sfViewCacheTagManagerBridge',
+      'addDoctrineTags() gets valid arguments with Doctrine_Query and params'
     );
 
-    $t->pass();
+    $t->pass('No exceptions are thrown');
   }
   catch (Exception $e)
   {
@@ -200,5 +184,32 @@
     array(),
     'All tags are cleared'
   );
+
+  $optionSfCache = sfConfig::get('sf_cache');
+  sfConfig::set('sf_cache', false);
+
+  # existing method, with disabled cache
+  try
+  {
+    $t->is(null, $bridge->addActionTags(array('Tag:1' => sfCacheTaggingToolkit::generateVersion())));
+    $t->fail('Exception sfCacheDisabledException not thrown');
+  }
+  catch (sfCacheDisabledException $e)
+  {
+    $t->pass('Catching sfCacheDisabledException');
+  }
+
+  # unexisting method, with disabled cache
+  try
+  {
+    $t->is(null, $bridge->unknownMethod(array('Tag:1' => sfCacheTaggingToolkit::generateVersion())));
+    $t->fail('Exception BadMethodCallException not thrown');
+  }
+  catch (BadMethodCallException $e)
+  {
+    $t->pass('BadMethodCallException cached when calling unknown method unknownMethod()');
+  }
+  
+  sfConfig::set('sf_cache', $optionSfCache);
 
   $connection->rollback();

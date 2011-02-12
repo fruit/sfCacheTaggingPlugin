@@ -101,16 +101,6 @@
 
   $t->is(count($tags = $comments->getTags()), 9);
 
-  $tagsKeys = array_keys($tags);
-
-  $expected = array('BlogPostComment');
-  for ($i = 1; $i <= 8; $expected[] = "BlogPostComment{$separator}{$i}", $i++);
-
-  sort($expected);
-  sort($tagsKeys);
-
-  $t->is($tagsKeys, $expected);
-
   $commentsCnt = BlogPostCommentTable::getInstance()->count();
   $postsCnt = BlogPostTable::getInstance()->count();
   $voteCnt = BlogPostVoteTable::getInstance()->count();

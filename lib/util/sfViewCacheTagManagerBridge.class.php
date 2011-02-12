@@ -25,18 +25,35 @@
    */
   class sfViewCacheTagManagerBridge
   {
-    /**
-     * @var sfTaggingCache
-     */
-    protected $taggingCache = null;
-
-    /**
-     * @param sfTaggingCache $taggingCache
-     */
-    public function __construct (sfTaggingCache $taggingCache)
-    {
-      $this->taggingCache = $taggingCache;
-    }
+    protected $allowedCallMethods = array(
+      sfViewCacheTagManager::NAMESPACE_ACTION => array(
+        'setActionTags',
+        'addActionTags',
+        'getActionTags',
+        'removeActionTags',
+        'setActionTag',
+        'hasActionTag',
+        'removeActionTag',
+      ),
+      sfViewCacheTagManager::NAMESPACE_PARTIAL => array(
+        'setPartialTags',
+        'addPartialTags',
+        'getPartialTags',
+        'removePartialTags',
+        'setPartialTag',
+        'hasPartialTag',
+        'removePartialTag',
+      ),
+      sfViewCacheTagManager::NAMESPACE_PAGE => array(
+        'setPageTags',
+        'addPageTags',
+        'getPageTags',
+        'removePageTags',
+        'setPageTag',
+        'hasPageTag',
+        'removePageTag',
+      ),
+    );
 
     /**
      * @see sfViewCacheTagManager::getTaggingCache
@@ -44,7 +61,7 @@
      */
     protected function getTaggingCache ()
     {
-      return $this->taggingCache;
+      return sfCacheTaggingToolkit::getTaggingCache();
     }
 
     /**
@@ -67,19 +84,26 @@
      * @throws BadMethodCallException
      * @return void|array|boolean
      */
-    public function __call ($method,  $arguments)
+    public function __call ($method, $arguments)
     {
-      $orBlock = implode('|', sfViewCacheTagManager::getNamespaces());
-      $pattern = sprintf('/\w+(%s)Tags?/', $orBlock);
+      $contentNamespace = null;
 
-      if (! preg_match($pattern, $method, $matches))
+      foreach ($this->allowedCallMethods as $namespace => $methods)
+      {
+        if (in_array($method, $methods))
+        {
+          $contentNamespace = $namespace;
+
+          break;
+        }
+      }
+
+      if (null === $contentNamespace)
       {
         throw new BadMethodCallException(sprintf(
           'Method "%s" does not exists in %s', $method, get_class($this)
         ));
       }
-
-      $contentNamespace = $matches[1];
 
       array_push($arguments, $contentNamespace);
 
@@ -90,19 +114,12 @@
         $method, 'Content', strpos($method, $contentNamespace), $nsLength
       );
 
-      try
-      {
-        $callable = new sfCallableArray(array(
-          $this->getTaggingCache()->getContentTagHandler(),
-          $contentAbstractMethod
-        ));
+      $callable = new sfCallableArray(array(
+        $this->getTaggingCache()->getContentTagHandler(),
+        $contentAbstractMethod
+      ));
 
-        return $callable->callArray($arguments);
-      }
-      catch (sfException $e)
-      {
-        throw new BadMethodCallException($e->getMessage());
-      }
+      return $callable->callArray($arguments);
     }
 
     /**
@@ -110,8 +127,9 @@
      *
      * @param mixed                   $tags
      * @param Doctrine_Query|string   $q        Doctrine_Query or string
+     * @param array                   $params   params from $q->getParams()
      *
-     * @param array $params   params from $q->getParams()
+     * @return sfViewCacheTagManagerBridge
      */
     public function addDoctrineTags ($tags, $q, array $params = array())
     {
@@ -130,9 +148,9 @@
         throw new InvalidArgumentException('Invalid arguments are passed');
       }
 
-      $this->getTaggingCache()->addTagsToCache(
-        $key, sfCacheTaggingToolkit::formatTags($tags)
-      );
+      $tags = sfCacheTaggingToolkit::formatTags($tags);
+
+      $this->getTaggingCache()->addTagsToCache($key, $tags);
 
       return $this;
     }
