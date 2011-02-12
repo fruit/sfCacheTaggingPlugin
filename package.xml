@@ -22,11 +22,11 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2011-02-03</date>
-  <time>00:01:00</time>
+  <date>2011-02-12</date>
+  <time>22:30:00</time>
   <version>
-    <release>2.1.3</release>
-    <api>2.2.1</api>
+    <release>3.0.0</release>
+    <api>3.0.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -34,8 +34,11 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [fixed] By using doctrine migration, default column "object_version" contains NULL value (throws an exception on frontend) (thanks Serg Puhoff)
-    * ilya: [notice] API changes, "object_version" default value now is "1" (was NULL)
+    * ilya: [added] Updating objects now does not invalidates collections tags. To invalidate collection tag you need to delete or add new object of specific collection. (thanks Roman Grigorov)
+    * ilya: [fixed] Calling an unknown method from actions with a disabled cache does not throws the Exception
+    * ilya: [changed] Some Cachetaggable behaviors method names renamed due to Doctrine possible conflicts.
+    * ilya: [added] new additional tests
+    * ilya: [updated] README
   </notes>
   <contents>
     <dir name="/">
@@ -128,12 +131,15 @@
             <file name="browserViewCacheTest.php" role="data" />
             <file name="sfCacheTaggingPluginTest.php" role="data" />
             <file name="sfCacheTaggingToolkitTest.php" role="data" />
+            <file name="sfCachetaggableDoctrineRecordTest.php" role="data" />
             <file name="sfContentTagHandlerTest.php" role="data" />
             <file name="sfViewCacheTagManagerBridgeTest.php" role="data" />
             <file name="sfViewCacheTagManagerTest.php" role="data" />
           </dir>
           <dir name="notag">
             <file name="DoctrineListenerCachetaggableTest.php" role="data" />
+            <file name="UnknownMethodCallInActionTest.php" role="data" />
+            <file name="ValidMethodCallInActionTest.php" role="data" />
             <file name="sfCacheTaggingToolkitTest.php" role="data" />
           </dir>
         </dir>
@@ -173,6 +179,25 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>3.0.0</release>
+        <api>3.0.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2011-02-12</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [added] Updating objects now does not invalidates collections tags. To invalidate collection tag you need to delete or add new object of specific collection. (thanks Roman Grigorov)
+        * ilya: [fixed] Calling an unknown method from actions with a disabled cache does not throws the Exception
+        * ilya: [changed] Some Cachetaggable behaviors method names renamed due to Doctrine possible conflicts.
+        * ilya: [added] new additional tests
+        * ilya: [updated] README
+      </notes>
+    </release>
     <release>
       <version>
         <release>2.1.3</release>
