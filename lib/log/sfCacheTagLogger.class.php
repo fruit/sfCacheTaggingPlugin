@@ -61,7 +61,7 @@
      * Initializes this sfCacheTagLogger instance.
      *
      * @param array $options An array of options.
-     * @return void
+     * @return null
      */
     public function initialize (array $options = array())
     {

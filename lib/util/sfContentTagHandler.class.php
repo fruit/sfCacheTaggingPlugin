@@ -44,7 +44,7 @@
      * @param mixed   $tags
      * @param string  $namespace
      *
-     * @return void
+     * @return null
      */
     public function setContentTags ($tags, $namespace)
     {
@@ -58,7 +58,7 @@
      *
      * @param mixed $tags
      * @param string $namespace
-     * @return void
+     * @return null
      */
     public function addContentTags ($tags, $namespace)
     {
@@ -85,7 +85,7 @@
      * @param string  $tagName
      * @param mixed   $tagVersion
      * @param string  $namespace
-     * @return void
+     * @return null
      */
     public function setContentTag ($tagName, $tagVersion, $namespace)
     {
@@ -97,7 +97,7 @@
      *
      * @param string $tagName
      * @param string $namespace
-     * @return void
+     * @return null
      */
     public function removeContentTag ($tagName, $namespace)
     {
@@ -109,7 +109,7 @@
      *
      * @param string $namespace
      *
-     * @return void
+     * @return null
      */
     public function removeContentTags ($namespace)
     {

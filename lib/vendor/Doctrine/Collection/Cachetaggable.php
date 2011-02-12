@@ -200,7 +200,7 @@
     /**
      * Remove all added tags
      *
-     * @return void
+     * @return null
      */
     public function removeTags ()
     {

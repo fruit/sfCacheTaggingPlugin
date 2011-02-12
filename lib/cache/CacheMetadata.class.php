@@ -37,7 +37,7 @@
     /**
      * @param mixed $data
      * @param array $tags
-     * @return void
+     * @return null
      */
     public function initialize ($data, array $tags = array())
     {
@@ -57,7 +57,7 @@
 
     /**
      * @param mixed $data
-     * @return void
+     * @return null
      */
     public function setData ($data)
     {
@@ -76,7 +76,7 @@
      * Rewrites all existing tags with new
      * 
      * @param array $tags
-     * @return void
+     * @return null
      */
     public function setTags (array $tags)
     {
@@ -109,7 +109,7 @@
      * Appends tags to existing
      *
      * @param array $tags
-     * @return void
+     * @return null
      */
     public function addTags (array $tags)
     {
@@ -131,7 +131,7 @@
     /**
      * @param string $tagName
      * @param string $tagVersion
-     * @return void
+     * @return null
      */
     public function setTag ($tagName, $tagVersion)
     {
@@ -157,7 +157,7 @@
      * Unserializes a CacheMetadatainstance.
      *
      * @param string $serialized A serialized CacheMetadata instance
-     * @return void
+     * @return null
      */
     public function unserialize($serialized)
     {

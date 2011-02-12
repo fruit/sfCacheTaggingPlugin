@@ -82,7 +82,7 @@
      * @param string  $method
      * @param array   $arguments
      * @throws BadMethodCallException
-     * @return void|array|boolean
+     * @return null|array|boolean
      */
     public function __call ($method, $arguments)
     {

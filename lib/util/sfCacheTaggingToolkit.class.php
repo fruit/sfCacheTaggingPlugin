@@ -186,7 +186,7 @@
      * Listens on "component.method_not_found"
      *
      * @param sfEvent $event
-     * @return void
+     * @return null
      */
     public static function listenOnComponentMethodNotFoundEvent (sfEvent $event)
     {

@@ -26,7 +26,7 @@
      * @param mixed   $default
      * @param mixed   $ns
      *
-     * @return void
+     * @return null
      */
     public function remove ($tagName, $default = null, $ns = null)
     {
@@ -47,7 +47,7 @@
      * @param numeric $tagVersion
      * @param mixed   $ns
      *
-     * @return void
+     * @return null
      */
     public function set ($tagName, $tagVersion, $ns = null)
     {
@@ -97,7 +97,7 @@
      * @param mixed $parameters
      * @param mixed $ns
      *
-     * @return void
+     * @return null
      */
     public function add ($parameters, $ns = null)
     {

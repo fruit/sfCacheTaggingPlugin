@@ -505,7 +505,7 @@
      * Deletes tags
      *
      * @param array $tags
-     * @return void
+     * @return null
      */
     public function deleteTags (array $tags)
     {
@@ -668,7 +668,7 @@
     /**
      * @see sfCache::clean
      * @param int   $mode   One of sfCache::ALL, sfCache::OLD params
-     * @return void
+     * @return null
      */
     public function clean ($mode = sfCache::ALL)
     {

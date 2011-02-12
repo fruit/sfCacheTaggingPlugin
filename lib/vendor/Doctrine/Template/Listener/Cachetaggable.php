@@ -41,7 +41,7 @@
      * __construct
      *
      * @param array $options
-     * @return void
+     * @return null
      */
     public function __construct(array $options)
     {
@@ -62,7 +62,7 @@
      * Pre deletion hook - saves object tag_name to remove it on postDelete
      *
      * @param Doctrine_Event $event
-     * @return void
+     * @return null
      */
     public function preDelete (Doctrine_Event $event)
     {
@@ -105,7 +105,7 @@
      * pre saving hook - sets new object`s version to store it in the database
      *
      * @param Doctrine_Event $event
-     * @return void
+     * @return null
      */
     public function preSave (Doctrine_Event $event)
     {
@@ -141,7 +141,7 @@
      *  of the stored object
      *
      * @param Doctrine_Event $event
-     * @return void
+     * @return null
      */
     public function postSave (Doctrine_Event $event)
     {
@@ -208,7 +208,7 @@
      * pre dql update hook - add updated
      *
      * @param Doctrine_Event $event
-     * @return void
+     * @return null
      */
     public function preDqlUpdate (Doctrine_Event $event)
     {
@@ -287,7 +287,7 @@
      * pre dql delete hook - remove object tags from tagger
      *
      * @param Doctrine_Event $event
-     * @return void
+     * @return null
      */
     public function preDqlDelete (Doctrine_Event $event)
     {

@@ -52,7 +52,7 @@
      * __construct
      *
      * @param string $array
-     * @return void
+     * @return null
      */
     public function __construct (array $options = array())
     {
@@ -83,7 +83,7 @@
      * Set table definition for sortable behavior
      * (borrowed and modified from Sluggable in Doctrine core)
      *
-     * @return void
+     * @return null
      */
     public function setTableDefinition ()
     {

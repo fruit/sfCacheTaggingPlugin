@@ -403,7 +403,7 @@
     /**
      * @see parent::setPageCache()
      * @param string $uri
-     * @return void
+     * @return null
      */
     public function setPageCache ($uri)
     {
