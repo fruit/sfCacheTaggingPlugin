@@ -25,9 +25,9 @@
 
       if ( ! $table->hasTemplate($templateName))
       {
-        throw new InvalidArgumentException(sprintf(
-            'Template "%s" is not registered', $templateName
-        ));
+        throw new InvalidArgumentException(
+          sprintf('Template "%s" is not registered', $templateName)
+        );
       }
 
       $template = $table->getTemplate($templateName);
@@ -39,14 +39,6 @@
     }
 
     /**
-     * @return Doctrine_Record
-     */
-    public function updateObjectVersion ()
-    {
-      return $this->getCachetaggable('updateObjectVersion')->updateObjectVersion();
-    }
-
-    /**
      * @return Doctrine_Template_Cachetaggable
      */
     protected function getCachetaggable ($method)
@@ -55,6 +47,15 @@
     }
 
     /**
+     * @return Doctrine_Record
+     */
+    public function updateObjectVersion ()
+    {
+      return $this->getCachetaggable('updateObjectVersion')->updateObjectVersion();
+    }
+
+    /**
+     * @see Doctrine_Template_Cachetaggable::getTags()
      * @var boolean $recursively (whether to fetch tags recursively from all joined tables)
      * @return array Object tags
      */
@@ -64,6 +65,7 @@
     }
 
     /**
+     * @see Doctrine_Template_Cachetaggable::obtainTagName()
      * @return string
      */
     public function obtainTagName ()
@@ -72,10 +74,29 @@
     }
 
     /**
+     * @see Doctrine_Template_Cachetaggable::obtainObjectVersion()
      * @return string
      */
     public function obtainObjectVersion ()
     {
       return $this->getCachetaggable('obtainObjectVersion')->obtainObjectVersion();
+    }
+
+    /**
+     * @see Doctrine_Template_Cachetaggable::obtainCollectionName()
+     * @return string
+     */
+    public function obtainCollectionName ()
+    {
+      return $this->getCachetaggable('obtainCollectionName')->obtainCollectionName();
+    }
+    
+    /**
+     * @see Doctrine_Template_Cachetaggable::obtainCollectionVersion()
+     * @return string
+     */
+    public function obtainCollectionVersion ()
+    {
+      return $this->getCachetaggable('obtainCollectionVersion')->obtainCollectionVersion();
     }
   }

@@ -335,31 +335,26 @@
      *
      * @param string  $key
      * @param array   $tags
-     * @param boolean $append To combine new tags with existing use "true"
-     *                        To replace existing tags with new one use "false"
      * @return boolean
      */
-    public function addTagsToCache ($key, array $tags, $append = true)
+    public function addTagsToCache ($key, array $tags)
     {
       $cacheMetadata = $this->getDataCache()->get($key);
 
       $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
 
-      if ($cacheMetadata instanceof $cacheMetadataClassName)
+      if (! $cacheMetadata instanceof $cacheMetadataClassName)
       {
-        $append 
-          ? $cacheMetadata->addTags($tags)
-          : $cacheMetadata->setTags($tags);
-
-        return $this->set(
-          $key,
-          $cacheMetadata->getData(),
-          $this->getTTL($key),
-          $cacheMetadata->getTags()
-        );
+        return false;
       }
 
-      return false;
+      $cacheMetadata->addTags($tags);
+
+      $tags = $cacheMetadata->getTags();
+
+      return $this->set(
+        $key, $cacheMetadata->getData(), $this->getTTL($key), $tags
+      );
     }
 
     /**
@@ -533,33 +528,37 @@
       # check data exist in cache and data content is a tags container
       if ($cacheMetadata instanceof $cacheMetadataClassName)
       {
-        $tags = $cacheMetadata->getTags();
+        $fetchedCacheTags = $cacheMetadata->getTags();
 
-        if (0 !== count($tags))
+        if (0 !== count($fetchedCacheTags))
         {
           /**
            * speed up multi tag selection from backend
            */
-          $tagKeys = array_keys($tags);
+          $tagKeys = array_keys($fetchedCacheTags);
           
-          $multiTags = $this->getTagsCache()->getMany($tagKeys);
+          $storedTags = $this->getTagsCache()->getMany($tagKeys);
 
-          if (count($tags) > count($multiTags))
+          /**
+           * getMany returns keys with NULL value if some key is missing.
+           * In case arrays are equal, cache is not expired
+           */
+          if ($fetchedCacheTags === $storedTags)
           {
-            $this->getLogger()->log('v', 'multi fetch');
+            $this->getLogger()->log('V', 'via equal compare');
 
             # one tag is expired, no reasons to continue
             # (should revalidate cache data)
-            $hasExpired = true;
+            $hasExpired = false;
           }
           else
           {
-            $extendedKeysWithCurrentVersions = array_combine(array_keys($multiTags), array_values($tags));
+            $extendedKeysWithCurrentVersions = array_combine(array_keys($storedTags), array_values($fetchedCacheTags));
 
             # check for data tags is expired
             $hasExpired = false;
 
-            foreach ($multiTags as $tagKey => $tagLatestVersion)
+            foreach ($storedTags as $tagKey => $tagLatestVersion)
             {
               $tagVersion = $extendedKeysWithCurrentVersions[$tagKey];
               # tag is exprired or version is old
@@ -689,17 +688,6 @@
     protected function generateLockKey ($key)
     {
       return "{$key}_lock";
-    }
-
-    /**
-     * Creates name for tag key
-     *
-     * @param string $key
-     * @return string
-     */
-    protected function generateTagKey ($key)
-    {
-      return $key;
     }
 
     /**

@@ -90,7 +90,7 @@
     $t->is(
       $engine->getMany(array()),
       array(),
-      'No keys = no values ;>'
+      'No keys = no values'
     );
 
     $engine->clean(sfCache::ALL);

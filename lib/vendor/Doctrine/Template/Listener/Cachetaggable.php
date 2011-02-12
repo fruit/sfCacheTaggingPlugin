@@ -34,7 +34,11 @@
      */
     protected $preDeleteTagName = null;
 
-
+    /**
+     * Flag to be clear in self::postSave() if saved object was new or not
+     * 
+     * @var boolean
+     */
     protected $wasObjectNew = null;
 
     /**

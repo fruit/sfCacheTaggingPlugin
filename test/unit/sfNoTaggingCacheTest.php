@@ -18,7 +18,7 @@
 
   $t->is($c->setTags(array('name' =>'123', 'name2' => 25125252), 3600), true);
   $t->is($c->hasTag('cccc'), false);
-  $t->is($c->addTagsToCache('somename', array(), 5200), true);
+  $t->is($c->addTagsToCache('somename', array()), true);
   $t->is($c->setTag('name', '123'), true);
   $t->is($c->getTag('name'), false);
 

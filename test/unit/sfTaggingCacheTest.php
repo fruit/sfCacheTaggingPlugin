@@ -232,15 +232,11 @@
   
   $t->is($c->getTags('Catchphrase'), array('CP_01' => 9237722, 'CP' => 9237722));
   
-  $c->addTagsToCache('Catchphrase', array('GF_3' => 781721, 'GF_1' => 8126761), false);
-
-  $t->is($c->getTags('Catchphrase'), array('GF_3' => 781721, 'GF_1' => 8126761));
-
   $c->remove('Catchphrase');
 
   # 2. append
   $c->set('Catchphrase', '"I know nothing."', null, array('CP_01' => 9237722, 'CP' => 9237722));
-  $c->addTagsToCache('Catchphrase', array('GF_3' => 781721, 'GF_1' => 8126761), true);
+  $c->addTagsToCache('Catchphrase', array('GF_3' => 781721, 'GF_1' => 8126761));
   $t->is($c->getTags('Catchphrase'), array(
     'CP_01' => 9237722, 'CP' => 9237722, 'GF_3' => 781721, 'GF_1' => 8126761
   ));
@@ -248,12 +244,12 @@
 
   # 3. initialized as empty and and nothing
   $c->set('Catchphrase', '"I know nothing."');
-  $c->addTagsToCache('Catchphrase', array(), true);
+  $c->addTagsToCache('Catchphrase', array());
   $t->is($c->getTags('Catchphrase'), array());
   $c->remove('Catchphrase');
 
   # 4. add to unexisting cache
-  $t->is($c->addTagsToCache('NewerSawKey', array('FF' => 2019821), true), false);
+  $t->is($c->addTagsToCache('NewerSawKey', array('FF' => 2019821)), false);
   $t->is($c->has('NewerSawKey'), false);
 
 
@@ -332,3 +328,10 @@
   
   $t->is(gettype($keys), 'array');
   $t->is($keys, array('CityA', 'CityB'));
+
+  # trying to use multi get cache invalidated check
+
+  $c->set('MultiGet', 'Some data.', 500, array('A_1' => '223344', 'A_2' => '115577', 'A' => '992211'));
+  $c->deleteTag('A_1');
+
+  $t->is($c->get('MultiGet'), null, 'Checking via multi get');

@@ -190,10 +190,10 @@
      */
     public static function listenOnComponentMethodNotFoundEvent (sfEvent $event)
     {
-      $callable = array(new sfViewCacheTagManagerBridge(), $event['method']);
-
       try
       {
+        $callable = array(new sfViewCacheTagManagerBridge(), $event['method']);
+
         $value = call_user_func_array($callable, $event['arguments']);
         $event->setReturnValue($value);
 

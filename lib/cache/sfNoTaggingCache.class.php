@@ -45,7 +45,7 @@
     /**
      * @see sfTaggingCache
      */
-    public function addTagsToCache ($key, array $tags, $timeout = null)
+    public function addTagsToCache ($key, array $tags)
     {
       return true;
     }

@@ -594,7 +594,7 @@ are not (atomic counter).
           }
         }
 
-    And DO NOT FORGET TO rebuild your models
+    And DO REMEMBER TO rebuild your models
 
         ./symfony doctrine:build-model --env=YOUR_ENV
 
@@ -631,9 +631,9 @@ are not (atomic counter).
 
 ## TDD ##
 
-  * Environments: PHP 5.2, PHP 5.3
-  * Unit/functional tests: > 2000 tests and all are successful
-  * Code coverage: ~ 97%
+  * Environment: PHP 5.3
+  * Unit/functional tests: 1807 tests and all pass
+  * Code coverage: 97%
 
   *  Every combination is tested (data backend / tags backend) of listed below:
 

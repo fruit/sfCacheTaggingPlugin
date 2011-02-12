@@ -84,6 +84,7 @@
     }
   }
 
+  # addDoctrineTags
   $t->can_ok($bridge, array('addDoctrineTags'), 'Method addDoctrineTags() is callable');
 
   try
@@ -209,7 +210,7 @@
   {
     $t->pass('BadMethodCallException cached when calling unknown method unknownMethod()');
   }
-  
+
   sfConfig::set('sf_cache', $optionSfCache);
 
   $connection->rollback();
