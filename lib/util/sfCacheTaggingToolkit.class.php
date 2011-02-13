@@ -134,12 +134,12 @@
       {
         $table = $tags->getTable();
 
-        if (! $table->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
+        if (! $table->hasTemplate(self::TEMPLATE_NAME))
         {
           throw new InvalidArgumentException(sprintf(
             'Object "%s" should have the "%s" template',
             $table->getClassnameToReturn(),
-            sfCacheTaggingToolkit::TEMPLATE_NAME
+            self::TEMPLATE_NAME
           ));
         }
 
@@ -207,7 +207,7 @@
       {
         $event->setProcessed(true);
 
-        sfCacheTaggingToolkit::notifyApplicationLog(
+        self::notifyApplicationLog(
           __CLASS__, $e->getMessage(), sfLogger::NOTICE
         );
       }
@@ -256,5 +256,34 @@
         ->getEventDispatcher()
         ->notify(new sfEvent($object, 'application.log', array($message)))
       ;
+    }
+
+    /**
+     * Collections tag name
+     *
+     * @return string
+     */
+    public static function obtainCollectionName (Doctrine_Table $table)
+    {
+      return self::getBaseClassName($table->getClassnameToReturn());
+    }
+
+    /**
+     * Retrieves collections tags version or initialize new version if
+     * nothing was before
+     *
+     * @return string Collection version
+     */
+    public static function obtainCollectionVersion ($collectionVersionName)
+    {
+      $collectionVersion = self::getTaggingCache()
+        ->getTag($collectionVersionName);
+
+      if (null === $collectionVersion)
+      {
+        $collectionVersion = self::generateVersion();
+      }
+
+      return $collectionVersion;
     }
   }

@@ -198,7 +198,7 @@
 
         $taggingCache->setTag($formatedClassName, $invokerObjectVersion);
 
-        $invoker->addTag($formatedClassName, $invokerObjectVersion);
+        $invoker->addVersionTag($formatedClassName, $invokerObjectVersion);
       }
 
       $invokerTagName = $invoker->obtainTagName();
@@ -206,7 +206,7 @@
       $taggingCache->setTag($invokerTagName, $invokerObjectVersion);
 
       # updating object tags
-      $invoker->addTag($invokerTagName, $invokerObjectVersion);
+      $invoker->addVersionTag($invokerTagName, $invokerObjectVersion);
 
       $this->wasObjectNew = null;
     }

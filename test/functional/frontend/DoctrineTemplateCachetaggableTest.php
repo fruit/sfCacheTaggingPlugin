@@ -77,13 +77,12 @@
 
   $article = new Book();
   $t->is($article->getTags(), array());
-  $t->is($article->addTag('key', 123912), false);
-  $t->is($article->addTags(array('key' => 123912)), false);
+  $t->is($article->addVersionTag('key', 123912), false);
+  $t->is($article->addVersionTags(array('key' => 123912)), false);
 
   sfConfig::set('sf_cache', $optionSfCache);
 
-  
-
+  # getTags no deep
   $q = BlogPostCommentTable::getInstance()->createQuery('c');
   $q
     ->addSelect('c.*')
@@ -99,15 +98,18 @@
   # getTags
   $comments = $q->execute();
 
-  $t->is(count($tags = $comments->getTags()), 9);
+  $t->is(count($tags = $comments->getTags(false)), 9);
 
   $commentsCnt = BlogPostCommentTable::getInstance()->count();
   $postsCnt = BlogPostTable::getInstance()->count();
   $voteCnt = BlogPostVoteTable::getInstance()->count();
 
-  $t->is(count($tags = $comments->getTags(true)), $commentsCnt + $postsCnt + $voteCnt + 3/* 3 collection tags*/);
+  # 2 = BlogPost joined as M:1, no collection tag should be used
+  $t->is(count($tags = $comments->getTags(true)), $commentsCnt + $postsCnt + $voteCnt + 2);
 
-  # addTags
+  $comments->free(true);
+  
+  # addVersionTags
 
   foreach ($comments as $comment)
   {
@@ -116,10 +118,43 @@
       continue;
     }
 
-    $t->is($comment->addTags($comment->getBlogPost()->getTags()), true);
+    $t->is($comment->addVersionTags($comment->getBlogPost()->getTags(false)), true);
 
-    $t->is(count($comment->getTags()), 4);
+    # comment is Doctrine_Record, it does not returns collection tag
+    # comment contain 1:1 post, it does not return collection tag too
+
+    $t->is(count($comment->getTags(false)), 2);
   }
+
+  # getTags & fetchOne & 1:M
+  $q = BlogPostTable::getInstance()->createQuery('p');
+  $q
+    ->addSelect('p.*, c.*')
+    ->leftJoin('p.BlogPostComment c')
+    ->limit(1)
+  ;
+
+  $post = $q->fetchOne();
+
+  $t->is(count($post->getTags(true)), 5);
+  $t->is(count($post->getTags(false)), 1);
+
+  $post->free(true);
+
+  # getTag & fechOne & 1
+
+  $q = BlogPostTable::getInstance()->createQuery('p');
+  $q
+    ->addSelect('p.*')
+    ->limit(1)
+  ;
+
+  $post = $q->fetchOne();
+
+  $t->is(count($post->getTags(true)), 1, 'getTags deeply count shoud be 2');
+  $t->is(count($post->getTags(false)), 1, 'getTags count shoud be 2');
+
+  $post->free(true);
 
   # obtainTagName
 

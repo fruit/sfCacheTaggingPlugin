@@ -18,12 +18,9 @@
 
   $obj = new Device();
   $obj->setName('Color Picker');
-
-  print $obj->obtainCollectionVersion() . "\n";
   $obj->save();
 
   $collectionVersion = $obj->obtainCollectionVersion();
-
 
   $obj->setName('Color Picker v2');
   $obj->save();

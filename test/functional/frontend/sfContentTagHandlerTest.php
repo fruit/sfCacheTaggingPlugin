@@ -51,7 +51,7 @@
 
   $posts = BlogPostTable::getInstance()->findAll();
 
-  $t->ok(count($posts->getTags() > count($posts->delete()->getTags())));
+  $t->ok(count($posts->getTags()) > count($posts->delete()->getTags()));
 
   $postComments = BlogPostCommentTable::getInstance()->findAll();
   $postComments->delete();
@@ -70,7 +70,7 @@
 
   try
   {
-    $posts->addTag(array('MyTag'), 28182);
+    $posts->addVersionTag(array('MyTag'), 28182);
     $t->fail('Exception "InvalidArgumentException" was not thrown');
   }
   catch (InvalidArgumentException $e)
@@ -78,12 +78,12 @@
     $t->pass(sprintf('Exception "%s" is thrown. (catched)', get_class($e)));
   }
 
-  $posts->addTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
+  $posts->addVersionTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getTags()), 2, 'Adding new tag.');
 
-  $posts->addTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
+  $posts->addVersionTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getTags()), 2, 'Adding tag with the same tag name "SomeTag".');
-  $posts->addTag('SomeTagNew', sfCacheTaggingToolkit::generateVersion());
+  $posts->addVersionTag('SomeTagNew', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getTags()), 3, 'Adding tag with new tag name "SomeTagNew".');
 
   $tagsToAdd = array();
@@ -94,14 +94,14 @@
 
   $tagsToReturn = array_merge($tagsToAdd, $postCollectionTag);
 
-  $posts->removeTags();
+  $posts->removeVersionTags();
   $t->is($posts->getTags(), $postCollectionTag, 'cleaned added tags');
 
   foreach (array('someTag', null, 30, 2.1293, new stdClass(), -2) as $mixed)
   {
     try
     {
-      $posts->addTags($mixed);
+      $posts->addVersionTags($mixed);
       $t->fail('Exception "InvalidArgumentException" was NOT thrown');
     }
     catch (InvalidArgumentException $e)

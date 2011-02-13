@@ -39,7 +39,11 @@
      */
     protected $_state = null;
 
-
+    /**
+     * Unique key names buffer
+     *
+     * @var array
+     */
     protected $objectIdentifiers = array();
 
     /**
@@ -109,22 +113,13 @@
     }
 
     /**
-     * Retrieves object's tags and appended tags
+     * Retrieves object's version tags with once added
      *
-     * @param boolean $deep collect tags from joined related objects
-     * @return array object tags (self and external from ->addTags())
+     * @param boolean   $deep
+     * @return array    object tags (self and external from ->addVersionTags())
      */
-    public function getTags ($deep = false)
+    public function getTags ($deep = true)
     {
-      try
-      {
-        $tagHandler = $this->getContentTagHandler();
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        return array();
-      }
-
       if (
           $this->_state == Doctrine_Record::STATE_LOCKED
         ||
@@ -134,39 +129,49 @@
         return array();
       }
 
-      $invoker = $this->getInvoker();
+      try
+      {
+        $tagHandler = $this->getContentTagHandler();
+      }
+      catch (sfCacheDisabledException $e)
+      {
+        return array();
+      }
 
       $stateBeforeLock = $this->_state;
+
+      $invoker = $this->getInvoker();
 
       $this->_state = $invoker->exists()
         ? Doctrine_Record::STATE_LOCKED
         : Doctrine_Record::STATE_TLOCKED;
 
-      $tagHandler->addContentTags(
-        array(
-          $this->obtainTagName()        => $this->obtainObjectVersion(),
-          $this->obtainCollectionName() => $this->obtainCollectionVersion(),
-        ),
-        $this->getInvokerNamespace()
+      $invokerTags = array(
+        $this->obtainTagName() => $this->obtainObjectVersion(),
       );
+
+      $tagHandler->addContentTags($invokerTags, $this->getInvokerNamespace());
       
       if ($deep)
       {
         foreach ($invoker->getReferences() as $reference)
         {
-          if ( ! $reference instanceof Doctrine_Null)
+          if ($reference instanceof Doctrine_Null)
           {
-            $table = $reference->getTable();
-
-            if (! $table->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
-            {
-              continue;
-            }
-            
-            $tagHandler->addContentTags(
-              $reference->getTags(true), $this->getInvokerNamespace()
-            );
+            continue;
           }
+
+          $table = $reference->getTable();
+
+          if (! $table->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
+          {
+            continue;
+          }
+
+          $tagHandler->addContentTags(
+            $reference->getTags($deep),
+            $this->getInvokerNamespace()
+          );
         }
       }
 
@@ -191,7 +196,7 @@
      *                    Doctrine_Collection_Cachetaggable, array.
      * @return boolean
      */
-    public function addTags ($tags)
+    public function addVersionTags ($tags)
     {
       try
       {
@@ -216,7 +221,7 @@
      * @param int|string  $tagVersion
      * @return boolean
      */
-    public function addTag ($tagName, $tagVersion)
+    public function addVersionTag ($tagName, $tagVersion)
     {
       try
       {
@@ -235,6 +240,17 @@
     }
 
     /**
+     *
+     * @return array
+     */
+    public function getCollectionTags ()
+    {
+      return array(
+        $this->obtainCollectionName() => $this->obtainCollectionVersion()
+      );
+    }
+
+    /**
      * Collections tag name
      *
      * @return string
@@ -243,8 +259,19 @@
     {
       $invoker = $this->getInvoker();
 
-      return sfCacheTaggingToolkit::getBaseClassName(
-        $invoker->getTable()->getClassnameToReturn()
+      return sfCacheTaggingToolkit::obtainCollectionName($invoker->getTable());
+    }
+
+    /**
+     * Retrieves collections tags version or initialize new version if
+     * nothing was before
+     *
+     * @return string Version
+     */
+    public function obtainCollectionVersion ()
+    {
+      return sfCacheTaggingToolkit::obtainCollectionVersion(
+        $this->obtainCollectionName()
       );
     }
 
@@ -281,7 +308,7 @@
 
       $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
 
-      if (0 === count($uniqueColumns))
+      if (0 == count($uniqueColumns))
       {
         if (! array_key_exists($objectClassName, $this->objectIdentifiers))
         {
@@ -330,29 +357,6 @@
       return call_user_func_array(
         'sprintf', array_merge(array("%s{$separator}{$keyFormat}"), $columnValues)
       );
-    }
-
-    /**
-     * Retrieves collections tags version or initialize new version if
-     * nothing was before
-     *
-     * @return string Version
-     */
-    public function obtainCollectionVersion ()
-    {
-      $invoker = $this->getInvoker();
-
-      $collectionVersion = $this
-        ->getTaggingCache()
-        ->getTag($this->obtainCollectionName())
-      ;
-
-      if (null === $collectionVersion)
-      {
-        $collectionVersion = sfCacheTaggingToolkit::generateVersion();
-      }
-
-      return $collectionVersion;
     }
 
     /**

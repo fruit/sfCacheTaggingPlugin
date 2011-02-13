@@ -21,6 +21,8 @@
 
   $t = new lime_test();
 
+  $sfTagger->clean();
+
   # getTags
 
   $c = new Doctrine_Collection_Cachetaggable('BlogPost');
@@ -70,57 +72,55 @@
     $t->pass($e->getMessage());
   }
 
-
-
-  # addTags
+  # addVersionTags
 
   $c = new Doctrine_Collection_Cachetaggable('University');
 
-  $t->is($c->addTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), true);
+  $t->is($c->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), true);
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $t->is($c->addTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), false);
+  $t->is($c->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), false);
 
   sfConfig::set('sf_cache', $optionSfCache);
   
 
-  # addTag
+  # addVersionTag
 
   $c = new Doctrine_Collection_Cachetaggable('University');
 
-  $t->is($c->addTag('Tag_1', 123712738123), true);
+  $t->is($c->addVersionTag('Tag_1', 123712738123), true);
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $t->is($c->addTag('Tag_1', 123712738123), false);
+  $t->is($c->addVersionTag('Tag_1', 123712738123), false);
 
   sfConfig::set('sf_cache', $optionSfCache);
 
-  # removeTags
+  # removeVersionTags
 
   $posts = BlogPostTable::getInstance()->findAll();
 
   $t->is(count($posts->getTags()), 4);
 
-  $t->ok($posts->removeTags());
+  $t->ok($posts->removeVersionTags());
 
   $t->is(count($posts->getTags()), 4);
 
-  $t->is($posts->addTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), true);
+  $t->is($posts->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), true);
 
   $t->is(count($posts->getTags()), 6);
 
-  $t->ok($posts->removeTags());
+  $t->ok($posts->removeVersionTags());
 
   $t->is(count($posts->getTags()), 4);
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $t->ok(! $posts->removeTags());
+  $t->ok(! $posts->removeVersionTags());
 
   $connection->rollback();
 
@@ -132,7 +132,7 @@
 
   $posts = BlogPostTable::getInstance()->findAll();
 
-  $posts->addTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912));
+  $posts->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912));
 
   $t->is(count($posts->getTags()), 6);
 

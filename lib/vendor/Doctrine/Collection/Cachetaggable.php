@@ -75,7 +75,7 @@
      * @param boolean $deep
      * @return array
      */
-    public function getTags ($deep = false)
+    public function getTags ($deep = true)
     {
       $table = $this->getTable();
 
@@ -109,10 +109,12 @@
         {
           $objectVersion = $object->obtainObjectVersion();
 
-          $tags = $deep ? $object->getTags(true) : $object->getTags();
+          $tags = $object->getTags($deep);
 
           $tagHandler->addContentTags($tags, $namespace);
         }
+        
+        $tagHandler->addContentTags($this->getCollectionTags(), $namespace);
       }
       else
       {
@@ -124,12 +126,8 @@
          * repeating calls with relative microtime always refresh collection tag
          * so, here is day-fixed value
          */
-        $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
-          $table->getClassnameToReturn()
-        );
-
         $tagHandler->setContentTag(
-          $formatedClassName,
+          sfCacheTaggingToolkit::obtainCollectionName($table),
           sfCacheTaggingToolkit::generateVersion(strtotime('today')),
           $namespace
         );
@@ -148,13 +146,26 @@
     }
 
     /**
+     * Collection tag with its version
+     *
+     * @return array
+     */
+    public function getCollectionTags ()
+    {
+      $name = sfCacheTaggingToolkit::obtainCollectionName($this->getTable());
+      $version = sfCacheTaggingToolkit::obtainCollectionVersion($name);
+
+      return array($name => $version);
+    }
+
+    /**
      * Adds additional tags to currect collection.
      * Acceptable array or Doctrine_Collection_Cachetaggable instance
      *
      * @param array|Doctrine_Collection_Cachetaggable|ArrayAccess $tags
      * @return boolean
      */
-    public function addTags ($tags)
+    public function addVersionTags ($tags)
     {
       try
       {
@@ -179,7 +190,7 @@
      * @param string|int $tagVersion
      * @return boolean
      */
-    public function addTag ($tagName, $tagVersion)
+    public function addVersionTag ($tagName, $tagVersion)
     {
       try
       {
@@ -202,7 +213,7 @@
      *
      * @return null
      */
-    public function removeTags ()
+    public function removeVersionTags ()
     {
       try
       {
@@ -228,9 +239,16 @@
     {
       $returnValue = parent::delete($conn, $clearColl);
 
-      $this->removeTags();
+      $this->removeVersionTags();
 
       return $returnValue;
+    }
+
+    public function free ($deep = false)
+    {
+      $this->removeVersionTags();
+      
+      return parent::free($deep);
     }
 
     protected function notifyApplicationLog (Exception $e)

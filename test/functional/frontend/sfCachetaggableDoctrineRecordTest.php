@@ -67,7 +67,7 @@
 
   $t->diag('getTags() saved');
   $t->is(gettype($obj->getTags()), 'array', 'Return type is array');
-  $t->is(count($obj->getTags()), 2, 'Return self and collection tags');
+  $t->is(count($obj->getTags()), 1, 'Return self tag');
 
   $t->diag('obtainTagName() saved');
   $t->is(gettype($obj->obtainTagName()), 'string', 'Return type is string');
