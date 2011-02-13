@@ -10,16 +10,10 @@
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
-
-  $connection = Doctrine::getConnectionByTableName('SkipOnColumnUpdateTest');
-
-  $sfContext = sfContext::getInstance();
-  $cacheManager = $sfContext->getViewCacheManager();
-
-  $sfTagger = $cacheManager->getTaggingCache();
-
+  
   $t = new lime_test();
 
+  $connection = SkipOnColumnUpdateTestTable::getInstance()->getConnection();
   $connection->beginTransaction();
 
   $obj = new SkipOnColumnUpdateTest();

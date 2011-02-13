@@ -28,6 +28,7 @@
       'uniqueKeyFormat' => '',
       'versionColumn'   => 'object_version',
       'skipOnChange'    => array(),
+      'invalidateCollectionVersionOnUpdate' => false,
     );
 
     /**

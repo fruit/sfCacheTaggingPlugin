@@ -187,7 +187,10 @@
 
       $invokerObjectVersion = $invoker->obtainObjectVersion();
 
-      if ($this->wasObjectNew)
+      $isToInvalidateCollectionVersion
+        = (boolean) $this->getOption('invalidateCollectionVersionOnUpdate');
+      
+      if ($this->wasObjectNew || $isToInvalidateCollectionVersion)
       {
         $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
           $table->getClassnameToReturn()
@@ -251,6 +254,10 @@
       
       $table = $event->getInvoker()->getTable();
 
+      $collectionVersionName = sfCacheTaggingToolkit::getBaseClassName(
+        $table->getClassnameToReturn()
+      );
+
       if ($table->hasTemplate('SoftDelete'))
       {
         $softDeleteTemplate = $table->getTemplate('SoftDelete');
@@ -258,9 +265,7 @@
         {
           # invalidate collection, if soft delete sets deleted_at field
           $taggingCache->setTag(
-            sfCacheTaggingToolkit::getBaseClassName(
-              $table->getClassnameToReturn()
-            ),
+            $collectionVersionName,
             sfCacheTaggingToolkit::generateVersion()
           );
         }
@@ -284,6 +289,17 @@
       foreach ($selectQuery->execute() as $object)
       {
         $taggingCache->setTag($object->obtainTagName(), $updateVersion);
+      }
+
+      $isToInvalidateCollectionVersion
+        = (boolean) $this->getOption('invalidateCollectionVersionOnUpdate');
+
+      if ($isToInvalidateCollectionVersion)
+      {
+        $taggingCache->setTag(
+          $collectionVersionName,
+          sfCacheTaggingToolkit::generateVersion()
+        );
       }
     }
 
