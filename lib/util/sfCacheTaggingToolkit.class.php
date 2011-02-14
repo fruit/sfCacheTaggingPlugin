@@ -89,16 +89,6 @@
     }
 
     /**
-     * @return string
-     */
-    public static function getMetadataClassName ()
-    {
-      return (string) sfConfig::get(
-        'app_sfcachetaggingplugin_metadata_class', 'CacheMetadata'
-      );
-    }
-
-    /**
      *
      * @return string
      */

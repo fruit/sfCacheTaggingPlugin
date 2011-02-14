@@ -222,9 +222,7 @@
         return null;
       }
 
-      $retval = $this->getTaggingCache()->get(
-        $this->generateCacheKey($internalUri)
-      );
+      $retval = $this->getTaggingCache()->get($this->generateCacheKey($internalUri));
 
       if (sfConfig::get('sf_logging_enabled'))
       {
@@ -521,20 +519,19 @@
         return $content;
       }
 
-      $cacheMetadata = $this->getCache()->get(
-        $hash = $this->generateCacheKey($event['uri'])
+      $cacheMetadata = new CacheMetadata($this->getCache()->get(
+        $this->generateCacheKey($event['uri']))
       );
 
-      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
-
-      /* @var $cacheMetadata CacheMetadata */
-      if (! $cacheMetadata instanceof $cacheMetadataClassName)
+      if (null === $cacheMetadata->getData())
       {
         return $content;
       }
 
       $tags = $cacheMetadata->getTags();
-      $tagsContent = sprintf('[cache&nbsp;tags]&nbsp;count:&nbsp;%d', $tagsCount = count($tags));
+      $tagsCount = count($tags);
+      
+      $tagsContent = sprintf('[cache&nbsp;tags]&nbsp;count:&nbsp;%d', $tagsCount);
 
       if (0 != $tagsCount)
       {
@@ -554,9 +551,7 @@
 
       $textToReplace = '&nbsp;<br />&nbsp;';
 
-      return str_replace(
-        $textToReplace, $tagsContent, $updatedContent
-      );
+      return str_replace($textToReplace, $tagsContent, $updatedContent);
     }
 
     /**

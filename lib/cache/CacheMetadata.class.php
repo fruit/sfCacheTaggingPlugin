@@ -13,7 +13,7 @@
    * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class CacheMetadata implements Serializable
+  class CacheMetadata
   {
     /**
      * @var sfParameterHolder
@@ -29,8 +29,23 @@
      * @param mixed $data
      * @param array $tags
      */
-    public function __construct ($data = null, array $tags = array())
+    public function __construct ($metadata = null)
     {
+      $this->holder = new sfParameterHolder();
+
+      if (! is_array($metadata))
+      {
+        return;
+      }
+      
+      $data = isset($metadata['data'])
+        ? $metadata['data']
+        : null;
+
+      $tags = isset($metadata['tags'])
+        ? $metadata['tags']
+        : array();
+
       $this->initialize($data, $tags);
     }
 
@@ -41,8 +56,6 @@
      */
     public function initialize ($data, array $tags = array())
     {
-      $this->holder = new sfParameterHolder();
-
       $this->setTags($tags);
       $this->setData($data);
     }
@@ -141,46 +154,5 @@
       {
         $this->getHolder()->set($tagName, $tagVersion);
       }
-    }
-
-    /**
-     * Serializes the current instance.
-     *
-     * @return array Serialized CacheMetadata object
-     */
-    public function serialize()
-    {
-      return serialize(array($this->data, $this->getTags()));
-    }
-
-    /**
-     * Unserializes a CacheMetadatainstance.
-     *
-     * @param string $serialized A serialized CacheMetadata instance
-     * @return null
-     */
-    public function unserialize($serialized)
-    {
-      list($data, $tags) = unserialize($serialized);
-
-      $this->initialize($data, $tags);
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString ()
-    {
-      $output = sprintf(
-        "%s:\n  data: %s\n  tags:\n",
-        __CLASS__,
-        (string) $this->getData());
-
-      foreach ($this->getTags() as $name => $version)
-      {
-        $output .= "    {$name}: {$version}\n";
-      }
-
-      return $output;
     }
   }

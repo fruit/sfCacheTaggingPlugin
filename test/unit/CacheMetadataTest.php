@@ -31,13 +31,13 @@
   $t->is($m->getTags(), array());
 
 
-  $m = new CacheMetadata('Content');
+  $m = new CacheMetadata(array('data' => 'Content'));
   $t->is($m->getData(), 'Content');
   $t->is($m->getTags(), array());
 
 
   $tags = array('Article_1' => 187281, 'Article_2' => 94711);
-  $m = new CacheMetadata('Content', $tags);
+  $m = new CacheMetadata(array('data' => 'Content', 'tags' => $tags));
   $t->is($m->getData(), 'Content');
 
   $t->is($m->getTags(), $tags);
@@ -57,30 +57,12 @@
   
   try
   {
-    $m = new CacheMetadata('Content', 1);
+    $m = new CacheMetadata(array('data' => 'Content', 'tags' => 1));
     $t->fail();
   }
   catch (RecoverableErrorException $e)
   {
-    $t->pass($e->getMessage());
+    $t->pass('OK: ' . $e->getMessage());
   }
-
-
-  $checkString = 'C:13:"CacheMetadata":107:{a:2:{i:0;s:7:"Content";i:1;a:3:{s:9:"Article_1";i:187281;s:9:"Article_2";i:94711;s:9:"Article_3";i:81872;}}}';
-
-  $t->is($serialized = serialize($m), $checkString);
-
-  $um = unserialize($serialized);
-  $t->is($um->getData(), $m->getData());
-  $t->is($um->getTags(), $m->getTags());
-
-//  $t->like($m->__toString(), '/data.*Content.*tags.*Article_1.*187281.*Article_2.*94711.*Article_3.*81872/g');
-  $t->is($m->__toString(), "CacheMetadata:
-  data: Content
-  tags:
-    Article_1: 187281
-    Article_2: 94711
-    Article_3: 81872
-");
 
   restore_error_handler();

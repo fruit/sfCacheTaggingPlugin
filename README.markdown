@@ -240,9 +240,6 @@ are not (atomic counter).
                                         # 5: with micro time part, version length 15 digits
                                         # (allowed decimal numbers in range [0, 6]
 
-            metadata_class: CacheMetadata   # this class responses to save/fetch data and tags
-                                            # from/to cache with custom serialization/de-serialization
-
             #object_class_tag_name_provider: # you can customize tag name naming
             #                                # useful for multi-application models
             #  - ProjectToolkit              # [class name]

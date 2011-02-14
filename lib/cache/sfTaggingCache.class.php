@@ -272,14 +272,9 @@
      */
     public function remove ($key)
     {
-      $cacheMetadata = $this->getDataCache()->get($key);
+      $cacheMetadata = new CacheMetadata($this->getDataCache()->get($key));
 
-      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
-
-      if ($cacheMetadata instanceof $cacheMetadataClassName)
-      {
-        $this->deleteTags($cacheMetadata->getTags());
-      }
+      $this->deleteTags($cacheMetadata->getTags());
 
       $result = $this->getDataCache()->remove($key);
 
@@ -339,11 +334,11 @@
      */
     public function addTagsToCache ($key, array $tags)
     {
-      $cacheMetadata = $this->getDataCache()->get($key);
+      $cacheMetadata = new CacheMetadata($this->getDataCache()->get($key));
 
-      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
-
-      if (! $cacheMetadata instanceof $cacheMetadataClassName)
+      $data = $cacheMetadata->getData();
+      
+      if (null === $data)
       {
         return false;
       }
@@ -352,9 +347,7 @@
 
       $tags = $cacheMetadata->getTags();
 
-      return $this->set(
-        $key, $cacheMetadata->getData(), $this->getTTL($key), $tags
-      );
+      return $this->set($key, $data, $this->getTTL($key), $tags);
     }
 
     /**
@@ -370,21 +363,19 @@
      */
     public function set ($key, $data, $timeout = null, array $tags = array())
     {
-      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
-
-      $cacheMetadata = new $cacheMetadataClassName($data, $tags);
-
       $result = false;
 
       if (! $this->isLocked($key))
       {
         $this->lock($key);
 
-        $result = $this->getDataCache()->set($key, $cacheMetadata, $timeout);
+        $result = $this->getDataCache()->set(
+          $key, array('data' => $data, 'tags' => $tags), $timeout
+        );
 
         $this->getLogger()->log($result ? 'S' : 's', $key);
 
-        $this->setTags($cacheMetadata->getTags());
+        $this->setTags($tags);
         
         $this->unlock($key);
       }
@@ -392,7 +383,6 @@
       {
         $this->getLogger()->log('s', $key);
       }
-      
 
       return $result;
     }
@@ -469,16 +459,9 @@
      */
     public function getTags ($key)
     {
-      $value = $this->getDataCache()->get($key);
+      $cacheMetadata = new CacheMetadata($this->getDataCache()->get($key));
 
-      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
-
-      if ($value instanceof $cacheMetadataClassName)
-      {
-        return $value->getTags();
-      }
-
-      return array();
+      return $cacheMetadata->getTags();
     }
 
     /**
@@ -521,12 +504,13 @@
      */
     public function get ($key, $default = null)
     {
-      $cacheMetadata = $this->getDataCache()->get($key, $default);
+      $cacheMetadata = new CacheMetadata(
+        $this->getDataCache()->get($key, $default)
+      );
 
-      $cacheMetadataClassName = sfCacheTaggingToolkit::getMetadataClassName();
+      $data = $cacheMetadata->getData();
 
-      # check data exist in cache and data content is a tags container
-      if ($cacheMetadata instanceof $cacheMetadataClassName)
+      if (null !== $data)
       {
         $fetchedCacheTags = $cacheMetadata->getTags();
 
@@ -587,28 +571,28 @@
             if ($this->isLocked($key))
             {
               # return old cache coz new data is writing to the current cache
-              $cacheMetadata = $cacheMetadata->getData();
+              $data = $cacheMetadata->getData();
             }
             else
             {
               # cache no locked, but cache is expired
-              $cacheMetadata = null;
+              $data = null;
             }
           }
           else
           {
-            $cacheMetadata = $cacheMetadata->getData();
+            $data = $cacheMetadata->getData();
           }
         }
         else
         {
-          $cacheMetadata = $cacheMetadata->getData();
+          $data = $cacheMetadata->getData();
         }
       }
 
-      $this->getLogger()->log($cacheMetadata !== $default ? 'G' : 'g', $key);
+      $this->getLogger()->log($data !== $default ? 'G' : 'g', $key);
 
-      return $cacheMetadata;
+      return $data;
     }
 
     /**
