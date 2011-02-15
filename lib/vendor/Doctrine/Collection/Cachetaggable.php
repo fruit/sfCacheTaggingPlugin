@@ -70,6 +70,18 @@
     }
 
     /**
+     * Report application.log for thrown exception
+     *
+     * @param Exception $e
+     */
+    protected function notifyApplicationLog (Exception $e)
+    {
+      sfCacheTaggingToolkit::notifyApplicationLog(
+        $this, $e->getMessage(), sfLogger::NOTICE
+      );
+    }
+
+    /**
      * Returns this collection and added tags
      *
      * @param boolean $deep
@@ -152,10 +164,19 @@
      */
     public function getCollectionTags ()
     {
-      $name = sfCacheTaggingToolkit::obtainCollectionName($this->getTable());
-      $version = sfCacheTaggingToolkit::obtainCollectionVersion($name);
+      try
+      {
+        $name = sfCacheTaggingToolkit::obtainCollectionName($this->getTable());
+        $version = sfCacheTaggingToolkit::obtainCollectionVersion($name);
 
-      return array($name => $version);
+        return array($name => $version);
+      }
+      catch (sfCacheDisabledException $e)
+      {
+        $this->notifyApplicationLog($e);
+      }
+
+      return array();
     }
 
     /**
@@ -249,13 +270,6 @@
       $this->removeVersionTags();
       
       return parent::free($deep);
-    }
-
-    protected function notifyApplicationLog (Exception $e)
-    {
-      sfCacheTaggingToolkit::notifyApplicationLog(
-        $this, $e->getMessage(), sfLogger::NOTICE
-      );
     }
   }
 

@@ -86,6 +86,15 @@
     }
 
     /**
+     * @see Doctrine_Template_Cachetaggable::getCollectionTags()
+     * @return array
+     */
+    public function getCollectionTags ()
+    {
+      return $this->getCachetaggable('getCollectionTags')->getCollectionTags();
+    }
+
+    /**
      * @see Doctrine_Template_Cachetaggable::obtainCollectionName()
      * @return string
      */

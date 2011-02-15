@@ -205,3 +205,45 @@
   $t->isa_ok($post->updateObjectVersion(), 'BlogPost');
 
   $t->cmp_ok($v, '<', $post->obtainObjectVersion());
+
+
+  # getCollectionTags
+
+  $connection->beginTransaction();
+
+  $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
+  $taggingCache->clean();
+
+  $t->is($taggingCache->getTag('BlogPost'), null);
+
+  $t->can_ok('BlogPost', array(
+    'getCollectionTags',
+    'obtainCollectionName',
+    'obtainCollectionVersion',
+  ), 'Is callable %s');
+
+  $preVersion = sfCacheTaggingToolkit::generateVersion();
+  $post = new BlogPost();
+  $post->setTitle('How to search in Google?');
+  $post->save();
+
+  $name = $post->obtainCollectionName();
+  $t->is($name, 'BlogPost');
+
+  $version = $post->obtainCollectionVersion();
+
+  $t->cmp_ok($version, '>', $preVersion);
+  $t->cmp_ok($version, '<', sfCacheTaggingToolkit::generateVersion());
+  
+  $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
+
+  $t->is(
+    $post->getCollectionTags(),
+    array($name => $version)
+  );
+
+  # obtainCollectionName
+
+  # obtainCollectionVersion
+
+  $connection->rollback();

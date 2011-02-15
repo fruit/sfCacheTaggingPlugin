@@ -105,14 +105,6 @@
     }
 
     /**
-     * @return string Object's namespace to store tags
-     */
-    protected function getInvokerNamespace ()
-    {
-      return $this->invokerNamespace;
-    }
-
-    /**
      * Retrieves object's version tags with once added
      *
      * @param boolean   $deep
@@ -240,14 +232,26 @@
     }
 
     /**
+     * Returns collection name and its version
      *
      * @return array
      */
     public function getCollectionTags ()
     {
-      return array(
-        $this->obtainCollectionName() => $this->obtainCollectionVersion()
-      );
+      try
+      {
+        $tags = array(
+          $this->obtainCollectionName() => $this->obtainCollectionVersion()
+        );
+
+        return $tags;
+      }
+      catch (sfCacheDisabledException $e)
+      {
+        
+      }
+
+      return array();
     }
 
     /**
@@ -270,9 +274,20 @@
      */
     public function obtainCollectionVersion ()
     {
-      return sfCacheTaggingToolkit::obtainCollectionVersion(
-        $this->obtainCollectionName()
-      );
+      try
+      {
+        $version = sfCacheTaggingToolkit::obtainCollectionVersion(
+          $this->obtainCollectionName()
+        );
+
+        return $version;
+      }
+      catch (sfCacheDisabledException $e)
+      {
+        
+      }
+
+      return '1';
     }
 
     /**
@@ -283,10 +298,11 @@
      */
     public function obtainTagName ()
     {
-      /* @var $invoker Doctrine_Record */
       $invoker = $this->getInvoker();
 
-      $objectClassName = $invoker->getTable()->getClassnameToReturn();
+      $table = $invoker->getTable();
+
+      $objectClassName = $table->getClassnameToReturn();
 
       if ($invoker->isNew())
       {
@@ -297,8 +313,6 @@
           )
         );
       }
-
-      $table = $invoker->getTable();
 
       $columnValues = array(
         sfCacheTaggingToolkit::getBaseClassName($objectClassName)
@@ -340,7 +354,6 @@
       /**
        * Hack to speed-up Doctrine_Record::get()
        */
-
       $accessorOverrideFlag = Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE;
 
       $accessorOverrideAttribute = $table->getAttribute($accessorOverrideFlag);
@@ -382,11 +395,20 @@
 
     /**
      * Updates object version
+     *
      * @return Doctrine_Recotd
      */
     public function updateObjectVersion ()
     {
       return $this->assignObjectVersion(sfCacheTaggingToolkit::generateVersion());
+    }
+
+    /**
+     * @return string Object's namespace to store tags
+     */
+    protected function getInvokerNamespace ()
+    {
+      return $this->invokerNamespace;
     }
 
     /**
