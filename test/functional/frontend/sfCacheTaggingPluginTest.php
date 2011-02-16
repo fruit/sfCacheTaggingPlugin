@@ -45,9 +45,22 @@
 
     $t->fail('called ->obtainTagName() on new object');
   }
-  catch (LogicException $e)
+  catch (InvalidArgumentException $e)
   {
-    $t->pass('could not call ->obtainTagName() on not saved object');
+    $t->pass('could not call ->obtainTagName() on object with empty PK values');
+  }
+
+  try
+  {
+    $article = new BlogPost();
+    $article->setId(1020);
+
+    $t->is($article->obtainTagName(), 'BlogPost:1020');
+    $t->pass('called ->obtainTagName() on new object, but with defined `id`');
+  }
+  catch (InvalidArgumentException $e)
+  {
+    $t->fail(sprintf('Thrown exception: %s', $e->getMessage()));
   }
 
   try

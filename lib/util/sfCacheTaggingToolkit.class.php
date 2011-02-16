@@ -102,7 +102,7 @@
     /**
      * Format passed tags to the array
      *
-     * @param mixed $tags array|Doctrine_Collection_Cachetaggable|
+     * @param mixed $tags false|array|Doctrine_Collection_Cachetaggable|
      *                    Doctrine_Record|ArrayIterator|
      *                    IteratorAggregate|Iterator
      * @throws InvalidArgumentException
@@ -110,9 +110,11 @@
      */
     public static function formatTags ($tags)
     {
-      $tagsToReturn = array();
-
-      if (is_array($tags))
+      if (false === $tags)
+      {
+        $tagsToReturn = array();
+      }
+      elseif (is_array($tags))
       {
         $tagsToReturn = $tags;
       }

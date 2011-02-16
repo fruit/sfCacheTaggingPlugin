@@ -157,8 +157,6 @@
   $post->free(true);
 
   # obtainTagName
-
-
   try
   {
     $post = new BlogPost();
@@ -166,10 +164,11 @@
     $post->obtainTagName();
     $t->fail();
   }
-  catch (LogicException $e)
+  catch (InvalidArgumentException $e)
   {
     $t->pass($e->getMessage());
   }
+  
 
   $connection->beginTransaction();
 
@@ -242,8 +241,19 @@
     array($name => $version)
   );
 
+  $optionSfCache = sfConfig::get('sf_cache');
+  sfConfig::set('sf_cache', false);
+
+
   # obtainCollectionName
 
   # obtainCollectionVersion
+  
+  $t->is($post->getCollectionTags(), array('BlogPost' => '1'));
+  $t->is($post->obtainCollectionName(), $name);
+  $t->is($post->obtainCollectionVersion(), '1');
+
+  sfConfig::set('sf_cache', $optionSfCache);
+
 
   $connection->rollback();

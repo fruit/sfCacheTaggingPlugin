@@ -173,6 +173,7 @@
 
   $blackSwan = new Book();
   $blackSwan->setSlug('black-swan');
+  $blackSwan->setLang('en');
   $blackSwan->save();
 
   $blackSwanId = $blackSwan->getId();

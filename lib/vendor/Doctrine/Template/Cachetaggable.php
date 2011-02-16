@@ -238,20 +238,9 @@
      */
     public function getCollectionTags ()
     {
-      try
-      {
-        $tags = array(
-          $this->obtainCollectionName() => $this->obtainCollectionVersion()
-        );
-
-        return $tags;
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        
-      }
-
-      return array();
+      return array(
+        $this->obtainCollectionName() => $this->obtainCollectionVersion()
+      );
     }
 
     /**
@@ -293,7 +282,7 @@
     /**
      * Retrieves object unique tag name based on its class
      *
-     * @throws LogicException
+     * @throws InvalidArgumentException
      * @return string
      */
     public function obtainTagName ()
@@ -303,16 +292,6 @@
       $table = $invoker->getTable();
 
       $objectClassName = $table->getClassnameToReturn();
-
-      if ($invoker->isNew())
-      {
-        throw new LogicException(
-          sprintf(
-            'Method %s::obtainTagName() is allowed only for saved objects',
-            $objectClassName
-          )
-        );
-      }
 
       $columnValues = array(
         sfCacheTaggingToolkit::getBaseClassName($objectClassName)
@@ -328,7 +307,7 @@
         {
           $uniqueColumns = $table->getIdentifierColumnNames();
 
-          $keyFormat = implode($separator, array_fill(0, count($uniqueColumns), '%s'));
+          $keyFormat = str_repeat("{$separator}%s", count($uniqueColumns));
 
           $this->objectIdentifiers[$objectClassName] = array(
             $uniqueColumns,
@@ -347,9 +326,19 @@
 
         if (! $keyFormat)
         {
-          $keyFormat = implode($separator, array_fill(0, count($uniqueColumns), '%s'));
+          $keyFormat = str_repeat("{$separator}%s", count($uniqueColumns));
+        }
+        else
+        {
+          $keyFormat = $separator . $keyFormat;
         }
       }
+
+      $keyFormat = '%s' . $keyFormat;
+
+      /**
+       * $keyFormat is now ~ "%s:%s:%s" => MyModel:2:3
+       */
 
       /**
        * Hack to speed-up Doctrine_Record::get()
@@ -362,13 +351,29 @@
 
       foreach ($uniqueColumns as $columnName)
       {
-        $columnValues[] = $invoker->get($columnName);
+        $value = $invoker->get($columnName);
+
+        if (null === $value)
+        {
+          $table->setAttribute($accessorOverrideFlag, $accessorOverrideAttribute);
+          
+          throw new InvalidArgumentException(
+            sprintf(
+              'sfCacheTaggingPlugin: Object(%s) contains invalid value ' .
+                '(NULL) in column "%s".',
+              $objectClassName, $columnName
+            )
+          );
+          
+        }
+        
+        $columnValues[] = $value;
       }
 
       $table->setAttribute($accessorOverrideFlag, $accessorOverrideAttribute);
 
       return call_user_func_array(
-        'sprintf', array_merge(array("%s{$separator}{$keyFormat}"), $columnValues)
+        'sprintf', array_merge(array($keyFormat), $columnValues)
       );
     }
 

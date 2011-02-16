@@ -105,6 +105,18 @@
       $this->preDeleteTagName = null;
     }
 
+    public function preInsert (Doctrine_Event $event)
+    {
+      $invoker = $event->getInvoker();
+      /* @var Doctrine_Record $invoker */
+    }
+
+    public function postInsert (Doctrine_Event $event)
+    {
+      $invoker = $event->getInvoker();
+      /* @var Doctrine_Record $invoker */
+    }
+
     /**
      * pre saving hook - sets new object`s version to store it in the database
      *
@@ -113,17 +125,17 @@
      */
     public function preSave (Doctrine_Event $event)
     {
-      $object = $event->getInvoker();
+      $invoker = $event->getInvoker();
 
-      $modifiedColumns = $object->getModified();
+      $modifiedColumns = $invoker->getModified();
 
       # do not set new object version if no fields are modified
-      if (! $object->isNew() && 0 == count($modifiedColumns))
+      if (! $invoker->isNew() && 0 == count($modifiedColumns))
       {
         return;
       }
 
-      $this->wasObjectNew = $object->isNew();
+      $this->wasObjectNew = $invoker->isNew();
 
       $skipOnChange = (array) $this->getOption('skipOnChange');
 
@@ -137,7 +149,7 @@
         }
       }
 
-      $object->assignObjectVersion(sfCacheTaggingToolkit::generateVersion());
+      $invoker->assignObjectVersion(sfCacheTaggingToolkit::generateVersion());
     }
 
     /**
@@ -162,14 +174,20 @@
 
       $lastModifiedColumns = $invoker->getLastModified();
 
-      # do not update tags in cache if no fields was modified
-      if (0 == count($lastModifiedColumns))
+      /**
+       * If user tries to execute ->replace(), the $invoker->exists()
+       * will return FALSE, and lastModifiedColumns will be always empty.
+       *
+       * If it's ->save(), then $invoker->exists() will return TRUE
+       */
+      if ($invoker->exists() && 0 == count($lastModifiedColumns))
       {
+        $this->wasObjectNew = null;
+
         return;
       }
 
       $table = $invoker->getTable();
-      /* @var $table Doctrine_Table */
 
       # When SoftDelete behavior saves "deleted" object
       # do not update object version on when "deleted" object is saving
@@ -180,6 +198,8 @@
 
         if (array_key_exists($deleteAtField, $lastModifiedColumns))
         {
+          $this->wasObjectNew = null;
+
           # skip if SoftDeletes sets deleted_at field
           return;
         }
@@ -243,6 +263,9 @@
         }
       }
 
+      /**
+       * @todo test this block
+       */
       if (
           (0 < count($skipOnChange))
         &&
@@ -260,6 +283,11 @@
 
       if ($table->hasTemplate('SoftDelete'))
       {
+        /**
+         * @todo test this block
+         *       it seems, that in test schame.yml SoftDelete now is
+         *       every where before Cachetaggable behavior
+         */
         $softDeleteTemplate = $table->getTemplate('SoftDelete');
         if (in_array($softDeleteTemplate->getOption('name'), $columnNamesToSet))
         {

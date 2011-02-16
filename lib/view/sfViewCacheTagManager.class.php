@@ -655,7 +655,7 @@
     {
       $uri = $this->getPartialUri($module, $action, $cacheKey);
 
-      if (!$this->isCacheable($uri))
+      if (! $this->isCacheable($uri))
       {
         return null;
       }

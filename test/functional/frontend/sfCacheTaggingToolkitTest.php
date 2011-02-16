@@ -155,7 +155,7 @@
   $cleanTags = array('Auto_1' => 127872123, 'Auto_2' => 192768211);
 
   $tests = array(
-    $cleanTags, new ArrayIterator($cleanTags), new ArrayAsIteratorAggregate($cleanTags),
+    false, $cleanTags, new ArrayIterator($cleanTags), new ArrayAsIteratorAggregate($cleanTags),
     new ArrayObject($cleanTags), $posts, $post
   );
 
@@ -164,11 +164,17 @@
     try
     {
       $decoratedTags = sfCacheTaggingToolkit::formatTags($tags);
-      $typeOfTags = is_array($tags) ? '"Array"' : 'object("'.get_class($tags).'")';
+      
+      $typeOfTags = gettype($tags);
+
       $t->is(
         gettype($decoratedTags),
         'array',
-        sprintf('return array if argument is %s', $typeOfTags)
+        sprintf(
+          'return array if argument is "%s" %s',
+          $typeOfTags,
+          is_object($tags) ? '('.get_class($tags) . ')' : ''
+        )
       );
 
       $t->pass(sprintf('Adding tags as %s', $typeOfTags));
