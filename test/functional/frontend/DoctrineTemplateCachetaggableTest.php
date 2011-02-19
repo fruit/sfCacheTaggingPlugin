@@ -77,6 +77,7 @@
 
   $article = new Book();
   $t->is($article->getTags(), array());
+  $t->is($article->getTags(true), array());
   $t->is($article->addVersionTag('key', 123912), false);
   $t->is($article->addVersionTags(array('key' => 123912)), false);
 
@@ -105,6 +106,7 @@
   $voteCnt = BlogPostVoteTable::getInstance()->count();
 
   # 2 = BlogPost joined as M:1, no collection tag should be used
+  $t->is(count($tags = $comments->getTags()), $commentsCnt + $postsCnt + $voteCnt + 2);
   $t->is(count($tags = $comments->getTags(true)), $commentsCnt + $postsCnt + $voteCnt + 2);
 
   $comments->free(true);
@@ -136,6 +138,7 @@
 
   $post = $q->fetchOne();
 
+  $t->is(count($post->getTags()), 5); # by default is true
   $t->is(count($post->getTags(true)), 5);
   $t->is(count($post->getTags(false)), 1);
 
@@ -151,6 +154,7 @@
 
   $post = $q->fetchOne();
 
+  $t->is(count($post->getTags()), 1, 'getTags deeply count shoud be 2');
   $t->is(count($post->getTags(true)), 1, 'getTags deeply count shoud be 2');
   $t->is(count($post->getTags(false)), 1, 'getTags count shoud be 2');
 
@@ -219,7 +223,7 @@
     'getCollectionTags',
     'obtainCollectionName',
     'obtainCollectionVersion',
-  ), 'Is callable %s');
+  ), 'Is callable');
 
   $preVersion = sfCacheTaggingToolkit::generateVersion();
   $post = new BlogPost();
@@ -234,8 +238,6 @@
   $t->cmp_ok($version, '>', $preVersion);
   $t->cmp_ok($version, '<', sfCacheTaggingToolkit::generateVersion());
   
-  $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
-
   $t->is(
     $post->getCollectionTags(),
     array($name => $version)

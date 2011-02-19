@@ -602,6 +602,8 @@ are not (atomic counter).
     "``actAs: Cachetaggable``" to the model. I18n behavior should be free from ``Cachetaggable``
     behavior.
 
+  * You can`t pass to ``skipOnChange`` columns from ``I18n`` table.
+
   * Doctrine $q->count() DQL can't be cached with tags
 
         [php]

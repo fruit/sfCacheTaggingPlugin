@@ -79,7 +79,7 @@
               $hash,
               $cached,
               $this->getResultCacheLifeSpan(),
-              $result->getTags(true)
+              $result->getTags()
             );
           }
           else

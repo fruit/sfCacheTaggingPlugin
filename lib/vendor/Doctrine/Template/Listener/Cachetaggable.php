@@ -42,6 +42,13 @@
     protected $wasObjectNew = null;
 
     /**
+     * Flag if nothing was changed in object or changes are expected and useless.
+     *
+     * @var boolean
+     */
+    protected $skipVersionUpdate = null;
+
+    /**
      * __construct
      *
      * @param array $options
@@ -84,10 +91,7 @@
       {
         $taggingCache = $this->getTaggingCache();
 
-        if (null !== $this->preDeleteTagName)
-        {
-          $taggingCache->deleteTag($this->preDeleteTagName);
-        }
+        $taggingCache->deleteTag($this->preDeleteTagName);
 
         $invoker = $event->getInvoker();
 
@@ -95,26 +99,11 @@
           $invoker->obtainCollectionName(),
           sfCacheTaggingToolkit::generateVersion()
         );
-
       }
       catch (sfCacheException $e)
       {
 
       }
-
-      $this->preDeleteTagName = null;
-    }
-
-    public function preInsert (Doctrine_Event $event)
-    {
-      $invoker = $event->getInvoker();
-      /* @var Doctrine_Record $invoker */
-    }
-
-    public function postInsert (Doctrine_Event $event)
-    {
-      $invoker = $event->getInvoker();
-      /* @var Doctrine_Record $invoker */
     }
 
     /**
@@ -125,26 +114,49 @@
      */
     public function preSave (Doctrine_Event $event)
     {
+      $this->skipVersionUpdate = false;
+
       $invoker = $event->getInvoker();
-
-      $modifiedColumns = $invoker->getModified();
-
-      # do not set new object version if no fields are modified
-      if (! $invoker->isNew() && 0 == count($modifiedColumns))
-      {
-        return;
-      }
 
       $this->wasObjectNew = $invoker->isNew();
 
+      if (! $invoker->isModified(true))
+      {
+        $this->skipVersionUpdate = true;
+
+        return;
+      }
+
       $skipOnChange = (array) $this->getOption('skipOnChange');
+
+      $modified = $invoker->getModified();
 
       if (0 < count($skipOnChange))
       {
-        $columnsChanged = array_keys($modifiedColumns);
+        $columnsChanged = array_keys($modified);
 
         if (0 == count(array_diff($columnsChanged, $skipOnChange)))
         {
+          $this->skipVersionUpdate = true;
+
+          return;
+        }
+      }
+
+      $table = $invoker->getTable();
+      
+      # When SoftDelete behavior saves "deleted" object
+      # do not update object version on when "deleted" object is saving
+      if ($table->hasTemplate('SoftDelete'))
+      {
+        $softDeleteTemplate = $table->getTemplate('SoftDelete');
+        $deleteAtField = $softDeleteTemplate->getOption('name');
+
+        # skip if SoftDelete sets deleted_at field
+        if (array_key_exists($deleteAtField, $modified))
+        {
+          $this->skipVersionUpdate = true;
+
           return;
         }
       }
@@ -161,6 +173,11 @@
      */
     public function postSave (Doctrine_Event $event)
     {
+      if ($this->skipVersionUpdate)
+      {
+        return;
+      }
+
       try
       {
         $taggingCache = $this->getTaggingCache();
@@ -172,46 +189,19 @@
 
       $invoker = $event->getInvoker();
 
-      $lastModifiedColumns = $invoker->getLastModified();
-
-      /**
-       * If user tries to execute ->replace(), the $invoker->exists()
-       * will return FALSE, and lastModifiedColumns will be always empty.
-       *
-       * If it's ->save(), then $invoker->exists() will return TRUE
-       */
-      if ($invoker->exists() && 0 == count($lastModifiedColumns))
-      {
-        $this->wasObjectNew = null;
-
-        return;
-      }
-
-      $table = $invoker->getTable();
-
-      # When SoftDelete behavior saves "deleted" object
-      # do not update object version on when "deleted" object is saving
-      if ($table->hasTemplate('SoftDelete'))
-      {
-        $softDeleteTemplate = $table->getTemplate('SoftDelete');
-        $deleteAtField = $softDeleteTemplate->getOption('name');
-
-        if (array_key_exists($deleteAtField, $lastModifiedColumns))
-        {
-          $this->wasObjectNew = null;
-
-          # skip if SoftDeletes sets deleted_at field
-          return;
-        }
-      }
-
       $invokerObjectVersion = $invoker->obtainObjectVersion();
 
       $isToInvalidateCollectionVersion
         = (boolean) $this->getOption('invalidateCollectionVersionOnUpdate');
-      
-      if ($this->wasObjectNew || $isToInvalidateCollectionVersion)
+
+      /**
+       * ->exists() returns false if it was ->replace()
+       * When replace(), $this->wasObjectNew is always "true"
+       */
+      if ($isToInvalidateCollectionVersion || ($invoker->exists() && $this->wasObjectNew))
       {
+        $table = $invoker->getTable();
+
         $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
           $table->getClassnameToReturn()
         );
@@ -225,10 +215,7 @@
 
       $taggingCache->setTag($invokerTagName, $invokerObjectVersion);
 
-      # updating object tags
       $invoker->addVersionTag($invokerTagName, $invokerObjectVersion);
-
-      $this->wasObjectNew = null;
     }
 
     /**

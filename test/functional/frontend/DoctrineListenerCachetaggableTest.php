@@ -90,7 +90,7 @@
   $post->save();
 
   $t->isnt($newCollectionTagVersion, $sfTagger->getTag(get_class($post)), 'Collection tag is updated');
-  
+
   BlogPostTable::getInstance()->createQuery()->delete()->execute();
 
   $posts = new Doctrine_Collection(BlogPostTable::getInstance());
@@ -167,7 +167,7 @@
   $post = BlogPostTable::getInstance()->find($id);
   $post->save();
 
-  $t->is($version, $post->obtainObjectVersion(), 'check for not to run skip postSave');
+  $t->is($version, $post->obtainObjectVersion(), 'Tag is not updated');
 
   # preDqlUpdate
 
@@ -178,6 +178,7 @@
 
   $blackSwanId = $blackSwan->getId();
   $blackSwanVersion = $blackSwan->obtainObjectVersion();
+  $blackSwanCollectionVersion = $blackSwan->obtainCollectionVersion();
   
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
@@ -199,10 +200,8 @@
   );
 
   $t->is(
-    $sfTagger->getTag(
-      sfCacheTaggingToolkit::getBaseClassName($post->getTable()->getClassnameToReturn())
-    ),
-    $blackSwanVersion,
+    $sfTagger->getTag('Book'),
+    $blackSwanCollectionVersion,
     'Object collection stays unchanged'
   );
 

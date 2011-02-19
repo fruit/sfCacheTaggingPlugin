@@ -25,6 +25,7 @@
   $tanto->save();
 
   $firstVersion = $tanto->obtainObjectVersion();
+  $firstCollectionVersion = $tanto->obtainCollectionVersion();
 
   $tanto = new Weapon();
   $tanto->setMaterialId(10);
@@ -37,7 +38,10 @@
   $t->cmp_ok($firstVersion, '<', $secordVersion, '->replace() increments tag version');
 
   $tanto = WeaponTable::getInstance()->findOneByName('Tanto, 9in, red oaky');
-  $t->is($tanto->obtainObjectVersion(), $secordVersion, 'Saved version match with generated before');
+  $t->is($tanto->obtainObjectVersion(), $secordVersion, 'Saved object version match with generated before');
+  $t->is($tanto->obtainCollectionVersion(), $firstCollectionVersion, 'Saved collection version match with generated before');
+
+
 
   
 
