@@ -1,6 +1,6 @@
 # sfCacheTaggingPlugin #
 
-The ``sfCacheTaggingPlugin`` is a Symfony plugin, that helps to store cache with
+The ``sfCacheTaggingPlugin`` is a ``Symfony`` plugin, that helps to store cache with
 associated tags and to keep cache content up-to-date based by incrementing tag
 version when cache objects are edited/removed or new objects are ready to be a
 part of cache content.
@@ -43,6 +43,23 @@ are not (atomic counter).
         $ git pull origin master
         $ cd ../..
 
+        # For fearless guys and girls development version:
+        # $ git pull origin devel
+
+## New in v3.1.0:
+
+  * New in API: New option for behavior setup ``invalidateCollectionVersionOnUpdate`` (see below about it)
+  * New in API: ``Doctrine_Record::getTags()`` by default return only one self tag
+    (previous version returns 2 tags, self and collection tag)
+  * New in API: ``getTags()`` by default returns all tags recursively and ``getTags(false)`` NOT recursively
+  * Fixed: Removed custom object for storing data and tags (CacheMetadata), this kills [PHP apc_bin_dump()](http://php.net/manual/en/function.apc-bin-dump.php) functionality.
+    ATTENTION: on working system you should clear all your data cache before installing new plugin version.
+  * Fixed: Doctrine_Record::replace() now works fine, when record is replaced.
+  * Fixed: I18n behavior never invalidates object tags on updating i18n-table columns.
+  * Fixed: Sometimes object version stays unchanged in database (as expected), but invalidated in backend.
+
+  *Upcoming new version in 1/2 weeks with customized tag invalidation*
+
 ## Setup ##
 
 1.  Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``)
@@ -72,8 +89,8 @@ are not (atomic counter).
     Symfony will check for this file and will load it as a default ``factories.yml``
     configuration for all applications you have in the project.
 
-    This is ``/config/factories.yml`` content (you can copy&paste this code
-    into your brand new created file) or merge this config with each application
+    This is ``/config/factories.yml`` content (you can copy & paste this code
+    into your brand new created file) or merge this configuration with each application
     ``factories.yml`` file.
 
   **Explained and commented working example of file ``/config/factories.yml``**
@@ -121,7 +138,7 @@ are not (atomic counter).
             #param:
             #  … your parameters here
 
-    **Short working example to start caching with tags using APC (location: ``/config/factories.yml``)**
+    **Short working example to start caching with tags using ``APC`` (location: ``/config/factories.yml``)**
 
         dev:
           view_cache:
@@ -151,11 +168,11 @@ are not (atomic counter).
               cache_key_use_host_name:    true
 
   > **Restrictions**: Backend's class should be inherited from ``sfCache``
-    class. Then, it should be implement sfTaggingCacheInterface
-    (due a Doctrine cache engine compatibility).
+    class. Then, it should be implement ``sfTaggingCacheInterface``
+    (due to a ``Doctrine`` cache engine compatibility).
     Also, it should support the caching of objects and/or arrays.
 
-    Therefor, plugin comes with additional extended cache backend classes:
+    Therefor, plugin comes with additional extended backend classes:
 
       - sfAPCTaggingCache
       - sfEAcceleratorTaggingCache
@@ -164,7 +181,7 @@ are not (atomic counter).
       - sfSQLiteTaggingCache
       - sfXCacheTaggingCache
 
-    And one bonus cache backend:
+    And bonus one:
 
       - sfSQLitePDOTaggingCache (based on stand alone sfSQLitePDOCache)
 
@@ -175,13 +192,13 @@ are not (atomic counter).
         YourModel:
           tableName: your_model
           actAs:
-            ## CONFIGURATION SHORT VERSION
+            ## CONFIGURATION SHORT VERSION (for most users)
             ## Cachetaggable will detect your primary keys automatically
             ## and generates uniqueKeyFormat based on PK column count
             ## (e.g. '%s_%s' if table contains 2 primary keys)
             Cachetaggable: ~
 
-            ## CONFIGURATION EXPLAINED VERSION
+            ## CONFIGURATION EXPLAINED VERSION (for experts)
             #Cachetaggable:
             #  uniqueColumn: id               # you can customize unique column name (default is all table primary keys)
             #  versionColumn: object_version  # you can customize version column name (default is "object_version")
@@ -197,6 +214,11 @@ are not (atomic counter).
             #    - column_name_1               # to skip updating the column "object_version"
             #    - column_name_2               # if given column (-s) was changed.
             #                                  # (e.g. useful for sf_guard_user.last_login column)
+            #  invalidateCollectionVersionOnUpdate: false
+            #                                  # invalidates or not object collection tag when any
+            #                                  # record was updated (BC with v2.*)
+            #                                  # possible values: true|false (default is "false")
+
 
 
 1.  Enable cache in ``settings.yml`` and add additional helpers to
@@ -240,15 +262,15 @@ are not (atomic counter).
                                         # 5: with micro time part, version length 15 digits
                                         # (allowed decimal numbers in range [0, 6]
 
-            #object_class_tag_name_provider: # you can customize tag name naming
-            #                                # useful for multi-application models
-            #  - ProjectToolkit              # [class name]
-            #  - formatObjectClassName       # [static method name]
+            #object_class_tag_name_provider: [] # Callable array
+            #                                   # Example: [ClassName, StaticClassMethod]
+            #                                   # useful for multi-application models
 
 
 ## Usage ##
 
-  No more ``cache()`` and ``cache_save()`` helpers. You must setup all cache logic in ``cache.yml``
+  No more ``cache()`` and ``cache_save()`` helpers (as it was in v1.*).
+  You must setup all cache logic in ``cache.yml``.
 
 #### *Partials*
 
@@ -310,12 +332,12 @@ are not (atomic counter).
               ->execute();
 
 
-            // See more about all available methods in PHPDOC of file
-            // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-            // (e.g. $this->deletePartialTags(), $this->setPartialTag())
+            # See more about all available methods in PHPDOC of file
+            # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
+            # (e.g. $this->deletePartialTags(), $this->setPartialTag())
 
-            // $this->setPartialTags($posts->getTags());
-            // or equivalent-shorter code
+            # $this->setPartialTags($posts->getTags());
+            # or equivalent-shorter code
             $this->setPartialTags($posts);
 
             $this->posts = $posts;
@@ -349,7 +371,7 @@ are not (atomic counter).
            */
           public function executeListOfPostsAndComments ($request)
           {
-            // each post could have many comments (fetching posts with its comments)
+            # each post could have many comments (fetching posts with its comments)
             $posts = Doctrine::getTable('BlogPost')
               ->createQuery('bp')
               ->addSelect('bp.*, bpc.*')
@@ -361,20 +383,20 @@ are not (atomic counter).
 
             foreach ($posts as $post)
             {
-              // our cache (with posts) should be updated on edited/deleted/added the comments
-              // therefore, we are collecting comment's tags
+              # our cache (with posts) should be updated on edited/deleted/added the comments
+              # therefore, we are collecting comment's tags
 
-              // $posts->addTags($post->getBlogPostComment()->getTags());
-              // or shorter
-              $posts->addTags($post->getBlogPostComment());
+              # $posts->addVersionTags($post->getBlogPostComment()->getTags());
+              # or shorter
+              $posts->addVersionTags($post->getBlogPostComment());
             }
 
-            // after, we pass all tags to cache manager
-            // See more about all available methods in PHPDOC of file
-            // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-            // $this->setPartialTags($posts->getTags());
+            # after, we pass all tags to cache manager
+            # See more about all available methods in PHPDOC of file
+            # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
+            # $this->setPartialTags($posts->getTags());
 
-            // or shorter
+            # or shorter
             $this->setPartialTags($posts);
 
             $this->posts = $posts;
@@ -395,8 +417,8 @@ are not (atomic counter).
               ->limit(3)
               ->execute();
 
-            // fetch object tags recursively from the joined tables ;)
-            $this->setPartialTags($posts->getTags(true));
+            # fetch object tags recursively from all joined tables
+            $this->setPartialTags($posts);
 
             $this->posts = $posts;
           }
@@ -410,22 +432,22 @@ are not (atomic counter).
           with_layout: true
           enabled:     true
 
-  * Use it in your action to set the tags:
+  * Use it in your action to set the page tags:
 
         [php]
         class carActions extends sfActions
         {
           public function executeShow (sfWebRequest $request)
           {
-            // get a "Cachetaggable" Doctrine_Record
+            # get a "Cachetaggable" Doctrine_Record
             $car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
 
-            // set the tags for the action cache
-            // See more about all available methods in PHPDOC of file
-            // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
+            # set the tags for the action cache
+            # See more about all available methods in PHPDOC of file
+            # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
 
-            // $this->setPageTags($car->getTags());
-            // or shorter
+            # $this->setPageTags($car->getTags());
+            # or shorter
             $this->setPageTags($car);
 
             $this->car = $car;
@@ -447,15 +469,15 @@ are not (atomic counter).
         {
           public function executeShow (sfWebRequest $request)
           {
-            // get a "Cachetaggable" Doctrine_Record
+            # get a "Cachetaggable" Doctrine_Record
             $car = Doctrine_Core::getTable('car')->find($request->getParameter('id'));
 
-            // set the tags for the action cache
-            // See more about all available methods in PHPDOC of file
-            // ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
+            # set the tags for the action cache
+            # See more about all available methods in PHPDOC of file
+            # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
 
-            // $this->setActionTags($car->getTags());
-            // or shorter
+            # $this->setActionTags($car->getTags());
+            # or shorter
             $this->setActionTags($car);
 
             $this->car = $car;
@@ -474,7 +496,7 @@ are not (atomic counter).
         {
           public function executePosts (sfWebRequest $request)
           {
-            // Somewhere in component/action, you need to print out latest posts
+            # Somewhere in component/action, you need to print out latest posts
             $posts = Doctrine::getTable('BlogPost')
               ->createQuery()
               ->useResultCache()
@@ -485,14 +507,14 @@ are not (atomic counter).
 
             $this->posts = $posts;
 
-            // if you run this action again - you will pleasantly surprised
-            // $posts now stored in cache and with object tags ;)
-            // (object serialization powered by Doctrine build-in mechanism)
-            // and expired as soon as you edit one of them
-            // or add new record to table "blog_post"
+            # if you run this action again - you will pleasantly surprised
+            # $posts now stored in cache and with object tags ;)
+            # (object serialization powered by Doctrine build-in mechanism)
+            # and expired as soon as you edit one of them
+            # or add new record to the table "blog_post"
 
-            // when Doctrine_Query has many joins, tags will be fetched
-            // recursively from all joined models
+            # when Doctrine_Query has many joins, by default tags will be fetched
+            # recursively from all joined models
           }
         }
 
@@ -504,8 +526,8 @@ are not (atomic counter).
         {
           public function executePosts (sfWebRequest $request)
           {
-            // Somewhere in component/action, you need to print out latest posts
-            //
+            # Somewhere in component/action, you need to print out latest posts
+            #
             $posts = Doctrine::getTable('BlogPost')
               ->createQuery()
               ->useResultCache()
@@ -514,21 +536,20 @@ are not (atomic counter).
               ->limit(15)
               ->execute(array('en_GB', true));
 
-            // For example, want to $posts will be invalidated if something was changed
-            // in table "culture":
+            # For example, you want to invalidate $posts when something was changed in table "culture":
             $q = Doctrine::getTable('Culture')->createQuery();
             $cultures = $q->execute();
 
-            // when execute was called without parameters "$q->execute();"
+            # when execute was called without parameters "$q->execute();"
             $this->addDoctrineTags($cultures, $q);
 
-            // when execute was called with parameters "$q->execute(array(true, 1, 'foo'));"
-            // $this->addDoctrineTags($posts, $q->getResultCacheHash($q->getParams()));
-            // or
-            // shorter
-            // $this->addDoctrineTags($posts, $q, $q->getParams());
+            # when execute was called with parameters "$q->execute(array(true, 1, 'foo'));"
+            # $this->addDoctrineTags($posts, $q->getResultCacheHash($q->getParams()));
+            # or
+            # shorter
+            # $this->addDoctrineTags($posts, $q, $q->getParams());
 
-            // now if you update something in culture table, $posts will be expired
+            # now if you update something in culture table, $posts will be expired
 
             $this->posts = $posts;
           }
@@ -574,7 +595,7 @@ are not (atomic counter).
 
     One of solutions to create direct proxy methods to ``Doctrine_Template_Cachetaggable`` class.
 
-    By extending sfDoctrineRecord class with build-in ``sfCachetaggableDoctrineRecord``
+    By extending ``sfDoctrineRecord`` class with build-in ``sfCachetaggableDoctrineRecord``
     we make frequently used methods as proxy (i.e. faster):
 
         [php]
@@ -591,7 +612,7 @@ are not (atomic counter).
           }
         }
 
-    And DO REMEMBER TO rebuild your models
+    And REMEMBER TO rebuild your models after this changes:
 
         ./symfony doctrine:build-model --env=YOUR_ENV
 
@@ -604,7 +625,7 @@ are not (atomic counter).
 
   * You can`t pass to ``skipOnChange`` columns from ``I18n`` table.
 
-  * Doctrine $q->count() DQL can't be cached with tags
+  * Doctrine ``$q->count()`` ``DQL`` can't be cached with tags
 
         [php]
 
@@ -613,8 +634,8 @@ are not (atomic counter).
         $q->where('sipp_code = ?', 'A');
         $this->count = $q->count();
 
-  * To make count query cached with tags, the only one solution is to hydrate first all
-    and collect object tags:
+  * To make count query cached with tags, the only one (ugly) solution is to hydrate all
+    and collection object tags:
 
         [php]
 
@@ -626,7 +647,8 @@ are not (atomic counter).
         $this->count = $collection->count();
         $this->setActionTags($collection);
 
-  * Be careful with caching DQL with joined I18n tables. Due the [unresolved ticket](http://trac.symfony-project.org/ticket/7220) it is impossible.
+  * Be careful with caching ``DQL`` with joined I18n tables.
+    Due the [unresolved ticket](http://trac.symfony-project.org/ticket/7220) it *could be* impossible.
 
 ## TDD ##
 

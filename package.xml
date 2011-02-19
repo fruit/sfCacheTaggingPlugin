@@ -12,7 +12,7 @@
   <description>
     The ``sfCacheTaggingPlugin`` is a Symfony plugin, that helps to keep cached
     content up-to-date without setting cache lifetime.
-    So-called "Smart caching", stores cache with fetched models tags and its versions.
+    So-called &quot;Smart caching&quot;, stores cache with fetched models tags and its versions.
     Each time you save/update/delete objects, plugin increments object tag version and
     all linked cache by specific tag name will automatically spoil.
   </description>
@@ -22,11 +22,11 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2011-02-12</date>
-  <time>22:30:00</time>
+  <date>2011-02-20</date>
+  <time>01:20:00</time>
   <version>
-    <release>3.0.0</release>
-    <api>3.0.0</api>
+    <release>3.1.0</release>
+    <api>3.1.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -34,11 +34,13 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [added] Updating objects now does not invalidates collections tags. To invalidate collection tag you need to delete or add new object of specific collection. (thanks Roman Grigorov)
-    * ilya: [fixed] Calling an unknown method from actions with a disabled cache does not throws the Exception
-    * ilya: [changed] Some Cachetaggable behaviors method names renamed due to Doctrine possible conflicts.
-    * ilya: [added] new additional tests
-    * ilya: [updated] README
+    * ilya: [added] New option for behavior setup invalidateCollectionVersionOnUpdate
+    * ilya: [changed] Doctrine_Record::getTags() by default return only one self tag (thanks Roman Grigorov)
+    * ilya: [changed] getTags() by default returns all tags recursively and getTags(false) NOT recursively
+    * ilya: [fixed] Removed custom object for storing data and tags (CacheMetadata), this kills PHP apc_bin_dump() functionality.
+    * ilya: [fixed] Doctrine_Record::replace() now works fine, when record is replaced.
+    * ilya: [fixed] I18n behavior never invalidates object tags on updating i18n-table columns. (thanks Yury Maksimenko)
+    * ilya: [fixed] Sometimes object version stays unchanged in database (as expected), but invalidated in backend.
   </notes>
   <contents>
     <dir name="/">
@@ -125,6 +127,9 @@
             <file name="DoctrineListenerCachetaggableTest.php" role="data" />
             <file name="DoctrineQueryCachetaggableTest.php" role="data" />
             <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
+            <file name="I18nBehaviorTest.php" role="data" />
+            <file name="InvalidateCollectionVersionOnUpdateTest.php" role="data" />
+            <file name="ManyToManyTableTest.php" role="data" />
             <file name="SkipOnColumnUpdateTest.php" role="data" />
             <file name="actionWithLayoutTest.php" role="data" />
             <file name="actionWithoutLayoutTest.php" role="data" />
@@ -140,6 +145,7 @@
             <file name="DoctrineListenerCachetaggableTest.php" role="data" />
             <file name="UnknownMethodCallInActionTest.php" role="data" />
             <file name="ValidMethodCallInActionTest.php" role="data" />
+            <file name="ValidObjectMethodCallsInActionTest.php" role="data" />
             <file name="sfCacheTaggingToolkitTest.php" role="data" />
           </dir>
         </dir>
@@ -179,6 +185,27 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>3.1.0</release>
+        <api>3.1.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2011-02-20</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [added] New option for behavior setup invalidateCollectionVersionOnUpdate
+        * ilya: [changed] Doctrine_Record::getTags() by default return only one self tag (thanks Roman Grigorov)
+        * ilya: [changed] getTags() by default returns all tags recursively and getTags(false) NOT recursively
+        * ilya: [fixed] Removed custom object for storing data and tags (CacheMetadata), this kills PHP apc_bin_dump() functionality.
+        * ilya: [fixed] Doctrine_Record::replace() now works fine, when record is replaced.
+        * ilya: [fixed] I18n behavior never invalidates object tags on updating i18n-table columns. (thanks Yury Maksimenko)
+        * ilya: [fixed] Sometimes object version stays unchanged in database (as expected), but invalidated in backend.
+      </notes>
+    </release>
     <release>
       <version>
         <release>3.0.0</release>

@@ -33,6 +33,6 @@
   $preVersion = $post->obtainObjectVersion();
   $post->save();
 
-  $t->cmp_ok($preVersion, '=', $post->obtainObjectVersion(), 'No new tags, nothing chached');
+  $t->cmp_ok($preVersion, '=', $post->obtainObjectVersion(), 'No new tags, nothing to cache');
 
   $connection->rollback();
