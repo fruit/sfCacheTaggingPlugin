@@ -650,7 +650,7 @@ are not (atomic counter).
 ## TDD ##
 
   * Environment: PHP 5.3
-  * Unit/functional tests: 1898 tests and all pass
+  * Unit/functional tests: 1906 tests and all pass
   * Code coverage: 97%
 
   *  Every combination is tested (data backend / tags backend) of listed below:

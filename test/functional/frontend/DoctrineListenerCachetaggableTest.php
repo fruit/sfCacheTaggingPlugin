@@ -338,6 +338,38 @@
     sprintf('new tag saved to backend with key "%s"', $key)
   );
 
+  # Checking when Cachetaggable goes before SoftDelete
+  $limon = new Food();
+  $limon->setTitle('Limon');
+  $limon->save();
+
+  $collectionVersion = $limon->obtainCollectionVersion();
+
+  FoodTable::getInstance()
+    ->createQuery()
+    ->delete()
+    ->addWhere('title = ?', 'Limon')
+    ->execute();
+
+  $t->cmp_ok($sfTagger->getTag('Food'), '>', $collectionVersion);
+  $t->ok(! $sfTagger->hasTag("Food:{$limon->getId()}"));
+
+  # # Checking when SoftDelete goes before Cachetaggable
+  $limon = new FoodReordered();
+  $limon->setTitle('Limon');
+  $limon->save();
+
+  $collectionVersion = $limon->obtainCollectionVersion();
+  
+  FoodReorderedTable::getInstance()
+    ->createQuery()
+    ->delete()
+    ->addWhere('title = ?', 'Limon')
+    ->execute();
+
+  $t->cmp_ok($sfTagger->getTag('FoodReordered'), '>', $collectionVersion);
+  $t->ok(! $sfTagger->hasTag("FoodReordered:{$limon->getId()}"));
+
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 

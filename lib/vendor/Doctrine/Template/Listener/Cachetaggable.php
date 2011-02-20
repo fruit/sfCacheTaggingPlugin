@@ -118,6 +118,31 @@
     }
 
     /**
+     * Checks if one of modified columns are in list of defined columns, that
+     * can invalidate collection version
+     *
+     * @param array $modified
+     * @return boolean
+     */
+    protected function isModifiedAffectsCollectionVersion ($modified)
+    {
+      $affectsCollectionColumns = (array) $this->getOption(
+        'invalidateCollectionVersionByChangingColumns'
+      );
+
+      if (
+          0 < count($affectsCollectionColumns)
+        &&
+          0 < count(array_intersect($affectsCollectionColumns, $modified))
+      )
+      {
+        return true;
+      }
+
+      return false;
+    }
+
+    /**
      * Pre deletion hook - saves object tag_name to remove it on postDelete
      *
      * @param Doctrine_Event $event
@@ -224,17 +249,9 @@
 
       if (! $isToInvalidateCollectionVersion)
       {
-        $affectsCollectionColumns = (array) $this->getOption(
-          'invalidateCollectionVersionByChangingColumns'
-        );
-
         $lastModifiedColumns = array_keys($invoker->getLastModified());
 
-        if (
-            0 < count($affectsCollectionColumns)
-          &&
-            0 < count(array_intersect($affectsCollectionColumns, $lastModifiedColumns))
-        )
+        if ($this->isModifiedAffectsCollectionVersion($lastModifiedColumns))
         {
           $isToInvalidateCollectionVersion = true;
         }
@@ -284,18 +301,18 @@
       /* @var $q Doctrine_Query */
       $q = $event->getQuery();
 
-      $columnNamesToSet = array();
+      $columnsToModify = array();
 
       foreach ($q->getDqlPart('set') as $set)
       {
         $matches = null;
         if (preg_match('/(\w+)\ =\ /', $set, $matches))
         {
-          $columnNamesToSet[] = $matches[1];
+          $columnsToModify[] = $matches[1];
         }
       }
 
-      if ($this->isModifiedInSkipList($columnNamesToSet))
+      if ($this->isModifiedInSkipList($columnsToModify))
       {
         return false;
       }
@@ -306,7 +323,11 @@
         $table->getClassnameToReturn()
       );
 
-      if ($this->isModifiedIsASoftDeleteColumn($columnNamesToSet, $table))
+//      print_r($columnsToModify);
+      /**
+       * @todo test, not coveraged (SoftDelete everywhere is after Cachetaggable
+       */
+      if ($this->isModifiedIsASoftDeleteColumn($columnsToModify, $table))
       {
         # invalidate collection, if soft delete sets deleted_at field
         $taggingCache->setTag(
@@ -340,6 +361,14 @@
 
       $isToInvalidateCollectionVersion
         = (boolean) $this->getOption('invalidateCollectionVersionOnUpdate');
+
+      if (! $isToInvalidateCollectionVersion)
+      {
+        if ($this->isModifiedAffectsCollectionVersion($columnsToModify))
+        {
+          $isToInvalidateCollectionVersion = true;
+        }
+      }
 
       if ($isToInvalidateCollectionVersion)
       {
