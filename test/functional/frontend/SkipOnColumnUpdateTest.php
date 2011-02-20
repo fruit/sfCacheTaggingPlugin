@@ -74,43 +74,35 @@
     ->createQuery()
     ->update()
     ->set('count', '?', 11)
-    ->where('id = ?', $obj2->getId())
+    ->where('count > 1')
     ->execute();
 
-  $t->is($c, 1, '1 row updated');
+  $t->is($c, 2, '2 row updated');
 
   $obj1 = $table->find($obj1->getId());
   $obj2 = $table->find($obj2->getId());
   $obj3 = $table->find($obj3->getId());
 
-  $t->is($obj1->obtainObjectVersion(), $objectVersion1, "Version '{$objectVersion1}' NOT invalidated");
-  $t->isnt($obj2->obtainObjectVersion(), $objectVersion2, "Version '{$objectVersion2}' invalidated");
-  $t->is($obj3->obtainObjectVersion(), $objectVersion3, "Version '{$objectVersion3}' NOT invalidated");
-
-  $objectVersion1 = $obj1->obtainObjectVersion();
-  $objectVersion2 = $obj2->obtainObjectVersion();
-  $objectVersion3 = $obj3->obtainObjectVersion();
+  $t->cmp_ok($obj1->obtainObjectVersion(), '=', $objectVersion1, "[1] Version NOT invalidated, skipped");
+  $t->cmp_ok($obj2->obtainObjectVersion(), '=', $objectVersion2, "[2] Version NOT invalidated due to DQL expression");
+  $t->cmp_ok($obj3->obtainObjectVersion(), '=', $objectVersion3, "[3] Version NOT invalidated, skipped");
 
   $c = $table
     ->createQuery()
     ->update()
     ->set('author', '?', 'Anonym')
-    ->where('id != ?', $obj2->getId())
+    ->set('count', '?', '100')
     ->execute();
 
-  $t->is($c, 2, '2 rows updated');
+  $t->is($c, 3, '3 rows updated');
 
   $obj1 = $table->find($obj1->getId());
   $obj2 = $table->find($obj2->getId());
   $obj3 = $table->find($obj3->getId());
 
-  $t->isnt($obj1->obtainObjectVersion(), $objectVersion1, "Version '{$objectVersion1}' invalidated");
-  $t->is($obj2->obtainObjectVersion(), $objectVersion2, "Version '{$objectVersion2}' NOT invalidated");
-  $t->isnt($obj3->obtainObjectVersion(), $objectVersion3, "Version '{$objectVersion3}' invalidated");
-
-  $objectVersion1 = $obj1->obtainObjectVersion();
-  $objectVersion2 = $obj2->obtainObjectVersion();
-  $objectVersion3 = $obj3->obtainObjectVersion();
+  $t->cmp_ok($obj1->obtainObjectVersion(), '=', $objectVersion1, "[1] Version NOT invalidated, skipped");
+  $t->cmp_ok($obj2->obtainObjectVersion(), '=', $objectVersion2, "[2] Version NOT invalidated, skipped");
+  $t->cmp_ok($obj3->obtainObjectVersion(), '=', $objectVersion3, "[3] Version NOT invalidated, skipped");
 
   $c = $table
     ->createQuery()
@@ -125,8 +117,8 @@
   $obj2 = $table->find($obj2->getId());
   $obj3 = $table->find($obj3->getId());
 
-  $t->is($obj1->obtainObjectVersion(), $objectVersion1, "Version '{$objectVersion1}' NOT invalidated");
-  $t->is($obj2->obtainObjectVersion(), $objectVersion2, "Version '{$objectVersion2}' NOT invalidated");
-  $t->is($obj3->obtainObjectVersion(), $objectVersion3, "Version '{$objectVersion3}' NOT invalidated");
+  $t->cmp_ok($objectVersion1, '<', $obj1->obtainObjectVersion(),  "[1] Version is invalidated");
+  $t->cmp_ok($objectVersion2, '<', $obj2->obtainObjectVersion(),  "[2] Version is invalidated");
+  $t->cmp_ok($objectVersion3, '<', $obj3->obtainObjectVersion(),  "[3] Version is invalidated");
 
   $connection->rollback();

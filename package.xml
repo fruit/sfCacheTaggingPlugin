@@ -23,10 +23,10 @@
     <active>yes</active>
   </lead>
   <date>2011-02-20</date>
-  <time>01:20:00</time>
+  <time>00:00:00</time>
   <version>
-    <release>3.1.0</release>
-    <api>3.1.0</api>
+    <release>3.2.0</release>
+    <api>3.2.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -34,13 +34,8 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [added] New option for behavior setup invalidateCollectionVersionOnUpdate
-    * ilya: [changed] Doctrine_Record::getTags() by default return only one self tag (thanks Roman Grigorov)
-    * ilya: [changed] getTags() by default returns all tags recursively and getTags(false) NOT recursively
-    * ilya: [fixed] Removed custom object for storing data and tags (CacheMetadata), this kills PHP apc_bin_dump() functionality.
-    * ilya: [fixed] Doctrine_Record::replace() now works fine, when record is replaced.
-    * ilya: [fixed] I18n behavior never invalidates object tags on updating i18n-table columns. (thanks Yury Maksimenko)
-    * ilya: [fixed] Sometimes object version stays unchanged in database (as expected), but invalidated in backend.
+    * ilya: [added] Option invalidateCollectionVersionByChangingColumns to setup Cachetaggable behavior
+    * ilya: [fixed] skipOnChange did not work properly
   </notes>
   <contents>
     <dir name="/">
@@ -128,6 +123,7 @@
             <file name="DoctrineQueryCachetaggableTest.php" role="data" />
             <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
             <file name="I18nBehaviorTest.php" role="data" />
+            <file name="InvalidateCollectionVersionByChangingColumnsTest" role="data" />
             <file name="InvalidateCollectionVersionOnUpdateTest.php" role="data" />
             <file name="ManyToManyTableTest.php" role="data" />
             <file name="SkipOnColumnUpdateTest.php" role="data" />
@@ -185,6 +181,22 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>3.2.0</release>
+        <api>3.2.0</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2011-02-20</date>
+      <license uri="http://www.symfony-project.com/license">MIT</license>
+      <notes>
+        * ilya: [added] Option invalidateCollectionVersionByChangingColumns to setup Cachetaggable behavior
+        * ilya: [fixed] skipOnChange did not work properly
+      </notes>
+    </release>
     <release>
       <version>
         <release>3.1.0</release>

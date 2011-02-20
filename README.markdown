@@ -46,19 +46,10 @@ are not (atomic counter).
         # For fearless guys and girls development version:
         # $ git pull origin devel
 
-## New in v3.1.0:
+## New in v3.2.0:
 
-  * New in API: New option for behavior setup ``invalidateCollectionVersionOnUpdate`` (see below about it)
-  * New in API: ``Doctrine_Record::getTags()`` by default return only one self tag
-    (previous version returns 2 tags, self and collection tag)
-  * New in API: ``getTags()`` by default returns all tags recursively and ``getTags(false)`` NOT recursively
-  * Fixed: Removed custom object for storing data and tags (CacheMetadata), this kills [PHP apc_bin_dump()](http://php.net/manual/en/function.apc-bin-dump.php) functionality.
-    ATTENTION: on working system you should clear all your data cache before installing new plugin version.
-  * Fixed: Doctrine_Record::replace() now works fine, when record is replaced.
-  * Fixed: I18n behavior never invalidates object tags on updating i18n-table columns.
-  * Fixed: Sometimes object version stays unchanged in database (as expected), but invalidated in backend.
-
-  *Upcoming new version in 1/2 weeks with customized tag invalidation*
+  * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) (GH-8)
+  * Fixed: ``skipOnChange`` did not work properly
 
 ## Setup ##
 
@@ -201,7 +192,6 @@ are not (atomic counter).
             ## CONFIGURATION EXPLAINED VERSION (for experts)
             #Cachetaggable:
             #  uniqueColumn: id               # you can customize unique column name (default is all table primary keys)
-            #  versionColumn: object_version  # you can customize version column name (default is "object_version")
             #  uniqueKeyFormat: '%s'          # you can customize key format (default is "%s")
             #
             #  # if you have more then 1 unique column, you could pass all of them
@@ -210,6 +200,9 @@ are not (atomic counter).
             #  uniqueColumn: [id, is_enabled]
             #  uniqueKeyFormat: '%d-%02b'      # the order of unique columns
             #                                  # matches the "uniqueKeyFormat" template variables order
+            #
+            #  versionColumn: object_version   # you can customize version column name (default is "object_version")
+            #
             #  skipOnChange:
             #    - column_name_1               # to skip updating the column "object_version"
             #    - column_name_2               # if given column (-s) was changed.
@@ -218,6 +211,10 @@ are not (atomic counter).
             #                                  # invalidates or not object collection tag when any
             #                                  # record was updated (BC with v2.*)
             #                                  # possible values: true|false (default is "false")
+            #  invalidateCollectionVersionByChangingColumns:
+            #    - column_name_3              # will not work if "invalidateCollectionVersionOnUpdate" is set to "true"
+            #    - column_name_4              # will not work if one of columns are in "skipOnChange" list.
+            #                                 # updates collection tag, if one of columns was updated.
 
 
 
@@ -653,7 +650,7 @@ are not (atomic counter).
 ## TDD ##
 
   * Environment: PHP 5.3
-  * Unit/functional tests: 1807 tests and all pass
+  * Unit/functional tests: 1898 tests and all pass
   * Code coverage: 97%
 
   *  Every combination is tested (data backend / tags backend) of listed below:

@@ -20,10 +20,10 @@
     ->with('response')
     ->begin()
     ->checkElement('.posts a[id*="foo"]', 'Foo')
-    ->checkElement('.posts a[id*="bar"]', 'Bar')
+    ->checkElement('.posts a[id*="baz"]', 'Baz')
     ->end();
 
-  $browser->click('a#bar');
+  $browser->click('a#baz');
   $browser->isForwardedTo('blog_post', 'updateBlogPost');
 
   $browser
@@ -40,13 +40,13 @@
     ->begin()
     ->isStatusCode(200)
     ->checkElement('.posts a[id*="foo"]', 'Foo')
-    ->checkElement('.posts a[id*="bar"]', 'Bar_new')
+    ->checkElement('.posts a[id*="baz"]', 'Baz_new')
     ->end();
 
 
-  $post = BlogPostTable::getInstance()->findOneBySlug('bar');
+  $post = BlogPostTable::getInstance()->findOneBySlug('baz');
 
-  $post->setTitle('Bar_new_fresh')->save();
+  $post->setTitle('Baz_new_fresh')->save();
 
   $browser->getAndCheck('blog_post', 'actionWithoutLayout', '/blog_post/actionWithoutLayout', 200);
 
@@ -54,7 +54,7 @@
     ->with('response')
     ->begin()
     ->isStatusCode(200)
-    ->checkElement('.posts a[id*="bar"]', 'Bar_new_fresh')
+    ->checkElement('.posts a[id*="baz"]', 'Baz_new_fresh')
     ->end();
 
   BlogPostTable::getInstance()->getConnection()->rollback();

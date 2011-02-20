@@ -70,6 +70,54 @@
     }
 
     /**
+     * Checks if passed modified columns are all in skipOnChange list
+     *
+     * @param array $modified
+     * @return boolean
+     */
+    protected function isModifiedInSkipList ($modified)
+    {
+      $skipOnChange = (array) $this->getOption('skipOnChange');
+
+      if (
+          0 < count($skipOnChange)
+        &&
+          0 == count(array_diff($modified, $skipOnChange))
+      )
+      {
+        return true;
+      }
+
+      return false;
+    }
+
+    /**
+     * Checks if passed modified is a SoftDelete "deleted_at" column
+     *
+     * @param array           $modified
+     * @param Doctrine_Table  $table
+     * @return boolean
+     */
+    protected function isModifiedIsASoftDeleteColumn ($modified, Doctrine_Table $table)
+    {
+      # When SoftDelete behavior saves "deleted" object
+      # do not update object version on when "deleted" object is saving
+      if ($table->hasTemplate('SoftDelete'))
+      {
+        $softDeleteTemplate = $table->getTemplate('SoftDelete');
+        $deleteAtField = $softDeleteTemplate->getOption('name');
+
+        # skip if SoftDelete sets deleted_at field
+        if (in_array($deleteAtField, $modified))
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    /**
      * Pre deletion hook - saves object tag_name to remove it on postDelete
      *
      * @param Doctrine_Event $event
@@ -114,7 +162,7 @@
      */
     public function preSave (Doctrine_Event $event)
     {
-      $this->skipVersionUpdate = false;
+      $this->skipVersionUpdate = true;
 
       $invoker = $event->getInvoker();
 
@@ -122,46 +170,26 @@
 
       if (! $invoker->isModified(true))
       {
-        $this->skipVersionUpdate = true;
-
         return;
       }
 
-      $skipOnChange = (array) $this->getOption('skipOnChange');
+      $modified = array_keys($invoker->getModified());
 
-      $modified = $invoker->getModified();
-
-      if (0 < count($skipOnChange))
+      if ($this->isModifiedInSkipList($modified))
       {
-        $columnsChanged = array_keys($modified);
-
-        if (0 == count(array_diff($columnsChanged, $skipOnChange)))
-        {
-          $this->skipVersionUpdate = true;
-
-          return;
-        }
+        return;
       }
 
       $table = $invoker->getTable();
-      
-      # When SoftDelete behavior saves "deleted" object
-      # do not update object version on when "deleted" object is saving
-      if ($table->hasTemplate('SoftDelete'))
+
+      if ($this->isModifiedIsASoftDeleteColumn($modified, $table))
       {
-        $softDeleteTemplate = $table->getTemplate('SoftDelete');
-        $deleteAtField = $softDeleteTemplate->getOption('name');
-
-        # skip if SoftDelete sets deleted_at field
-        if (array_key_exists($deleteAtField, $modified))
-        {
-          $this->skipVersionUpdate = true;
-
-          return;
-        }
+        return;
       }
 
       $invoker->assignObjectVersion(sfCacheTaggingToolkit::generateVersion());
+
+      $this->skipVersionUpdate = false;
     }
 
     /**
@@ -193,6 +221,24 @@
 
       $isToInvalidateCollectionVersion
         = (boolean) $this->getOption('invalidateCollectionVersionOnUpdate');
+
+      if (! $isToInvalidateCollectionVersion)
+      {
+        $affectsCollectionColumns = (array) $this->getOption(
+          'invalidateCollectionVersionByChangingColumns'
+        );
+
+        $lastModifiedColumns = array_keys($invoker->getLastModified());
+
+        if (
+            0 < count($affectsCollectionColumns)
+          &&
+            0 < count(array_intersect($affectsCollectionColumns, $lastModifiedColumns))
+        )
+        {
+          $isToInvalidateCollectionVersion = true;
+        }
+      }
 
       /**
        * ->exists() returns false if it was ->replace()
@@ -238,26 +284,18 @@
       /* @var $q Doctrine_Query */
       $q = $event->getQuery();
 
-      $skipOnChange = (array) $this->getOption('skipOnChange');
-
       $columnNamesToSet = array();
 
       foreach ($q->getDqlPart('set') as $set)
       {
-        if (preg_match('/(\w+)\ =\ /', $set, $m))
+        $matches = null;
+        if (preg_match('/(\w+)\ =\ /', $set, $matches))
         {
-          $columnNamesToSet[] = $m[1];
+          $columnNamesToSet[] = $matches[1];
         }
       }
 
-      /**
-       * @todo test this block
-       */
-      if (
-          (0 < count($skipOnChange))
-        &&
-          (0 == count(array_intersect($columnNamesToSet, $skipOnChange)))
-      )
+      if ($this->isModifiedInSkipList($columnNamesToSet))
       {
         return false;
       }
@@ -268,22 +306,13 @@
         $table->getClassnameToReturn()
       );
 
-      if ($table->hasTemplate('SoftDelete'))
+      if ($this->isModifiedIsASoftDeleteColumn($columnNamesToSet, $table))
       {
-        /**
-         * @todo test this block
-         *       it seems, that in test schame.yml SoftDelete now is
-         *       every where before Cachetaggable behavior
-         */
-        $softDeleteTemplate = $table->getTemplate('SoftDelete');
-        if (in_array($softDeleteTemplate->getOption('name'), $columnNamesToSet))
-        {
-          # invalidate collection, if soft delete sets deleted_at field
-          $taggingCache->setTag(
-            $collectionVersionName,
-            sfCacheTaggingToolkit::generateVersion()
-          );
-        }
+        # invalidate collection, if soft delete sets deleted_at field
+        $taggingCache->setTag(
+          $collectionVersionName,
+          sfCacheTaggingToolkit::generateVersion()
+        );
       }
 
       $updateVersion = sfCacheTaggingToolkit::generateVersion();
@@ -301,10 +330,13 @@
       $params['set'] = array();
       $selectQuery->setParams($params);
 
+      $tags = array();
       foreach ($selectQuery->execute() as $object)
       {
-        $taggingCache->setTag($object->obtainTagName(), $updateVersion);
+        $tags[$object->obtainTagName()] = $updateVersion;
       }
+
+      $taggingCache->setTags($tags);
 
       $isToInvalidateCollectionVersion
         = (boolean) $this->getOption('invalidateCollectionVersionOnUpdate');

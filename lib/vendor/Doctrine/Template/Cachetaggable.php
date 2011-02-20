@@ -29,6 +29,7 @@
       'versionColumn'   => 'object_version',
       'skipOnChange'    => array(),
       'invalidateCollectionVersionOnUpdate' => false,
+      'invalidateCollectionVersionByChangingColumns' => array(),
     );
 
     /**
