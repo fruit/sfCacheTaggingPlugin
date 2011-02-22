@@ -83,10 +83,11 @@
       if (0 < $dotPosition)
       {
         $firstKey = substr($keyPath, 0, $dotPosition);
-        $lastKeys = substr($keyPath, $dotPosition + 1);
 
         if (isset($array[$firstKey]) && is_array($array[$firstKey]))
         {
+          $lastKeys = substr($keyPath, $dotPosition + 1);
+          
           return $this->getArrayValueByKeyPath($lastKeys, $array[$firstKey]);
         }
       }
@@ -303,6 +304,12 @@
       return $this->getDataCache()->getTimeout($key);
     }
     
+    /**
+     * Returns "Time To Live" in seconds
+     * 
+     * @param string $key
+     * @return integer
+     */
     public function getTTL ($key)
     {
       $timeout = $this->getTimeout($key);
@@ -356,10 +363,10 @@
      * @see sfCache::set
      * @param string  $key
      * @param mixed   $data
-     * @param string  $timeout optional
+     * @param integer $timeout optional
      * @param array   $tags    optional
      * @return mixed  false - when cache expired/not valid
-     *                mixed - in other case
+     *                true  - in other case
      */
     public function set ($key, $data, $timeout = null, array $tags = array())
     {
@@ -390,9 +397,9 @@
     /**
      * Saves tag with its version
      *
-     * @param string  $key      tag name
-     * @param string  $tagVersion   tag version
-     * @param int     $lifetime     optional tag time to live
+     * @param string    $key      tag name
+     * @param string    $tagVersion   tag version
+     * @param integer   $lifetime     optional tag time to live
      * @return boolean
      */
     public function setTag ($key, $tagVersion, $lifetime = null)
@@ -407,8 +414,8 @@
     /**
      * Saves tags with its version
      *
-     * @param array $tags
-     * @param int   $lifetime optional
+     * @param array    $tags
+     * @param integer  $lifetime optional
      */
     public function setTags (array $tags, $lifetime = null)
     {
@@ -598,8 +605,8 @@
     /**
      * Set lock on $key on $expire seconds
      *
-     * @param string  $lockName
-     * @param int     $expire expire time in seconds
+     * @param string    $lockName
+     * @param integer   $expire expire time in seconds
      * @return boolean true: was locked
      *                 false: could not lock
      */
@@ -650,7 +657,7 @@
 
     /**
      * @see sfCache::clean
-     * @param int   $mode   One of sfCache::ALL, sfCache::OLD params
+     * @param integer  $mode   One of sfCache::ALL, sfCache::OLD params
      * @return null
      */
     public function clean ($mode = sfCache::ALL)

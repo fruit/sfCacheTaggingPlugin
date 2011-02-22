@@ -106,7 +106,8 @@
     }
 
     /**
-     * Retrieves object's version tags with once added
+     * Retrieves object's version tags with once added.
+     * State locking stolen from Doctrine_Record::toArray(true|false).
      *
      * @param boolean   $deep
      * @return array    object tags (self and external from ->addVersionTags())

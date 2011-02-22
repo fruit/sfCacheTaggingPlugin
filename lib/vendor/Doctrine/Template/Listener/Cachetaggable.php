@@ -32,7 +32,7 @@
      *
      * @var string
      */
-    protected $preDeleteTagName = null;
+    protected $preDeleteTagNames = null;
 
     /**
      * Flag to be clear in self::postSave() if saved object was new or not
@@ -150,7 +150,24 @@
      */
     public function preDelete (Doctrine_Event $event)
     {
-      $this->preDeleteTagName = $event->getInvoker()->obtainTagName();
+      try
+      {
+        $taggingCache = $this->getTaggingCache();
+
+        $invoker = $event->getInvoker();
+        
+        $unitOfWork = new Doctrine_Connection_CachetaggableUnitOfWork();
+        $this->preDeleteTagNames = $unitOfWork->getRelatedTags($invoker);
+        
+        $taggingCache->setTag(
+          $invoker->obtainCollectionName(),
+          sfCacheTaggingToolkit::generateVersion()
+        );
+      }
+      catch (sfCacheException $e)
+      {
+        
+      }
     }
 
     /**
@@ -164,10 +181,10 @@
       {
         $taggingCache = $this->getTaggingCache();
 
-        $taggingCache->deleteTag($this->preDeleteTagName);
-
         $invoker = $event->getInvoker();
-
+        
+        $taggingCache->deleteTags($this->preDeleteTagNames);
+        
         $taggingCache->setTag(
           $invoker->obtainCollectionName(),
           sfCacheTaggingToolkit::generateVersion()
@@ -175,7 +192,7 @@
       }
       catch (sfCacheException $e)
       {
-
+        
       }
     }
 
@@ -323,7 +340,6 @@
         $table->getClassnameToReturn()
       );
 
-//      print_r($columnsToModify);
       /**
        * @todo test, not coveraged (SoftDelete everywhere is after Cachetaggable
        */
@@ -418,9 +434,15 @@
       $params['set'] = array();
       $q->setParams($params);
 
+      $objects = $q->select()->execute();
+      
+      $unitOfWork = new Doctrine_Connection_CachetaggableUnitOfWork(
+        $q->getConnection()
+      );
+      
       foreach ($q->select()->execute() as $object)
       {
-        $taggingCache->deleteTag($object->obtainTagName());
+        $taggingCache->deleteTags($unitOfWork->getRelatedTags($object));
       }
 
       $taggingCache->setTag(

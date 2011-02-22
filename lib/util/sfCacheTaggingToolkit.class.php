@@ -25,7 +25,7 @@
      * @throws sfCacheMissingContextException   if context is not initialized
      * @throws sfConfigurationException         on plugin configuration issues
      * 
-     * @return sfCacheTagging
+     * @return sfTaggingCache
      */
     public static function getTaggingCache ()
     {

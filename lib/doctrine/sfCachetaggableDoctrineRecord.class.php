@@ -43,7 +43,9 @@
      */
     protected function getCachetaggable ($method)
     {
-      return $this->getTempleteWithInvoker('Cachetaggable', $method);
+      return $this->getTempleteWithInvoker(
+        sfCacheTaggingToolkit::TEMPLATE_NAME, $method
+      );
     }
 
     /**
