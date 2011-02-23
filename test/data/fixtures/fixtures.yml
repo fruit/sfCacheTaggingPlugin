@@ -37,7 +37,7 @@ BlogPostVote:
   v07: { BlogPost: b, rate: 5 }
   v08: { BlogPost: b, rate: 5 }
   v09: { BlogPost: b, rate: 4 }
-  
+
   v10: { BlogPost: c, rate: 4 }
   v12: { BlogPost: c, rate: 3 }
   v13: { BlogPost: c, rate: 4 }

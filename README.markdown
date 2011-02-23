@@ -49,6 +49,7 @@ are not (atomic counter).
 ## New in v3.2.0:
 
   * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) (GH-8)
+  * New: Cascading tag deletion through the model relations
   * Fixed: ``skipOnChange`` did not work properly
 
 ## Setup ##
