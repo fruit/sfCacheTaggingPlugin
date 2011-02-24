@@ -7,7 +7,7 @@
    * For the full copyright and license information, please view the LICENSE
    * file that was distributed with this source code.
    */
-  
+
   /**
    * This is extended cache manager with additional methods to work
    * with cache tags.
@@ -153,7 +153,7 @@
         array(
           'cache_key_use_vary_headers' => true,
           'cache_key_use_host_name'    => true,
-        ), 
+        ),
         $options
       ));
 
@@ -445,9 +445,9 @@
 
     /**
      * Sets partial content with associated tags
-     * 
+     *
      * @see parent::setPartialCache()
-     * 
+     *
      * @param string $module
      * @param string $action
      * @param string $cacheKey
@@ -464,8 +464,10 @@
       }
 
       $tagHandler = $this->getContentTagHandler();
-      
-      $partialTags = $tagHandler->getContentTags(self::NAMESPACE_PARTIAL);
+
+      $namespace = sprintf('%s-%s-%s', $module, $action, self::NAMESPACE_PARTIAL);
+
+      $partialTags = $tagHandler->getContentTags($namespace);
 
       $saved = $this->set(
         array(
@@ -495,7 +497,7 @@
           ->getReturnValue();
       }
 
-      $tagHandler->removeContentTags(self::NAMESPACE_PARTIAL);
+      $tagHandler->removeContentTags($namespace);
 
       return $content;
     }
@@ -530,7 +532,7 @@
 
       $tags = $cacheMetadata->getTags();
       $tagsCount = count($tags);
-      
+
       $tagsContent = sprintf('[cache&nbsp;tags]&nbsp;count:&nbsp;%d', $tagsCount);
 
       if (0 != $tagsCount)
@@ -604,7 +606,7 @@
       {
         return false;
       }
-      
+
       $cachedResponse->setEventDispatcher($this->getEventDispatcher());
 
       if (sfView::RENDER_VAR == $this->controller->getRenderMode())

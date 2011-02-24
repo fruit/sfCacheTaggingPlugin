@@ -24,7 +24,7 @@
      * @throws sfCacheDisabledException         when "sf_cache" is OFF
      * @throws sfCacheMissingContextException   if context is not initialized
      * @throws sfConfigurationException         on plugin configuration issues
-     * 
+     *
      * @return sfTaggingCache
      */
     public static function getTaggingCache ()
@@ -98,7 +98,7 @@
         'app_sfcachetaggingplugin_model_tag_name_separator', sfCache::SEPARATOR
       );
     }
-    
+
     /**
      * Format passed tags to the array
      *
@@ -184,7 +184,10 @@
     {
       try
       {
-        $callable = array(new sfViewCacheTagManagerBridge(), $event['method']);
+        $callable = array(
+          new sfViewCacheTagManagerBridge($event->getSubject()),
+          $event['method']
+        );
 
         $value = call_user_func_array($callable, $event['arguments']);
         $event->setReturnValue($value);

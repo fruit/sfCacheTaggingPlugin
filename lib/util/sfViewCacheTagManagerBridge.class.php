@@ -25,6 +25,14 @@
    */
   class sfViewCacheTagManagerBridge
   {
+    /**
+     * @var sfComponent
+     */
+    protected $component;
+
+    /**
+     * @var array
+     */
     protected $allowedCallMethods = array(
       sfViewCacheTagManager::NAMESPACE_ACTION => array(
         'setActionTags',
@@ -54,6 +62,14 @@
         'removePageTag',
       ),
     );
+
+    /**
+     * @param sfComponent $component
+     */
+    public function __construct (sfComponent $component)
+    {
+      $this->component = $component;
+    }
 
     /**
      * @see sfViewCacheTagManager::getTaggingCache
@@ -105,10 +121,24 @@
         ));
       }
 
-      array_push($arguments, $contentNamespace);
+      $storeInNamespace = $contentNamespace;
+      /**
+       * Using partial in partial tags should not be overwriten
+       */
+      if (sfViewCacheTagManager::NAMESPACE_PARTIAL == $contentNamespace)
+      {
+        $storeInNamespace = sprintf(
+          '%s-_%s-%s',
+          $this->component->getModuleName(),
+          $this->component->getActionName(),
+          $contentNamespace
+        );
+      }
+
+      array_push($arguments, $storeInNamespace);
 
       $nsLength = strlen($contentNamespace);
-      
+
       # transforms "getPageTag" to "getContentTag"
       $contentAbstractMethod = substr_replace(
         $method, 'Content', strpos($method, $contentNamespace), $nsLength
@@ -153,5 +183,34 @@
       $this->getTaggingCache()->addTagsToCache($key, $tags);
 
       return $this;
+    }
+
+    protected function getCollectionTags ($table)
+    {
+      if (is_string($table))
+      {
+        $table = Doctrine::getTable($table);
+      }
+
+      $name = sfCacheTaggingToolkit::obtainCollectionName($table);
+
+      $version = sfCacheTaggingToolkit::obtainCollectionVersion($name);
+
+      return array($name => $version);
+    }
+
+    public function addPartialCollectionTags ($table)
+    {
+      $this->addPartialTags($this->getCollectionTags($table));
+    }
+
+    public function addActionCollectionTags ($table)
+    {
+      $this->addActionTags($this->getCollectionTags($table));
+    }
+
+    public function addPageCollectionTags ($table)
+    {
+      $this->addPageTags($this->getCollectionTags($table));
     }
   }
