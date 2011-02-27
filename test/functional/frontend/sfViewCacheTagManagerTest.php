@@ -184,7 +184,15 @@
 
   $match = '/BazBazBaz.*cache.*tags.*RunLolaRun_98186.*1261029732/';
 
-  $cacheManager->getContentTagHandler()->setContentTag('RunLolaRun_98186', 1261029732, sfViewCacheTagManager::NAMESPACE_PARTIAL);
+  $cacheManager->getContentTagHandler()->setContentTag(
+    'RunLolaRun_98186', 1261029732,
+    sprintf(
+      '%s-%s-%s',
+      'blog_post',
+      '_ten_posts_partial_cached',
+      sfViewCacheTagManager::NAMESPACE_PARTIAL
+    )
+  );
 
   $content = $cacheManager->setPartialCache(
     'blog_post',

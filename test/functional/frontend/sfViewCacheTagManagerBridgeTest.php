@@ -8,6 +8,7 @@
    */
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
+  require_once realpath(dirname(__FILE__) . '/../../../../../apps/frontend/modules/blog_post/actions/actions.class.php');
 
   $browser = new sfTestFunctional(new sfBrowser());
   $t = $browser->test();
@@ -18,7 +19,8 @@
 
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
 
-  $bridge = new sfViewCacheTagManagerBridge();
+  $action = new blog_postActions(sfContext::getInstance(), 'blog_post', 'index');
+  $bridge = new sfViewCacheTagManagerBridge($action);
 
   $validPatternMethods = array(
     'get%sTags' => array(),
@@ -148,7 +150,7 @@
 
   # moved from sfViewCacheTagManager (should be fragmented)
 
-  $bridge = new sfViewCacheTagManagerBridge($cacheManager->getTaggingCache());
+  $bridge = new sfViewCacheTagManagerBridge($action);
 
   $posts = BlogPostTable::getInstance()->findAll();
   $posts->delete();
