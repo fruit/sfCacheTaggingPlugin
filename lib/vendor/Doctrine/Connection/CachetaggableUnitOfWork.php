@@ -26,60 +26,150 @@
   class Doctrine_Connection_CachetaggableUnitOfWork extends Doctrine_Connection_Module
   {
     /**
+     * Tag names for all nested relations to remove (CASCADE relation)
+     *
+     * @var array Assoc values Oid => tag name
+     */
+    protected $tagNamesToDelete = array();
+
+    /**
+     * Tag names for all nested relations to invalidate (SET NULL relation)
+     *
+     * @var array Assoc values Oid => tag name
+     */
+    protected $tagNamesToInvalidate = array();
+
+    /**
      * @see Doctrine_Connection_UnitOfWork::delete() copy&past from
      *
      * @param Doctrine_Record $record
-     * @return array
+     * @return null
      */
-    public function getRelatedTags (Doctrine_Record $record)
+    public function collectDeletionsAndInvalidations (Doctrine_Record $record)
     {
-      $deletions = array();
+      $this->tagNamesToDelete = array();
+      $this->tagNamesToInvalidate = array();
 
-      $this->collectDeletions($record, $deletions);
+//      print '<pre>';
+      # first record (root element) always goes to collection "tagNamesToDelete"
+      $this->collect($record, $this->tagNamesToDelete);
 
-      return array_flip($deletions);
+//      print_r($this->tagNamesToDelete);
+//      print_r($this->tagNamesToInvalidate);
+//      print '</pre>';
+    }
+
+    /**
+     * @return array As assoc array TagName => null
+     */
+    public function getDeletions ()
+    {
+      return array_flip(array_values($this->tagNamesToDelete));
+    }
+
+    /**
+     * @return array As assoc array TagName => null
+     */
+    public function getInvalidations ()
+    {
+      return array_flip(array_values($this->tagNamesToInvalidate));
     }
 
     /**
      * @see Doctrine_Connection_UnitOfWork::_collectDeletions() copy&past from
      *
-     * @param array $deletions  Map of the records to delete. Keys=Oids Values=Records.
+     * @param Doctrine_Record $record
+     * @param array $definitions
+     * @return null
      */
-    private function collectDeletions (Doctrine_Record $record, array & $deletions)
+    private function collect (Doctrine_Record $record, & $definitions)
     {
-      if (
-          ! $record->exists()
-        ||
-          ! $record->getTable()->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME)
-      )
+      if (! $record->exists())
       {
         return;
       }
 
-      $deletions[$record->getOid()] = $record->obtainTagName();
+      if (! $record->getTable()->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
+      {
+        return;
+      }
 
-      $this->cascadeDelete($record, $deletions);
+      # delete definitions
+      if ($this->tagNamesToDelete === $definitions)
+      {
+        $definitions[$record->getOid()] = $record->obtainTagName();
+
+        $this->cascade($record);
+      }
+      else # invalidate definitions
+      {
+        # do not call cascade - due to SET NULL only updates columns
+        
+        # do not add tag, if its already on deletion list
+        if (! array_key_exists($record->getOid(), $this->tagNamesToDelete))
+        {
+          $definitions[$record->getOid()] = $record->obtainTagName();
+        }
+      }
     }
 
     /**
-     * @see Doctrine_Connection_UnitOfWork::_cascadeDelete() copy&past from
+     * @see Doctrine_Connection_UnitOfWork::_cascadeDelete()
+     *      (most part copy&past from)
      *
      * @param Doctrine_Record  The record for which the delete operation will be cascaded.
      * @throws PDOException    If something went wrong at database level
      * @return null
      */
-    protected function cascadeDelete (Doctrine_Record $record, array & $deletions)
+    protected function cascade (Doctrine_Record $record)
     {
+      static $deep = 0;
+      static $path = array();
+
+      $deep ++;
+
+      $path[] = get_class($record);
+
+      $currentPath = implode('.', $path);
+
+//      print $currentPath . "\n";
+
       foreach ($record->getTable()->getRelations() as $relation)
       {
         /* @var $relation Doctrine_Relation_LocalKey */
-        if (
-            $relation->isCascadeDelete()
-          ||
-            ! in_array('tags', $relation->offsetGet('cascade'))
-        )
+
+        # build-in Doctrine cascade mechanism do all the work - skip
+        if ($relation->isCascadeDelete())
         {
           continue;
+        }
+
+        $cascade = $relation->offsetGet('cascade');
+
+        # no instructions, no results - skip
+        if (0 == count($cascade))
+        {
+          continue;
+        }
+
+        $isCascadeDeleteTags = in_array('deleteTags', $cascade);
+        $isCascadeInvalidateTags = in_array('invalidateTags', $cascade);
+
+        # could be only 1 selected, otherwise skip
+        if (! ($isCascadeDeleteTags xor $isCascadeInvalidateTags))
+        {
+          continue;
+        }
+
+//        print $currentPath . '.' . $relation->getAlias() . ' (' . implode(',', $cascade) . ")\n";
+
+        if ($isCascadeDeleteTags)
+        {
+          $definitions = & $this->tagNamesToDelete;
+        }
+        else
+        {
+          $definitions = & $this->tagNamesToInvalidate;
         }
 
         $fieldName = $relation->getAlias();
@@ -100,12 +190,15 @@
           &&
             $relatedObjects->exists()
           &&
-            ! isset($deletions[$relatedObjects->getOid()])
+            ! isset($definitions[$relatedObjects->getOid()])
         )
         {
-          $this->collectDeletions($relatedObjects, $deletions);
+          $this->collect($relatedObjects, $definitions);
+
+          continue;
         }
-        elseif (
+
+        if (
             ! $relatedObjects instanceof Doctrine_Collection
           ||
             count($relatedObjects) == 0
@@ -115,20 +208,25 @@
         {
           continue;
         }
-        else
-        {
-          // cascade the delete to the other objects
-          foreach ($relatedObjects as $object)
-          {
-            if (isset($deletions[$object->getOid()]))
-            {
-              continue;
-            }
 
-            $this->collectDeletions($object, $deletions);
+        foreach ($relatedObjects as $object)
+        {
+          if (isset($definitions[$object->getOid()]))
+          {
+            continue;
           }
+
+          $path[] = $fieldName;
+
+          $this->collect($object, $definitions);
+
+          array_pop($path);
         }
       }
+
+      array_pop($path);
+      
+      $deep --;
     }
 
   }

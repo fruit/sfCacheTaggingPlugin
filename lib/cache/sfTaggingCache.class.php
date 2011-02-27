@@ -501,6 +501,20 @@
     }
 
     /**
+     * Invalidate tags
+     *
+     * @param array $tags
+     * @return null
+     */
+    public function invalidateTags (array $tags)
+    {
+      foreach ($tags as $name => $version)
+      {
+        $this->setTag($name, sfCacheTaggingToolkit::generateVersion());
+      }
+    }
+
+    /**
      * Pulls data out of cache.
      * Also, it checks all related tags for expiration/version-up.
      *

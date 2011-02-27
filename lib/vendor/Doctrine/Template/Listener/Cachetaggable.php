@@ -27,16 +27,24 @@
     protected $_options = array();
 
     /**
-     * Removing object does not have a tag name
-     * This variable keeps tag name till postDelete hook is executed
+     * Removed object does not have relations
+     * This variable keeps tag names to remove till postDelete hook is executed
      *
-     * @var string
+     * @var array
      */
-    protected $preDeleteTagNames = null;
+    protected $preDeleteTagNames = array();
+
+    /**
+     * Removed object does not have relations
+     * This variable keeps tag names to invalidate till postDelete hook is executed
+     *
+     * @var array
+     */
+    protected $preInvalidateTagNames = array();
 
     /**
      * Flag to be clear in self::postSave() if saved object was new or not
-     * 
+     *
      * @var boolean
      */
     protected $wasObjectNew = null;
@@ -150,23 +158,34 @@
      */
     public function preDelete (Doctrine_Event $event)
     {
+      $this->preDeleteTagNames = array();
+      $this->preInvalidateTagNames = array();
+
       try
       {
         $taggingCache = $this->getTaggingCache();
 
         $invoker = $event->getInvoker();
-        
-        $unitOfWork = new Doctrine_Connection_CachetaggableUnitOfWork();
-        $this->preDeleteTagNames = $unitOfWork->getRelatedTags($invoker);
-        
+
+        $unitOfWork = new Doctrine_Connection_CachetaggableUnitOfWork(
+          $invoker->getTable()->getConnection()
+        );
+
+        $unitOfWork->collectDeletionsAndInvalidations($invoker);
+
+        $this->preDeleteTagNames = $unitOfWork->getDeletions();
+        $this->preInvalidateTagNames = $unitOfWork->getInvalidations();
+
         $taggingCache->setTag(
           $invoker->obtainCollectionName(),
           sfCacheTaggingToolkit::generateVersion()
         );
+
+        unset($unitOfWork);
       }
       catch (sfCacheException $e)
       {
-        
+
       }
     }
 
@@ -182,9 +201,10 @@
         $taggingCache = $this->getTaggingCache();
 
         $invoker = $event->getInvoker();
-        
+
         $taggingCache->deleteTags($this->preDeleteTagNames);
-        
+        $taggingCache->invalidateTags($this->preInvalidateTagNames);
+
         $taggingCache->setTag(
           $invoker->obtainCollectionName(),
           sfCacheTaggingToolkit::generateVersion()
@@ -192,7 +212,7 @@
       }
       catch (sfCacheException $e)
       {
-        
+
       }
     }
 
@@ -333,7 +353,7 @@
       {
         return false;
       }
-      
+
       $table = $event->getInvoker()->getTable();
 
       $collectionVersionName = sfCacheTaggingToolkit::getBaseClassName(
@@ -435,15 +455,20 @@
       $q->setParams($params);
 
       $objects = $q->select()->execute();
-      
+
       $unitOfWork = new Doctrine_Connection_CachetaggableUnitOfWork(
         $q->getConnection()
       );
-      
+
       foreach ($q->select()->execute() as $object)
       {
-        $taggingCache->deleteTags($unitOfWork->getRelatedTags($object));
+        $unitOfWork->collectDeletionsAndInvalidations($object);
+
+        $taggingCache->deleteTags($unitOfWork->getDeletions());
+        $taggingCache->invalidateTags($unitOfWork->getInvalidations());
       }
+
+      unset($unitOfWork);
 
       $taggingCache->setTag(
         sfCacheTaggingToolkit::getBaseClassName(
