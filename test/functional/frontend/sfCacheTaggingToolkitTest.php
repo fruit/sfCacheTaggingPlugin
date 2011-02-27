@@ -156,10 +156,10 @@
 
   $tests = array(
     false, $cleanTags, new ArrayIterator($cleanTags), new ArrayAsIteratorAggregate($cleanTags),
-    new ArrayObject($cleanTags), $posts, $post
+    new ArrayObject($cleanTags), $posts, $post, Doctrine::getTable('BlogPost'),
   );
 
-  foreach ($tests as $tags)
+  foreach ($tests as $index => $tags)
   {
     try
     {
@@ -177,21 +177,24 @@
         )
       );
 
-      $t->pass(sprintf('Adding tags as %s', $typeOfTags));
+      $t->pass(sprintf('Test #%d - Adding tags as %s', $index, $typeOfTags));
     }
     catch (InvalidArgumentException $e)
     {
-      $t->fail($e->getMessage());
+      $t->fail(sprintf('Filed #%d with message: %s', $index, $e->getMessage()));
     }
   }
 
-  $tests = array(null, true, 2, 'string', 2.1E-3, new stdClass());
+  $tests = array(null, true, 2, 2.1E-3, new stdClass(), 'FakeString');
   foreach ($tests as $tags)
   {
     try
     {
       sfCacheTaggingToolkit::formatTags($tags);
-      $t->fail();
+      $t->fail(sprintf(
+        'Not thrown exception when passing %s',
+        is_object($tags) ? '('.get_class($tags) . ')' : gettype($tags)
+      ));
     }
     catch (InvalidArgumentException $e)
     {

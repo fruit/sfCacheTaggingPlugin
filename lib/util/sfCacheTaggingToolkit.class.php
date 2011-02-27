@@ -102,29 +102,36 @@
     /**
      * Format passed tags to the array
      *
-     * @param mixed $tags false|array|Doctrine_Collection_Cachetaggable|
-     *                    Doctrine_Record|ArrayIterator|
-     *                    IteratorAggregate|Iterator
+     * @param mixed $argument   false|array|Doctrine_Collection_Cachetaggable|
+     *                          Doctrine_Record|ArrayIterator|Doctrine_Table
+     *                          IteratorAggregate|Iterator
      * @throws InvalidArgumentException
      * @return array
      */
-    public static function formatTags ($tags)
+    public static function formatTags ($argument)
     {
-      if (false === $tags)
+      if (false === $argument)
       {
         $tagsToReturn = array();
       }
-      elseif (is_array($tags))
+      elseif ($argument instanceof Doctrine_Table)
       {
-        $tagsToReturn = $tags;
+        $name = sfCacheTaggingToolkit::obtainCollectionName($argument);
+        $version = sfCacheTaggingToolkit::obtainCollectionVersion($name);
+
+        $tagsToReturn = array($name => $version);
       }
-      elseif ($tags instanceof Doctrine_Collection_Cachetaggable)
+      elseif (is_array($argument))
       {
-        $tagsToReturn = $tags->getTags();
+        $tagsToReturn = $argument;
       }
-      elseif ($tags instanceof Doctrine_Record)
+      elseif ($argument instanceof Doctrine_Collection_Cachetaggable)
       {
-        $table = $tags->getTable();
+        $tagsToReturn = $argument->getTags();
+      }
+      elseif ($argument instanceof Doctrine_Record)
+      {
+        $table = $argument->getTable();
 
         if (! $table->hasTemplate(self::TEMPLATE_NAME))
         {
@@ -135,22 +142,22 @@
           ));
         }
 
-        $tagsToReturn = $tags->getTags();
+        $tagsToReturn = $argument->getTags();
       }
       # Doctrine_Collection_Cachetaggable and Doctrine_Record are
       # instances of ArrayAccess
       # this check should be after them
-      elseif ($tags instanceof ArrayIterator || $tags instanceof ArrayObject)
+      elseif ($argument instanceof ArrayIterator || $argument instanceof ArrayObject)
       {
-        $tagsToReturn = $tags->getArrayCopy();
+        $tagsToReturn = $argument->getArrayCopy();
       }
       elseif (
-          $tags instanceof IteratorAggregate
+          $argument instanceof IteratorAggregate
         ||
-          $tags instanceof Iterator
+          $argument instanceof Iterator
       )
       {
-        foreach ($tags as $key => $value)
+        foreach ($argument as $key => $value)
         {
           $tagsToReturn[$key] = $value;
         }
@@ -163,8 +170,8 @@
             'See acceptable types in the PHPDOC of "%s"',
             sprintf(
               '%s%s',
-              gettype($tags),
-              is_object($tags) ? '('.get_class($tags).')' : ''
+              gettype($argument),
+              is_object($argument) ? '('.get_class($argument).')' : ''
             ),
             __METHOD__
           )

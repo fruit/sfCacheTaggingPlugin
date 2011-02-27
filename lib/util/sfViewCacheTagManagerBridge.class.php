@@ -122,8 +122,9 @@
       }
 
       $storeInNamespace = $contentNamespace;
+
       /**
-       * Using partial in partial tags should not be overwriten
+       * Using partial-in-partial tags should not be overwriten
        */
       if (sfViewCacheTagManager::NAMESPACE_PARTIAL == $contentNamespace)
       {
@@ -183,34 +184,5 @@
       $this->getTaggingCache()->addTagsToCache($key, $tags);
 
       return $this;
-    }
-
-    protected function getCollectionTags ($table)
-    {
-      if (is_string($table))
-      {
-        $table = Doctrine::getTable($table);
-      }
-
-      $name = sfCacheTaggingToolkit::obtainCollectionName($table);
-
-      $version = sfCacheTaggingToolkit::obtainCollectionVersion($name);
-
-      return array($name => $version);
-    }
-
-    public function addPartialCollectionTags ($table)
-    {
-      $this->addPartialTags($this->getCollectionTags($table));
-    }
-
-    public function addActionCollectionTags ($table)
-    {
-      $this->addActionTags($this->getCollectionTags($table));
-    }
-
-    public function addPageCollectionTags ($table)
-    {
-      $this->addPageTags($this->getCollectionTags($table));
     }
   }
