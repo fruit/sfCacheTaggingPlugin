@@ -50,13 +50,8 @@
       $this->tagNamesToDelete = array();
       $this->tagNamesToInvalidate = array();
 
-//      print '<pre>';
       # first record (root element) always goes to collection "tagNamesToDelete"
       $this->collect($record, $this->tagNamesToDelete);
-
-//      print_r($this->tagNamesToDelete);
-//      print_r($this->tagNamesToInvalidate);
-//      print '</pre>';
     }
 
     /**
@@ -123,17 +118,6 @@
      */
     protected function cascade (Doctrine_Record $record)
     {
-      static $deep = 0;
-      static $path = array();
-
-      $deep ++;
-
-      $path[] = get_class($record);
-
-      $currentPath = implode('.', $path);
-
-//      print $currentPath . "\n";
-
       foreach ($record->getTable()->getRelations() as $relation)
       {
         /* @var $relation Doctrine_Relation_LocalKey */
@@ -160,8 +144,6 @@
         {
           continue;
         }
-
-//        print $currentPath . '.' . $relation->getAlias() . ' (' . implode(',', $cascade) . ")\n";
 
         if ($isCascadeDeleteTags)
         {
@@ -193,6 +175,27 @@
             ! isset($definitions[$relatedObjects->getOid()])
         )
         {
+          # invalidate collection version too
+          $collectionName = sfCacheTaggingToolkit::obtainCollectionName(
+            $relatedObjects->getTable()
+          );
+
+          if ($isCascadeDeleteTags)
+          {
+            $this->tagNamesToInvalidate[$collectionName] = $collectionName;
+          }
+          elseif ($isCascadeInvalidateTags)
+          {
+            $template = $relatedObjects
+              ->getTable()
+              ->getTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME);
+
+            if ($template->getOption('invalidateCollectionVersionOnUpdate'))
+            {
+              $this->tagNamesToInvalidate[$collectionName] = $collectionName;
+            }
+          }
+
           $this->collect($relatedObjects, $definitions);
 
           continue;
@@ -209,6 +212,27 @@
           continue;
         }
 
+        # invalidate collection version too
+        $collectionName = sfCacheTaggingToolkit::obtainCollectionName(
+          $relatedObjects->getTable()
+        );
+
+        if ($isCascadeDeleteTags)
+        {
+          $this->tagNamesToInvalidate[$collectionName] = $collectionName;
+        }
+        elseif ($isCascadeInvalidateTags)
+        {
+          $template = $relatedObjects
+            ->getTable()
+            ->getTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME);
+
+          if ($template->getOption('invalidateCollectionVersionOnUpdate'))
+          {
+            $this->tagNamesToInvalidate[$collectionName] = $collectionName;
+          }
+        }
+
         foreach ($relatedObjects as $object)
         {
           if (isset($definitions[$object->getOid()]))
@@ -216,17 +240,11 @@
             continue;
           }
 
-          $path[] = $fieldName;
-
           $this->collect($object, $definitions);
-
-          array_pop($path);
         }
       }
 
-      array_pop($path);
-      
-      $deep --;
     }
-
   }
+
+  

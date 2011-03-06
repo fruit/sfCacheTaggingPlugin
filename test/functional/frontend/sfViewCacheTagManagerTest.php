@@ -116,7 +116,8 @@
 
   $match = '/ContentActionText.*cache.*tags.*Magnolia_731.*9127561923/';
 
-  $layout = '/home/fruit/www/sfpro/dev/sfcachetaggingplugin/apps/frontend/templates/layout.php';
+  $layout = sfConfig::get('sf_root_dir') . '/apps/frontend/templates/layout.php';
+  
   $t->like(
     $cacheManager->setActionCache('blog_post/actionWithoutLayout', 'ContentActionText&nbsp;<br />&nbsp;', $layout),
     $match
@@ -268,57 +269,6 @@
 
   $t->is($cacheManager->checkCacheKey($params) ,'my-super-customized-key', 'personal key');
 
-  $tests = array(
-    array(
-      'params' => array(
-        'sf_cache_key' => 'my-super-customized-key',
-        'sf_cache_tags' => null,
-      ),
-      'throw' => false,
-    ),
-    array(
-      'params' => array(
-        'sf_cache_tags' => array('T' => 12931923, 'G_TAG' => 1123.12381723),
-      ),
-      'throw' => true,
-    ),
-    array(
-      'params' => array(
-        'sf_cache_key' => 'my-super-customized-key',
-        'sf_cache_tags' => array('T' => 12931923, 'G_TAG' => 1123.12381723),
-      ),
-      'throw' => false,
-    ),
-    array(
-      'params' => array(
-        'sf_cache_key' => 'my-super-customized-key',
-        'sf_cache_tags' => 1,
-      ),
-      'throw' => true,
-    ),
-  );
-
-  foreach ($tests as $test)
-  {
-    $params = $test['params'];
-    $throw = $test['throw'];
-
-    try
-    {
-      $cacheManager->checkCacheKey($params);
-
-      $t->ok(! $throw);
-    }
-    catch (Exception $e)
-    {
-      $t->ok($throw, sprintf('type: %s, message: %s', get_class($e), $e->getMessage()));
-    }
-  }
-
-
-  
-  
-
   # initialize 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
@@ -329,17 +279,4 @@
 
   sfConfig::set('sf_cache', $optionSfCache);
 
-
-
-//  var_dump($cacheManager->getActionCache('/blog_post/actionWithoutLayout'));
-
-//  $optionSfWebDebug = sfConfig::get('sf_web_debug');
-//  sfConfig::set('sf_web_debug', true);
-//
-//
-//
-//  sfConfig::set('sf_web_debug', $optionSfWebDebug);
-
-  
   $connection->rollback();
-

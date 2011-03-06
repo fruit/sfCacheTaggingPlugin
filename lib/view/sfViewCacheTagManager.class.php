@@ -29,10 +29,11 @@
      * This names is used in method patterns "call%sMethod",
      * where %s is Page/Action/Partial
      */
-    const
-      NAMESPACE_PAGE    = 'Page',
-      NAMESPACE_ACTION  = 'Action',
-      NAMESPACE_PARTIAL = 'Partial';
+    const NAMESPACE_PAGE    = 'Page';
+
+    const NAMESPACE_ACTION  = 'Action';
+    
+    const NAMESPACE_PARTIAL = 'Partial';
 
     /**
      * Data cache and locker cache container
@@ -48,6 +49,16 @@
      * @var array
      */
     protected $options = array();
+
+    /**
+     * Partial tags passed to include_partial by option "sf_cache_tag"
+     * Stored in temp variable due to unavailability of variables
+     * action and module names
+     *
+     * @var array
+     */
+    protected $tempPartialTags = array();
+
 
     /**
      * Returns predefined namespaces
@@ -567,27 +578,27 @@
     {
       $tagsKey = 'sf_cache_tags';
 
+      $this->tempPartialTags = array();
+
       if (isset($parameters[$tagsKey]))
       {
         $tags = true === sfConfig::get('sf_escaping_strategy')
-          ? sfOutputEscaper::unescape($parameters[$tagsKey])
-          : $parameters[$tagsKey];
-
-        $this
-          ->getContentTagHandler()
-          ->setContentTags($tags, self::NAMESPACE_PARTIAL);
-
-        if (! isset($parameters['sf_cache_key']))
-        {
-          throw new sfCacheException(
-            '"sf_cache_key" not declared in partial parameters'
-          );
-        }
+            ? sfOutputEscaper::unescape($parameters[$tagsKey])
+            : $parameters[$tagsKey];
 
         unset($parameters[$tagsKey]);
+
+        if (is_array($tags))
+        {
+          $this->tempPartialTags = $tags;
+        }
       }
 
-      return parent::checkCacheKey($parameters);
+      $key = parent::checkCacheKey($parameters);
+
+      print $key . "\n";
+
+      return $key;
     }
 
     /**
@@ -667,6 +678,17 @@
 
       if (null === $cache)
       {
+        $namespace = sprintf(
+          '%s-%s-%s', $module, $action, self::NAMESPACE_PARTIAL
+        );
+
+        $this
+          ->getContentTagHandler()
+          ->setContentTags($this->tempPartialTags, $namespace)
+        ;
+
+        $this->tempPartialTags = array();
+
         return null;
       }
 

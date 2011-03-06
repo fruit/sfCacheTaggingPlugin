@@ -111,11 +111,13 @@
             <file name="cache_setup.yml" role="data" />
           </dir>
           <dir name="fixtures">
+            <file name="cascade.yml" role="data" />
             <file name="fixtures.yml" role="data" />
           </dir>
         </dir>
         <dir name="functional">
           <dir name="frontend">
+            <file name="CascadeDeleteOrInvalidateTest.php" role="data" />
             <file name="DefaultObjectVersionValueTest.php" role="data" />
             <file name="DoctrineCacheProxyTest.php" role="data" />
             <file name="DoctrineCollectionCachetaggableTest.php" role="data" />
@@ -126,6 +128,7 @@
             <file name="InvalidateCollectionVersionByChangingColumnsTest" role="data" />
             <file name="InvalidateCollectionVersionOnUpdateTest.php" role="data" />
             <file name="ManyToManyTableTest.php" role="data" />
+            <file name="PartialTest.php" role="data" />
             <file name="SkipOnColumnUpdateTest.php" role="data" />
             <file name="actionWithLayoutTest.php" role="data" />
             <file name="actionWithoutLayoutTest.php" role="data" />

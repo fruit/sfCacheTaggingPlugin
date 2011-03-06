@@ -48,8 +48,8 @@ are not (atomic counter).
 
 ## New in v3.2.0:
 
-  * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) (GH-8)
   * New: Cascading tag deletion through the model relations
+  * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) (GH-8)
   * Fixed: ``skipOnChange`` did not work properly
 
 ## Setup ##
@@ -289,6 +289,7 @@ are not (atomic counter).
 
         <?php include_partial('posts/listing', array(
           'posts' => $posts,
+          # optional parameter "sf_cache_key"
           'sf_cache_key' => sprintf('latest-posts-culture:%s', $sf_user->getCulture()),
           'sf_cache_tags' => $posts->getTags(),
         )) ?>
@@ -309,6 +310,7 @@ are not (atomic counter).
         <fieldset>
           <legend>Component</legend>
           <?php include_component('posts', 'listOfPosts', array(
+            # optional parameter "sf_cache_key"
             'sf_cache_key' => sprintf('list-of-posts-%s', $sf_user->getCulture()),
           )) ?>
         </fieldset>
@@ -355,6 +357,7 @@ are not (atomic counter).
         <fieldset>
           <legend>Component (posts and comments)</legend>
           <?php include_component('post', 'listOfPostsAndComments', array(
+            # optional parameter "sf_cache_key"
             'sf_cache_key' => 'list-of-posts-in-left-block',
           )) ?>
         </fieldset>

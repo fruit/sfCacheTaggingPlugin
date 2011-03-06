@@ -93,8 +93,11 @@
 
   sfConfig::set('app_sfcachetaggingplugin_microtime_precision', 5);
 
-
-  Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml');
+  BlogPostTable::getInstance()->findAll()->delete();
+  BlogPostCommentTable::getInstance()->findAll()->delete();
+  BlogPostVoteTable::getInstance()->findAll()->delete();
+  
+  Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml', true);
 
   foreach ($dataCacheSetups as $dataCache)
   {
