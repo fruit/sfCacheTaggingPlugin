@@ -594,11 +594,7 @@
         }
       }
 
-      $key = parent::checkCacheKey($parameters);
-
-      print $key . "\n";
-
-      return $key;
+      return parent::checkCacheKey($parameters);
     }
 
     /**
