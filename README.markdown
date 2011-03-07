@@ -48,8 +48,9 @@ are not (atomic counter).
 
 ## New in v3.2.0:
 
-  * New: Cascading tag deletion through the model relations
-  * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) (GH-8)
+  * New: Cascading tag deletion through the model relations [GH-6](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/6)
+  * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) [GH-8](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/8)
+  * New: New methods in the sfComponent to add collection tags [GH-10](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/10)
   * Fixed: ``skipOnChange`` did not work properly
 
 ## Setup ##
@@ -654,7 +655,7 @@ are not (atomic counter).
 ## TDD ##
 
   * Environment: PHP 5.3
-  * Unit/functional tests: 1906 tests and all pass
+  * Unit/functional tests: 2446 tests and all pass
   * Code coverage: 97%
 
   *  Every combination is tested (data backend / tags backend) of listed below:
