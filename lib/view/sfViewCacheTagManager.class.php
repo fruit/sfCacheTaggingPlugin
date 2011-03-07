@@ -55,10 +55,9 @@
      * Stored in temp variable due to unavailability of variables
      * action and module names
      *
-     * @var array
+     * @var null
      */
-    protected $tempPartialTags = array();
-
+    protected $tempPartialTags = null;
 
     /**
      * Returns predefined namespaces
@@ -578,7 +577,7 @@
     {
       $tagsKey = 'sf_cache_tags';
 
-      $this->tempPartialTags = array();
+      $this->tempPartialTags = null;
 
       if (isset($parameters[$tagsKey]))
       {
@@ -669,10 +668,7 @@
         return null;
       }
 
-      // retrieve content from cache
-      $cache = $this->_get($uri);
-
-      if (null === $cache)
+      if (null !== $this->tempPartialTags)
       {
         $namespace = sprintf(
           '%s-%s-%s', $module, $action, self::NAMESPACE_PARTIAL
@@ -683,8 +679,14 @@
           ->setContentTags($this->tempPartialTags, $namespace)
         ;
 
-        $this->tempPartialTags = array();
+        $this->tempPartialTags = null;
+      }
+      
+      // retrieve content from cache
+      $cache = $this->_get($uri);
 
+      if (null === $cache)
+      {
         return null;
       }
 
