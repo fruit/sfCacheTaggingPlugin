@@ -234,7 +234,7 @@
      *
      * @return null
      */
-    public function removeVersionTags ()
+    public function removeCacheTags ()
     {
       try
       {
@@ -260,14 +260,14 @@
     {
       $returnValue = parent::delete($conn, $clearColl);
 
-      $this->removeVersionTags();
+      $this->removeCacheTags();
 
       return $returnValue;
     }
 
     public function free ($deep = false)
     {
-      $this->removeVersionTags();
+      $this->removeCacheTags();
       
       return parent::free($deep);
     }

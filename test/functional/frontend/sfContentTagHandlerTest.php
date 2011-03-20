@@ -66,7 +66,7 @@
 
   $tagsToReturn = array_merge($tagsToAdd, $postCollectionTag);
 
-  $posts->removeVersionTags();
+  $posts->removeCacheTags();
   $t->is($posts->getCacheTags(), $postCollectionTag, 'cleaned added tags');
 
   foreach (array('someTag', null, 30, 2.1293, new stdClass(), -2) as $mixed)

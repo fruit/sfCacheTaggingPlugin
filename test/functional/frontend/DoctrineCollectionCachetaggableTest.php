@@ -99,13 +99,13 @@
 
   sfConfig::set('sf_cache', $optionSfCache);
 
-  # removeVersionTags
+  # removeCacheTags
 
   $posts = BlogPostTable::getInstance()->findAll();
 
   $t->is(count($posts->getCacheTags()), 4);
 
-  $t->ok($posts->removeVersionTags());
+  $t->ok($posts->removeCacheTags());
 
   $t->is(count($posts->getCacheTags()), 4);
 
@@ -113,14 +113,14 @@
 
   $t->is(count($posts->getCacheTags()), 6);
 
-  $t->ok($posts->removeVersionTags());
+  $t->ok($posts->removeCacheTags());
 
   $t->is(count($posts->getCacheTags()), 4);
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $t->ok(! $posts->removeVersionTags());
+  $t->ok(! $posts->removeCacheTags());
 
   $connection->rollback();
 

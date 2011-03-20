@@ -54,7 +54,7 @@
   $methods = array(
     'getCacheTags' => null,
     'getCollectionTags' => null,
-    'removeVersionTags' => null,
+    'removeCacheTags' => null,
     'addCacheTag' => array('Comments', 2128918921),
     'addCacheTags' => array(array('Comment_1' => 31, 'Comment_2' => 39)),
   );
