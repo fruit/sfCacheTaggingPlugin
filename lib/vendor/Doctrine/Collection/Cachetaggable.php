@@ -186,7 +186,7 @@
      * @param array|Doctrine_Collection_Cachetaggable|ArrayAccess $tags
      * @return boolean
      */
-    public function addVersionTags ($tags)
+    public function addCacheTags ($tags)
     {
       try
       {
@@ -211,7 +211,7 @@
      * @param string|int $tagVersion
      * @return boolean
      */
-    public function addVersionTag ($tagName, $tagVersion)
+    public function addCacheTag ($tagName, $tagVersion)
     {
       try
       {

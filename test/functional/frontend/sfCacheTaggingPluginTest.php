@@ -225,7 +225,7 @@
 
       foreach ($postsAndComments as $post)
       {
-        $postsAndComments->addVersionTags($post->getBlogPostComment());
+        $postsAndComments->addCacheTags($post->getBlogPostComment());
       }
 
       $t->is(
@@ -252,7 +252,7 @@
 
       foreach ($postsAndComments as $post)
       {
-        $postsAndComments->addVersionTags($post->getBlogPostComment());
+        $postsAndComments->addCacheTags($post->getBlogPostComment());
       }
 
       $t->is(
@@ -275,7 +275,7 @@
 
       foreach ($postsAndComments as $post)
       {
-        $postsAndComments->addVersionTags($post->getBlogPostComment());
+        $postsAndComments->addCacheTags($post->getBlogPostComment());
       }
 
       $t->is(
@@ -335,7 +335,7 @@
       $t->is($emptyPostComments->count(), 0, 'All comments are removed');
 
       # sync post with comments (adding new comment post should be updated)
-      $emptyPosts->addVersionTags($emptyPostComments);
+      $emptyPosts->addCacheTags($emptyPostComments);
 
       $t->is(
         $taggingCache->set('posts+comments', $emptyPosts, null, $emptyPosts->getCacheTags()),
@@ -356,7 +356,7 @@
       $t->is(null === ($taggingCache->get('posts+comments')), true, '"posts+comments" are expired (first post is saved)');
 
       $post = BlogPostTable::getInstance()->find($newPost->getId());
-      $post->addVersionTags($post->getBlogPostComment());
+      $post->addCacheTags($post->getBlogPostComment());
 
       $t->is(
         $taggingCache->set('posts+comments', $post, null, $post->getCacheTags()),

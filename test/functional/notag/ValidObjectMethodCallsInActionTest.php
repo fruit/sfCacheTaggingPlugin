@@ -23,8 +23,8 @@
     'obtainObjectVersion' => null,
     'updateObjectVersion' => null,
     'assignObjectVersion' => array(10001212, "AAAAAAA"),
-    'addVersionTag' => array('Comments', 2128918921),
-    'addVersionTags' => array(array('Comment_1' => 31, 'Comment_2' => 39)),
+    'addCacheTag' => array('Comments', 2128918921),
+    'addCacheTags' => array(array('Comment_1' => 31, 'Comment_2' => 39)),
   );
 
   foreach ($methods as $method => $args)
@@ -55,8 +55,8 @@
     'getCacheTags' => null,
     'getCollectionTags' => null,
     'removeVersionTags' => null,
-    'addVersionTag' => array('Comments', 2128918921),
-    'addVersionTags' => array(array('Comment_1' => 31, 'Comment_2' => 39)),
+    'addCacheTag' => array('Comments', 2128918921),
+    'addCacheTags' => array(array('Comment_1' => 31, 'Comment_2' => 39)),
   );
 
   foreach ($methods as $method => $args)

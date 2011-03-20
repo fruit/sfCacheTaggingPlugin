@@ -388,9 +388,9 @@ are not (atomic counter).
               # our cache (with posts) should be updated on edited/deleted/added the comments
               # therefore, we are collecting comment's tags
 
-              # $posts->addVersionTags($post->getBlogPostComment()->getCacheTags());
+              # $posts->addCacheTags($post->getBlogPostComment()->getCacheTags());
               # or shorter
-              $posts->addVersionTags($post->getBlogPostComment());
+              $posts->addCacheTags($post->getBlogPostComment());
             }
 
             # after, we pass all tags to cache manager

@@ -110,7 +110,7 @@
      * State locking stolen from Doctrine_Record::toArray(true|false).
      *
      * @param boolean   $deep
-     * @return array    object tags (self and external from ->addVersionTags())
+     * @return array    object tags (self and external from ->addCacheTags())
      */
     public function getCacheTags ($deep = true)
     {
@@ -190,7 +190,7 @@
      *                    Doctrine_Collection_Cachetaggable, array.
      * @return boolean
      */
-    public function addVersionTags ($tags)
+    public function addCacheTags ($tags)
     {
       try
       {
@@ -215,7 +215,7 @@
      * @param int|string  $tagVersion
      * @return boolean
      */
-    public function addVersionTag ($tagName, $tagVersion)
+    public function addCacheTag ($tagName, $tagVersion)
     {
       try
       {

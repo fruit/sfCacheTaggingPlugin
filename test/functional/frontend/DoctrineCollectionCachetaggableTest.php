@@ -72,30 +72,30 @@
     $t->pass($e->getMessage());
   }
 
-  # addVersionTags
+  # addCacheTags
 
   $c = new Doctrine_Collection_Cachetaggable('University');
 
-  $t->is($c->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), true);
+  $t->is($c->addCacheTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), true);
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $t->is($c->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), false);
+  $t->is($c->addCacheTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), false);
 
   sfConfig::set('sf_cache', $optionSfCache);
   
 
-  # addVersionTag
+  # addCacheTag
 
   $c = new Doctrine_Collection_Cachetaggable('University');
 
-  $t->is($c->addVersionTag('Tag_1', 123712738123), true);
+  $t->is($c->addCacheTag('Tag_1', 123712738123), true);
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $t->is($c->addVersionTag('Tag_1', 123712738123), false);
+  $t->is($c->addCacheTag('Tag_1', 123712738123), false);
 
   sfConfig::set('sf_cache', $optionSfCache);
 
@@ -109,7 +109,7 @@
 
   $t->is(count($posts->getCacheTags()), 4);
 
-  $t->is($posts->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), true);
+  $t->is($posts->addCacheTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), true);
 
   $t->is(count($posts->getCacheTags()), 6);
 
@@ -132,7 +132,7 @@
 
   $posts = BlogPostTable::getInstance()->findAll();
 
-  $posts->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912));
+  $posts->addCacheTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912));
 
   $t->is(count($posts->getCacheTags()), 6);
 

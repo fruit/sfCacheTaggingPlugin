@@ -308,14 +308,14 @@
 
         $taggingCache->setTag($formatedClassName, $invokerObjectVersion);
 
-        $invoker->addVersionTag($formatedClassName, $invokerObjectVersion);
+        $invoker->addCacheTag($formatedClassName, $invokerObjectVersion);
       }
 
       $invokerTagName = $invoker->obtainTagName();
 
       $taggingCache->setTag($invokerTagName, $invokerObjectVersion);
 
-      $invoker->addVersionTag($invokerTagName, $invokerObjectVersion);
+      $invoker->addCacheTag($invokerTagName, $invokerObjectVersion);
     }
 
     /**

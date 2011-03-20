@@ -42,7 +42,7 @@
 
   try
   {
-    $posts->addVersionTag(array('MyTag'), 28182);
+    $posts->addCacheTag(array('MyTag'), 28182);
     $t->fail('Exception "InvalidArgumentException" was not thrown');
   }
   catch (InvalidArgumentException $e)
@@ -50,12 +50,12 @@
     $t->pass(sprintf('Exception "%s" is thrown. (catched)', get_class($e)));
   }
 
-  $posts->addVersionTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
+  $posts->addCacheTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getCacheTags()), 2, 'Adding new tag.');
 
-  $posts->addVersionTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
+  $posts->addCacheTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getCacheTags()), 2, 'Adding tag with the same tag name "SomeTag".');
-  $posts->addVersionTag('SomeTagNew', sfCacheTaggingToolkit::generateVersion());
+  $posts->addCacheTag('SomeTagNew', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getCacheTags()), 3, 'Adding tag with new tag name "SomeTagNew".');
 
   $tagsToAdd = array();
@@ -73,7 +73,7 @@
   {
     try
     {
-      $posts->addVersionTags($mixed);
+      $posts->addCacheTags($mixed);
       $t->fail('Exception "InvalidArgumentException" was NOT thrown');
     }
     catch (InvalidArgumentException $e)

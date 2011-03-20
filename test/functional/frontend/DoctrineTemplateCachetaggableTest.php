@@ -78,8 +78,8 @@
   $article = new Book();
   $t->is($article->getCacheTags(), array());
   $t->is($article->getCacheTags(true), array());
-  $t->is($article->addVersionTag('key', 123912), false);
-  $t->is($article->addVersionTags(array('key' => 123912)), false);
+  $t->is($article->addCacheTag('key', 123912), false);
+  $t->is($article->addCacheTags(array('key' => 123912)), false);
 
   sfConfig::set('sf_cache', $optionSfCache);
 
@@ -111,7 +111,7 @@
 
   $comments->free(true);
   
-  # addVersionTags
+  # addCacheTags
 
   foreach ($comments as $comment)
   {
@@ -120,7 +120,7 @@
       continue;
     }
 
-    $t->is($comment->addVersionTags($comment->getBlogPost()->getCacheTags(false)), true);
+    $t->is($comment->addCacheTags($comment->getBlogPost()->getCacheTags(false)), true);
 
     # comment is Doctrine_Record, it does not returns collection tag
     # comment contain 1:1 post, it does not return collection tag too
