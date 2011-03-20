@@ -32,7 +32,7 @@
   
   $t->can_ok($obj, array(
     'updateObjectVersion',
-    'getTags',
+    'getCacheTags',
     'obtainTagName',
     'obtainObjectVersion',
     'obtainCollectionName',
@@ -65,9 +65,9 @@
   $t->isa_ok($obj->updateObjectVersion(), 'BlogPost', 'updateObjectVersion returns BlogPost object');
   $t->cmp_ok($version, '<', $obj->obtainObjectVersion(), 'Update version is newer then taked before');
 
-  $t->diag('getTags() saved');
-  $t->is(gettype($obj->getTags()), 'array', 'Return type is array');
-  $t->is(count($obj->getTags()), 1, 'Return self tag');
+  $t->diag('getCacheTags() saved');
+  $t->is(gettype($obj->getCacheTags()), 'array', 'Return type is array');
+  $t->is(count($obj->getCacheTags()), 1, 'Return self tag');
 
   $t->diag('obtainTagName() saved');
   $t->is(gettype($obj->obtainTagName()), 'string', 'Return type is string');

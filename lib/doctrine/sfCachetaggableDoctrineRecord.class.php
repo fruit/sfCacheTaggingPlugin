@@ -57,15 +57,15 @@
     }
 
     /**
-     * @see Doctrine_Template_Cachetaggable::getTags()
+     * @see Doctrine_Template_Cachetaggable::getCacheTags()
      * @var boolean $deep (whether to fetch tags recursively from all joined tables)
      * @return array Object tags
      */
-    public function getTags ($deep = true)
+    public function getCacheTags ($deep = true)
     {
       return $this
-        ->getCachetaggable('getTags')
-        ->getTags($deep)
+        ->getCachetaggable('getCacheTags')
+        ->getCacheTags($deep)
       ;
     }
 

@@ -112,7 +112,7 @@
      * @param boolean   $deep
      * @return array    object tags (self and external from ->addVersionTags())
      */
-    public function getTags ($deep = true)
+    public function getCacheTags ($deep = true)
     {
       if (
           $this->_state == Doctrine_Record::STATE_LOCKED
@@ -163,7 +163,7 @@
           }
 
           $tagHandler->addContentTags(
-            $reference->getTags($deep),
+            $reference->getCacheTags($deep),
             $this->getInvokerNamespace()
           );
         }

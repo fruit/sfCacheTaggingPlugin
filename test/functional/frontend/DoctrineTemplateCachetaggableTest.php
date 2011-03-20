@@ -76,14 +76,14 @@
   sfConfig::set('sf_cache', false);
 
   $article = new Book();
-  $t->is($article->getTags(), array());
-  $t->is($article->getTags(true), array());
+  $t->is($article->getCacheTags(), array());
+  $t->is($article->getCacheTags(true), array());
   $t->is($article->addVersionTag('key', 123912), false);
   $t->is($article->addVersionTags(array('key' => 123912)), false);
 
   sfConfig::set('sf_cache', $optionSfCache);
 
-  # getTags no deep
+  # getCacheTags no deep
   $q = BlogPostCommentTable::getInstance()->createQuery('c');
   $q
     ->addSelect('c.*')
@@ -96,18 +96,18 @@
     ->leftJoin('p.Translation t WITH t.lang = "en"')
   ;
 
-  # getTags
+  # getCacheTags
   $comments = $q->execute();
 
-  $t->is(count($tags = $comments->getTags(false)), 9);
+  $t->is(count($tags = $comments->getCacheTags(false)), 9);
 
   $commentsCnt = BlogPostCommentTable::getInstance()->count();
   $postsCnt = BlogPostTable::getInstance()->count();
   $voteCnt = BlogPostVoteTable::getInstance()->count();
 
   # 2 = BlogPost joined as M:1, no collection tag should be used
-  $t->is(count($tags = $comments->getTags()), $commentsCnt + $postsCnt + $voteCnt + 2);
-  $t->is(count($tags = $comments->getTags(true)), $commentsCnt + $postsCnt + $voteCnt + 2);
+  $t->is(count($tags = $comments->getCacheTags()), $commentsCnt + $postsCnt + $voteCnt + 2);
+  $t->is(count($tags = $comments->getCacheTags(true)), $commentsCnt + $postsCnt + $voteCnt + 2);
 
   $comments->free(true);
   
@@ -120,15 +120,15 @@
       continue;
     }
 
-    $t->is($comment->addVersionTags($comment->getBlogPost()->getTags(false)), true);
+    $t->is($comment->addVersionTags($comment->getBlogPost()->getCacheTags(false)), true);
 
     # comment is Doctrine_Record, it does not returns collection tag
     # comment contain 1:1 post, it does not return collection tag too
 
-    $t->is(count($comment->getTags(false)), 2);
+    $t->is(count($comment->getCacheTags(false)), 2);
   }
 
-  # getTags & fetchOne & 1:M
+  # getCacheTags & fetchOne & 1:M
   $q = BlogPostTable::getInstance()->createQuery('p');
   $q
     ->addSelect('p.*, c.*')
@@ -138,9 +138,9 @@
 
   $post = $q->fetchOne();
 
-  $t->is(count($post->getTags()), 5); # by default is true
-  $t->is(count($post->getTags(true)), 5);
-  $t->is(count($post->getTags(false)), 1);
+  $t->is(count($post->getCacheTags()), 5); # by default is true
+  $t->is(count($post->getCacheTags(true)), 5);
+  $t->is(count($post->getCacheTags(false)), 1);
 
   $post->free(true);
 
@@ -154,9 +154,9 @@
 
   $post = $q->fetchOne();
 
-  $t->is(count($post->getTags()), 1, 'getTags deeply count shoud be 2');
-  $t->is(count($post->getTags(true)), 1, 'getTags deeply count shoud be 2');
-  $t->is(count($post->getTags(false)), 1, 'getTags count shoud be 2');
+  $t->is(count($post->getCacheTags()), 1, 'getCacheTags deeply count shoud be 2');
+  $t->is(count($post->getCacheTags(true)), 1, 'getCacheTags deeply count shoud be 2');
+  $t->is(count($post->getCacheTags(false)), 1, 'getCacheTags count shoud be 2');
 
   $post->free(true);
 

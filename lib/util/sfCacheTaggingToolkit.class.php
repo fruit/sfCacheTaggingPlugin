@@ -127,7 +127,7 @@
       }
       elseif ($argument instanceof Doctrine_Collection_Cachetaggable)
       {
-        $tagsToReturn = $argument->getTags();
+        $tagsToReturn = $argument->getCacheTags();
       }
       elseif ($argument instanceof Doctrine_Record)
       {
@@ -142,7 +142,7 @@
           ));
         }
 
-        $tagsToReturn = $argument->getTags();
+        $tagsToReturn = $argument->getCacheTags();
       }
       # Doctrine_Collection_Cachetaggable and Doctrine_Record are
       # instances of ArrayAccess

@@ -162,7 +162,7 @@
       $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
       $t->is(
-        $taggingCache->set('posts', $posts, null, $posts->getTags()),
+        $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
         true,
         'New Doctrine_Collection is saved to cache with key "posts"'
       );
@@ -187,7 +187,7 @@
       $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
       $t->is(
-        $taggingCache->set('posts', $posts, null, $posts->getTags()),
+        $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
         true,
         'new "posts" was written to the cache'
       );
@@ -206,7 +206,7 @@
       $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
       $t->is(
-        $taggingCache->set('posts', $posts, null, $posts->getTags()),
+        $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
         false,
         'Skipped writing to cache, "posts" is locked'
       );
@@ -216,7 +216,7 @@
       $t->is($taggingCache->isLocked('posts'), false, '"posts" is now not locked');
 
       $t->is(
-        $taggingCache->set('posts', $posts, null, $posts->getTags()),
+        $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
         true,
         'Writing to cache, "posts" is not locked'
       );
@@ -229,7 +229,7 @@
       }
 
       $t->is(
-        $taggingCache->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
+        $taggingCache->set('posts+comments', $postsAndComments, null, $postsAndComments->getCacheTags()),
         true,
         'Saving posts with comments'
       );
@@ -256,7 +256,7 @@
       }
 
       $t->is(
-        $taggingCache->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
+        $taggingCache->set('posts+comments', $postsAndComments, null, $postsAndComments->getCacheTags()),
         true,
         'Saving posts with comments'
       );
@@ -279,7 +279,7 @@
       }
 
       $t->is(
-        $taggingCache->set('posts+comments', $postsAndComments, null, $postsAndComments->getTags()),
+        $taggingCache->set('posts+comments', $postsAndComments, null, $postsAndComments->getCacheTags()),
         true,
         'Saving posts with comments'
       );
@@ -300,7 +300,7 @@
       $emptyPosts = BlogPostTable::getInstance()->findAll();
 
       $t->is(
-        $taggingCache->set('posts', $emptyPosts, null, $emptyPosts->getTags()),
+        $taggingCache->set('posts', $emptyPosts, null, $emptyPosts->getCacheTags()),
         true,
         'Saving empty "posts" to cache'
       );
@@ -316,7 +316,7 @@
       $posts = BlogPostTable::getInstance()->findAll();
 
       $t->is(
-        $taggingCache->set('posts', $posts, null, $posts->getTags()),
+        $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
         true,
         'Saving empty "posts" to cache'
       );
@@ -338,7 +338,7 @@
       $emptyPosts->addVersionTags($emptyPostComments);
 
       $t->is(
-        $taggingCache->set('posts+comments', $emptyPosts, null, $emptyPosts->getTags()),
+        $taggingCache->set('posts+comments', $emptyPosts, null, $emptyPosts->getCacheTags()),
         true,
         sprintf(
           'Saving empty "posts+comments" to cache (%d posts, %d comments)',
@@ -359,7 +359,7 @@
       $post->addVersionTags($post->getBlogPostComment());
 
       $t->is(
-        $taggingCache->set('posts+comments', $post, null, $post->getTags()),
+        $taggingCache->set('posts+comments', $post, null, $post->getCacheTags()),
         true,
         'Saving empty "posts+comments" to cache'
       );

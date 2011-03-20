@@ -21,10 +21,10 @@
 
   $con = Doctrine_Manager::getInstance()->getConnection('doctrine');
 
-  $a = RelSiteTable::getInstance()->findAll()->getTags();
-  $b = RelSiteCultureTable::getInstance()->findAll()->getTags();
-  $c = RelCultureTable::getInstance()->findAll()->getTags();
-  $d = RelSiteSettingTable::getInstance()->findAll()->getTags();
+  $a = RelSiteTable::getInstance()->findAll()->getCacheTags();
+  $b = RelSiteCultureTable::getInstance()->findAll()->getCacheTags();
+  $c = RelCultureTable::getInstance()->findAll()->getCacheTags();
+  $d = RelSiteSettingTable::getInstance()->findAll()->getCacheTags();
 
   $sfTagger->setTags($alltags = array_merge($a, $b, $c, $d));
 
@@ -54,10 +54,10 @@
       }
     }
 
-    $a = RelSiteTable::getInstance()->findAll()->getTags();
-    $b = RelSiteCultureTable::getInstance()->findAll()->getTags();
-    $c = RelCultureTable::getInstance()->findAll()->getTags();
-    $d = RelSiteSettingTable::getInstance()->findAll()->getTags();
+    $a = RelSiteTable::getInstance()->findAll()->getCacheTags();
+    $b = RelSiteCultureTable::getInstance()->findAll()->getCacheTags();
+    $c = RelCultureTable::getInstance()->findAll()->getCacheTags();
+    $d = RelSiteSettingTable::getInstance()->findAll()->getCacheTags();
 
     $sfTagger->setTags(array_merge($a, $b, $c, $d));
 

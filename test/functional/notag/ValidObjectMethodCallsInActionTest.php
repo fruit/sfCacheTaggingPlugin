@@ -18,7 +18,7 @@
     'getCollectionTags' => null,
     'obtainCollectionName' => null,
     'obtainCollectionVersion' => null,
-    'getTags' => null,
+    'getCacheTags' => null,
     'obtainTagName' => null,
     'obtainObjectVersion' => null,
     'updateObjectVersion' => null,
@@ -52,7 +52,7 @@
   $browser->info('Doctrine_Collection');
 
   $methods = array(
-    'getTags' => null,
+    'getCacheTags' => null,
     'getCollectionTags' => null,
     'removeVersionTags' => null,
     'addVersionTag' => array('Comments', 2128918921),

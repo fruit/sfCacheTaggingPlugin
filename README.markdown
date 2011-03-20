@@ -292,7 +292,7 @@ are not (atomic counter).
           'posts' => $posts,
           # optional parameter "sf_cache_key"
           'sf_cache_key' => sprintf('latest-posts-culture:%s', $sf_user->getCulture()),
-          'sf_cache_tags' => $posts->getTags(),
+          'sf_cache_tags' => $posts->getCacheTags(),
         )) ?>
 
 #### *Components (one-table)*
@@ -337,7 +337,7 @@ are not (atomic counter).
             # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
             # (e.g. $this->deletePartialTags(), $this->setPartialTag())
 
-            # $this->setPartialTags($posts->getTags());
+            # $this->setPartialTags($posts->getCacheTags());
             # or equivalent-shorter code
             $this->setPartialTags($posts);
 
@@ -388,7 +388,7 @@ are not (atomic counter).
               # our cache (with posts) should be updated on edited/deleted/added the comments
               # therefore, we are collecting comment's tags
 
-              # $posts->addVersionTags($post->getBlogPostComment()->getTags());
+              # $posts->addVersionTags($post->getBlogPostComment()->getCacheTags());
               # or shorter
               $posts->addVersionTags($post->getBlogPostComment());
             }
@@ -396,7 +396,7 @@ are not (atomic counter).
             # after, we pass all tags to cache manager
             # See more about all available methods in PHPDOC of file
             # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
-            # $this->setPartialTags($posts->getTags());
+            # $this->setPartialTags($posts->getCacheTags());
 
             # or shorter
             $this->setPartialTags($posts);
@@ -448,7 +448,7 @@ are not (atomic counter).
             # See more about all available methods in PHPDOC of file
             # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
 
-            # $this->setPageTags($car->getTags());
+            # $this->setPageTags($car->getCacheTags());
             # or shorter
             $this->setPageTags($car);
 
@@ -478,7 +478,7 @@ are not (atomic counter).
             # See more about all available methods in PHPDOC of file
             # ./plugins/sfCacheTaggingPlugin/lib/util/sfViewCacheTagManagerBridge.class.php
 
-            # $this->setActionTags($car->getTags());
+            # $this->setActionTags($car->getCacheTags());
             # or shorter
             $this->setActionTags($car);
 

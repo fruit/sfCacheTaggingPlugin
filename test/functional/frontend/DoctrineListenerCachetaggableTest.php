@@ -393,9 +393,9 @@
 
   try
   {
-    $univeristies->getTags();
+    $univeristies->getCacheTags();
 
-    $t->pass('Running getTags() on NON-Cachetaggable model');
+    $t->pass('Running getCacheTags() on NON-Cachetaggable model');
   }
   catch (sfConfigurationException $e)
   {

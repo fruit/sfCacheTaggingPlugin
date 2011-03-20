@@ -23,7 +23,7 @@
 
   $posts = BlogPostTable::getInstance()->findAll();
 
-  $t->ok(count($posts->getTags()) > count($posts->delete()->getTags()));
+  $t->ok(count($posts->getCacheTags()) > count($posts->delete()->getCacheTags()));
 
   $postComments = BlogPostCommentTable::getInstance()->findAll();
   $postComments->delete();
@@ -35,7 +35,7 @@
   $postCommentCollectionTag = array("{$postCommentTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
 
   $t->is(
-    $posts->getTags(),
+    $posts->getCacheTags(),
     $postCollectionTag,
     'Doctrine_Collection returns 1 tag BlogPost as collection listener tag'
   );
@@ -51,12 +51,12 @@
   }
 
   $posts->addVersionTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
-  $t->is(count($posts->getTags()), 2, 'Adding new tag.');
+  $t->is(count($posts->getCacheTags()), 2, 'Adding new tag.');
 
   $posts->addVersionTag('SomeTag', sfCacheTaggingToolkit::generateVersion());
-  $t->is(count($posts->getTags()), 2, 'Adding tag with the same tag name "SomeTag".');
+  $t->is(count($posts->getCacheTags()), 2, 'Adding tag with the same tag name "SomeTag".');
   $posts->addVersionTag('SomeTagNew', sfCacheTaggingToolkit::generateVersion());
-  $t->is(count($posts->getTags()), 3, 'Adding tag with new tag name "SomeTagNew".');
+  $t->is(count($posts->getCacheTags()), 3, 'Adding tag with new tag name "SomeTagNew".');
 
   $tagsToAdd = array();
   for ($i = 0; $i < 10; $i ++, usleep(rand(1, 40000)))
@@ -67,7 +67,7 @@
   $tagsToReturn = array_merge($tagsToAdd, $postCollectionTag);
 
   $posts->removeVersionTags();
-  $t->is($posts->getTags(), $postCollectionTag, 'cleaned added tags');
+  $t->is($posts->getCacheTags(), $postCollectionTag, 'cleaned added tags');
 
   foreach (array('someTag', null, 30, 2.1293, new stdClass(), -2) as $mixed)
   {

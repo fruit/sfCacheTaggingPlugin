@@ -87,7 +87,7 @@
      * @param boolean $deep
      * @return array
      */
-    public function getTags ($deep = true)
+    public function getCacheTags ($deep = true)
     {
       $table = $this->getTable();
 
@@ -121,7 +121,7 @@
         {
           $objectVersion = $object->obtainObjectVersion();
 
-          $tags = $object->getTags($deep);
+          $tags = $object->getCacheTags($deep);
 
           $tagHandler->addContentTags($tags, $namespace);
         }

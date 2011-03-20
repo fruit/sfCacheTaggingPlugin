@@ -23,25 +23,25 @@
 
   $sfTagger->clean();
 
-  # getTags
+  # getCacheTags
 
   $c = new Doctrine_Collection_Cachetaggable('BlogPost');
-  $t->is(count($c->getTags()), 1);
-  $t->is(count($c->getTags(true)), 1);
+  $t->is(count($c->getCacheTags()), 1);
+  $t->is(count($c->getCacheTags(true)), 1);
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $t->is($c->getTags(), array(), 'cache is disabled, return empty array()');
+  $t->is($c->getCacheTags(), array(), 'cache is disabled, return empty array()');
   
   sfConfig::set('sf_cache', $optionSfCache);
 
   $posts = BlogPostTable::getInstance()->findAll();
 
-  $tags = $posts->getTags();
+  $tags = $posts->getCacheTags();
 
-  $t->is(count($posts->getTags()), 4);
-  $t->is(count($posts->getTags(true)), 4);
+  $t->is(count($posts->getCacheTags()), 4);
+  $t->is(count($posts->getCacheTags(true)), 4);
 
   $firstPost = $posts->getFirst();
 
@@ -50,7 +50,7 @@
   $firstPost->setTitle('new title');
   $firstPost->save();
 
-  $freshTags = $posts->getTags();
+  $freshTags = $posts->getCacheTags();
 
   $t->is(count($tags), count($freshTags));
 
@@ -64,7 +64,7 @@
 
   try
   {
-    $c->getTags();
+    $c->getCacheTags();
     $t->fail();
   }
   catch (sfConfigurationException $e)
@@ -103,19 +103,19 @@
 
   $posts = BlogPostTable::getInstance()->findAll();
 
-  $t->is(count($posts->getTags()), 4);
+  $t->is(count($posts->getCacheTags()), 4);
 
   $t->ok($posts->removeVersionTags());
 
-  $t->is(count($posts->getTags()), 4);
+  $t->is(count($posts->getCacheTags()), 4);
 
   $t->is($posts->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), true);
 
-  $t->is(count($posts->getTags()), 6);
+  $t->is(count($posts->getCacheTags()), 6);
 
   $t->ok($posts->removeVersionTags());
 
-  $t->is(count($posts->getTags()), 4);
+  $t->is(count($posts->getCacheTags()), 4);
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
@@ -134,11 +134,11 @@
 
   $posts->addVersionTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912));
 
-  $t->is(count($posts->getTags()), 6);
+  $t->is(count($posts->getCacheTags()), 6);
 
   $posts->delete();
 
   # delete removes added by hand tags too
-  $t->is(count($posts->getTags()), 1); // collection version tag
+  $t->is(count($posts->getCacheTags()), 1); // collection version tag
 
   $connection->rollback();
