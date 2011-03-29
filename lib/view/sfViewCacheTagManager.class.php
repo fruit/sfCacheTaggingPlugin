@@ -325,16 +325,17 @@
       }
 
       // retrieve content from cache
-      $data = $this->_get($uri);
+      $cache = $this->_get($uri);
 
-      if (null === $data)
+      if (null === $cache)
       {
         return null;
       }
 
-      $content = $data['content'];
-      $data['response']->setEventDispatcher($this->getEventDispatcher());
-      $this->context->getResponse()->copyProperties($data['response']);
+      $content = $cache['content'];
+      $cache['response'] = unserialize($cache['response']);
+      $cache['response']->setEventDispatcher($this->getEventDispatcher());
+      $this->context->getResponse()->copyProperties($cache['response']);
 
       if (sfConfig::get('sf_web_debug'))
       {
@@ -354,7 +355,7 @@
           ->getReturnValue();
       }
 
-      return array($content, $data['decoratorTemplate']);
+      return array($content, $cache['decoratorTemplate']);
     }
 
     /**
@@ -382,7 +383,7 @@
       $actionCacheValue = array(
         'content'           => $content,
         'decoratorTemplate' => $decoratorTemplate,
-        'response'          => $this->context->getResponse()
+        'response'          => serialize($this->context->getResponse())
       );
 
       $saved = $this->set($actionCacheValue, $uri, $actionTags);
@@ -482,7 +483,7 @@
       $saved = $this->set(
         array(
           'content' => $content,
-          'response' => $this->context->getResponse()
+          'response' => serialize($this->context->getResponse()),
         ),
         $uri,
         $partialTags
@@ -691,6 +692,7 @@
       }
 
       $content = $cache['content'];
+      $cache['response'] = unserialize($cache['response']);
       $this->context->getResponse()->merge($cache['response']);
 
       if (sfConfig::get('sf_web_debug'))
