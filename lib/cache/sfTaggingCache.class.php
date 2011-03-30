@@ -490,14 +490,18 @@
      * Deletes tags
      *
      * @param array $tags
-     * @return null
+     * @return array
      */
     public function deleteTags (array $tags)
     {
+      $deletions = array();
+
       foreach ($tags as $name => $version)
       {
-        $this->deleteTag($name);
+        $deletions[$name] = $this->deleteTag($name) ? 1 : 0;
       }
+
+      return $deletions;
     }
 
     /**
