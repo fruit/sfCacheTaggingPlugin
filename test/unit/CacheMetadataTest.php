@@ -1,5 +1,5 @@
 <?php
-  
+
   /*
    * This file is part of the sfCacheTaggingPlugin package.
    * (c) 2009-2011 Ilya Sabelnikov <fruit.dev@gmail.com>
@@ -51,10 +51,10 @@
 
   $m->setTag('Article_3', 100); // old version (should skip)
   $t->is($m->getTag('Article_3'), 81872); // still newest version
-  
+
   $t->is(count($m->getTags()), 3);
   $t->is($m->getTags(), array_merge($tags, array('Article_3' => 81872)));
-  
+
   try
   {
     $m = new CacheMetadata(array('data' => 'Content', 'tags' => 1));

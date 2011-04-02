@@ -17,7 +17,7 @@
   $cacheManager = $sfContext->getViewCacheManager();
 
   $sfTagger = $cacheManager->getTaggingCache();
-  
+
   $t = new lime_test();
 
   $connection = Doctrine::getConnectionByTableName('BlogPost');
@@ -179,7 +179,7 @@
   $blackSwanId = $blackSwan->getId();
   $blackSwanVersion = $blackSwan->obtainObjectVersion();
   $blackSwanCollectionVersion = $blackSwan->obtainCollectionVersion();
-  
+
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
@@ -234,7 +234,7 @@
     $currentBookCollectionVersion,
     'Object collection is not changed'
   );
-  
+
   #postSave
 
   $optionSfCache = sfConfig::get('sf_cache');
@@ -360,7 +360,7 @@
   $limon->save();
 
   $collectionVersion = $limon->obtainCollectionVersion();
-  
+
   FoodReorderedTable::getInstance()
     ->createQuery()
     ->delete()

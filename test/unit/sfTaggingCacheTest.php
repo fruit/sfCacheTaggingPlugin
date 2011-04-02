@@ -158,7 +158,7 @@
 
   $similarCacheEngines = $differentCacheEngines;
   $similarCacheEngines['tags'] = null;
-  
+
   $c = new sfTaggingCache($differentCacheEngines);
   $t->isa_ok($c->getDataCache(), $differentCacheEngines['data']['class'], 'getDataCache returns right object');
   $t->isa_ok($c->getTagsCache(), $differentCacheEngines['tags']['class'], 'getTagsCache return right object');
@@ -227,11 +227,11 @@
   # 1. rewrite
 
   apc_clear_cache('user');
-  
+
   $c->set('Catchphrase', '"I know nothing."', 500, array('CP_01' => 9237722, 'CP' => 9237722));
-  
+
   $t->is($c->getTags('Catchphrase'), array('CP_01' => 9237722, 'CP' => 9237722));
-  
+
   $c->remove('Catchphrase');
 
   # 2. append
@@ -272,7 +272,7 @@
   $c->clean();
   $t->is($c->get('SomeMisticalTag'), null);
   $t->is($c->get('SomeMisticalTag', false), false);
-  
+
   $c->set('MarkdownText', '**Hi, John!**', 4500, array('MD_31' => 123456789012345, 'MD' => 93));
   $t->is($c->get('MarkdownText'), '**Hi, John!**');
 
@@ -284,9 +284,9 @@
   $t->ok(
     $c->set('AboutUs', '**Hi, John!**', 4500, array('MD_31' => '123456789012345', 'MD' => 93))
   );
-  
+
   $t->ok($c->setTag('MD_31', '123456789012346'));
-  
+
   $t->ok($c->lock('AboutUs'));
   $t->ok($c->isLocked('AboutUs'));
 
@@ -312,7 +312,7 @@
   $t->is($c->get('file'), null);
   $t->is($c->getTag('X_1'), null);
   $t->is($c->getTag('X_3'), null);
-  
+
   # getContentTagHandler
   $t->isa_ok($c->getContentTagHandler(), 'sfContentTagHandler');
 
@@ -325,7 +325,7 @@
 
   $keys = $c->getCacheKeys();
   sort($keys);
-  
+
   $t->is(gettype($keys), 'array');
   $t->is($keys, array('CityA', 'CityB'));
 

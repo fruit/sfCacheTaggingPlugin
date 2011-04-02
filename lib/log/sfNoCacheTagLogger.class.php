@@ -24,7 +24,7 @@
 
     public function initialize (array $options = array())
     {
-      
+
     }
 
     protected function doLog ($char, $key)

@@ -110,7 +110,7 @@
   $t->is(count($tags = $comments->getCacheTags(true)), $commentsCnt + $postsCnt + $voteCnt + 2);
 
   $comments->free(true);
-  
+
   # addCacheTags
 
   foreach ($comments as $comment)
@@ -172,7 +172,7 @@
   {
     $t->pass($e->getMessage());
   }
-  
+
 
   $connection->beginTransaction();
 
@@ -237,7 +237,7 @@
 
   $t->cmp_ok($version, '>', $preVersion);
   $t->cmp_ok($version, '<', sfCacheTaggingToolkit::generateVersion());
-  
+
   $t->is(
     $post->getCollectionTags(),
     array($name => $version)
@@ -250,7 +250,7 @@
   # obtainCollectionName
 
   # obtainCollectionVersion
-  
+
   $t->is($post->getCollectionTags(), array('BlogPost' => '1'));
   $t->is($post->obtainCollectionName(), $name);
   $t->is($post->obtainCollectionVersion(), '1');

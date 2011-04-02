@@ -56,7 +56,7 @@
     sfCacheTaggingToolkit::formatTags($u);
 
     $t->fail('sfCacheTaggingToolkit::formatTags() does not works for Doctrine_Record without "Doctrine_Template_Cachetaggable" template');
-  } 
+  }
   catch (InvalidArgumentException $e)
   {
     $t->pass($e->getMessage());
@@ -164,7 +164,7 @@
     try
     {
       $decoratedTags = sfCacheTaggingToolkit::formatTags($tags);
-      
+
       $typeOfTags = gettype($tags);
 
       $t->is(

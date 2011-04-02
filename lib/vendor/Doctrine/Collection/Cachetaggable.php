@@ -125,7 +125,7 @@
 
           $tagHandler->addContentTags($tags, $namespace);
         }
-        
+
         $tagHandler->addContentTags($this->getCollectionTags(), $namespace);
       }
       else
@@ -268,7 +268,7 @@
     public function free ($deep = false)
     {
       $this->removeCacheTags();
-      
+
       return parent::free($deep);
     }
   }

@@ -30,7 +30,7 @@
   $objVersion = $jetFlight->obtainObjectVersion();
 
   $t->cmp_ok($colVersion, '=', $objVersion, 'Collection and object version are equal');
-  
+
   $jetFlight->setName('Jet Flights & Co')->save();
 
   $t->cmp_ok($objVersion, '<', $jetFlight->obtainObjectVersion(), 'Object version is updated');
@@ -46,7 +46,7 @@
 
   $objVersion = $jetFlight->obtainObjectVersion();
   $colVersion = $jetFlight->obtainCollectionVersion();
-  
+
   $jetFlight->setIsEnabled(false)->setIsDeleted(false)->save();
   $t->cmp_ok($objVersion, '<', $jetFlight->obtainObjectVersion(), 'Object version is updated');
   $t->cmp_ok($colVersion, '<', $jetFlight->obtainCollectionVersion(), 'Collection version is updated');
@@ -79,7 +79,7 @@
   $t->is($aff, 1);
 
   $jetFlight = AirCompanyTable::getInstance()->find($id);
-  
+
   $t->cmp_ok($objVersion, '<', $jetFlight->obtainObjectVersion(), 'Object version is updated');
   $t->cmp_ok($colVersion, '<', $jetFlight->obtainCollectionVersion(), 'Collection version is updated');
 

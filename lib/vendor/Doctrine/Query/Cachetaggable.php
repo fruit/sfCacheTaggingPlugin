@@ -55,7 +55,7 @@
       {
         $cacheDriver = $this->getResultCacheDriver();
         $hash = $this->getResultCacheHash($params);
-        $cached = ($this->_expireResultCache) 
+        $cached = ($this->_expireResultCache)
           ? false
           : $cacheDriver->fetch($hash);
 

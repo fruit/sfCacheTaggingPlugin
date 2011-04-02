@@ -80,7 +80,7 @@
       {
         $this->parameters[$ns] = array();
       }
-      
+
       # skip old tag versions
       if (
           ! isset($this->parameters[$ns][$tagName]) ||

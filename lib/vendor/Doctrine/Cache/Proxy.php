@@ -12,7 +12,7 @@
    * Class to replace doctrine cache engine with symfony's cache engine
    * This is only for storing cache with its associated tags
    * (Doctrine does not yet supports ability to add tags on stored cache)
-   * 
+   *
    * @package sfCacheTaggingPlugin
    * @subpackage doctrine
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
@@ -87,7 +87,7 @@
           __CLASS__, $e->getMessage(), sfLogger::NOTICE
         );
       }
-      
+
       return;
     }
 

@@ -37,7 +37,7 @@
       {
         return;
       }
-      
+
       $data = isset($metadata['data'])
         ? $metadata['data']
         : null;
@@ -87,7 +87,7 @@
 
     /**
      * Rewrites all existing tags with new
-     * 
+     *
      * @param array $tags
      * @return null
      */

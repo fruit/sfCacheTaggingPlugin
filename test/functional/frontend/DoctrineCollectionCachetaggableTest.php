@@ -33,7 +33,7 @@
   sfConfig::set('sf_cache', false);
 
   $t->is($c->getCacheTags(), array(), 'cache is disabled, return empty array()');
-  
+
   sfConfig::set('sf_cache', $optionSfCache);
 
   $posts = BlogPostTable::getInstance()->findAll();
@@ -84,7 +84,7 @@
   $t->is($c->addCacheTags(array('Tag_1' => 123712738123, 'Tag_3' => 12939123912)), false);
 
   sfConfig::set('sf_cache', $optionSfCache);
-  
+
 
   # addCacheTag
 

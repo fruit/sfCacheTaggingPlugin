@@ -32,7 +32,7 @@
     const NAMESPACE_PAGE    = 'Page';
 
     const NAMESPACE_ACTION  = 'Action';
-    
+
     const NAMESPACE_PARTIAL = 'Partial';
 
     /**
@@ -682,7 +682,7 @@
 
         $this->tempPartialTags = null;
       }
-      
+
       // retrieve content from cache
       $cache = $this->_get($uri);
 

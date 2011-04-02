@@ -7,7 +7,7 @@
    * For the full copyright and license information, please view the LICENSE
    * file that was distributed with this source code.
    */
-  
+
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
   $browser = new sfTestFunctional(new sfBrowser());
@@ -23,7 +23,7 @@
 
   $cacheManager = $sfContext->getViewCacheManager();
   /* @var $cacheManager sfViewCacheTagManager */
-  
+
   $taggingCache = $cacheManager->getTaggingCache();
   /* @var $taggingCache sfTaggingCache */
 
@@ -97,7 +97,7 @@
 
   $t->is($output, 'MyTempContent', 'Cache is not a object(CacheMetadata), return not decorated content');
 
-  
+
   # (set|get)ActionCache
 
   $t->diag('(set|get)ActionCache');
@@ -117,7 +117,7 @@
   $match = '/ContentActionText.*cache.*tags.*Magnolia_731.*9127561923/';
 
   $layout = sfConfig::get('sf_root_dir') . '/apps/frontend/templates/layout.php';
-  
+
   $t->like(
     $cacheManager->setActionCache('blog_post/actionWithoutLayout', 'ContentActionText&nbsp;<br />&nbsp;', $layout),
     $match
@@ -216,7 +216,7 @@
 
   sfConfig::set('sf_web_debug', $sfWebDebug);
 
-  
+
 
   $t->comment('listeners counts');
   try
@@ -259,7 +259,7 @@
   # checkCacheKey
 
   $params = array(
-    
+
   );
   $t->is(strlen($cacheManager->checkCacheKey($params)), 32, 'md5 random key');
 
@@ -269,7 +269,7 @@
 
   $t->is($cacheManager->checkCacheKey($params) ,'my-super-customized-key', 'personal key');
 
-  # initialize 
+  # initialize
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 

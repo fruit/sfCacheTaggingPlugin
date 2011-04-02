@@ -29,7 +29,7 @@
     ->addWhere('id != ?', 4)
     ->leftJoin('p.BlogPostComment c')
     ->limit(5);
-  
+
   $q->clearResultCache();
 
   $hash = $q->getResultCacheHash();
@@ -65,7 +65,7 @@
   $t->ok($q->getResultCacheDriver()->contains($hash), 'cache exists');
 
   $q->getResultCacheDriver()->deleteAll();
-  
+
   $t->ok(! $q->getResultCacheDriver()->contains($hash), 'cache removed');
 
   $t->is(
@@ -74,10 +74,10 @@
   );
 
   $connection->rollback();
-  
+
   $q->clearResultCache();
-  
-  
+
+
   # with sfCacheDisabledException
 
   $optionSfCache = sfConfig::get('sf_cache');
@@ -136,11 +136,11 @@
   );
 
   $connection->rollback();
-  
+
   sfConfig::set('sf_cache', $optionSfCache);
 
   $q->clearResultCache();
 
 
 
-  
+

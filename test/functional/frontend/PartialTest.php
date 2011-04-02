@@ -34,7 +34,7 @@
   );
 
   $t->is($r, '<p>This is partial content</p>', 'Content matches');
-  
+
   $taggingCache = $cacheManager->getTaggingCache();
 
   $taggingCache->setTag('A', 2);

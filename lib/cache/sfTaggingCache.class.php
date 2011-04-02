@@ -87,7 +87,7 @@
         if (isset($array[$firstKey]) && is_array($array[$firstKey]))
         {
           $lastKeys = substr($keyPath, $dotPosition + 1);
-          
+
           return $this->getArrayValueByKeyPath($lastKeys, $array[$firstKey]);
         }
       }
@@ -303,17 +303,17 @@
     {
       return $this->getDataCache()->getTimeout($key);
     }
-    
+
     /**
      * Returns "Time To Live" in seconds
-     * 
+     *
      * @param string $key
      * @return integer
      */
     public function getTTL ($key)
     {
       $timeout = $this->getTimeout($key);
-      
+
       return 0 == $timeout ? $this->getLifetime(null) : ($timeout - time());
     }
 
@@ -344,7 +344,7 @@
       $cacheMetadata = new CacheMetadata($this->getDataCache()->get($key));
 
       $data = $cacheMetadata->getData();
-      
+
       if (null === $data)
       {
         return false;
@@ -383,7 +383,7 @@
         $this->getLogger()->log($result ? 'S' : 's', $key);
 
         $this->setTags($tags);
-        
+
         $this->unlock($key);
       }
       else
@@ -482,7 +482,7 @@
       $result = $this->getTagsCache()->remove($key);
 
       $this->getLogger()->log($result ? 'E' : 'e', $key);
-      
+
       return $result;
     }
 
@@ -545,7 +545,7 @@
            * speed up multi tag selection from backend
            */
           $tagKeys = array_keys($fetchedCacheTags);
-          
+
           $storedTags = $this->getTagsCache()->getMany($tagKeys);
 
           /**

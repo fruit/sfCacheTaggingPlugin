@@ -1,5 +1,5 @@
 <?php
-  
+
   /*
    * This file is part of the sfCacheTaggingPlugin package.
    * (c) 2009-2011 Ilya Sabelnikov <fruit.dev@gmail.com>
@@ -15,7 +15,7 @@
   $browser = new sfTestFunctional(new sfBrowser());
 
   $browser->getAndCheck('blog_post', 'actionWithoutLayout', '/blog_post/actionWithoutLayout', 200);
-  
+
   $browser
     ->with('response')
     ->begin()

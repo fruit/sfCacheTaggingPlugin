@@ -32,7 +32,7 @@
 
       $template = $table->getTemplate($templateName);
       $template->setInvoker($this);
-      
+
       $table->setMethodOwner($method, $template);
 
       return $template;
@@ -104,7 +104,7 @@
     {
       return $this->getCachetaggable('obtainCollectionName')->obtainCollectionName();
     }
-    
+
     /**
      * @see Doctrine_Template_Cachetaggable::obtainCollectionVersion()
      * @return string

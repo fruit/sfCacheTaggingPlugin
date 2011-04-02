@@ -1,5 +1,5 @@
 <?php
-  
+
   /*
    * This file is part of the sfCacheTaggingPlugin package.
    * (c) 2009-2011 Ilya Sabelnikov <fruit.dev@gmail.com>

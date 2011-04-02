@@ -42,10 +42,10 @@ are not (atomic counter).
             $ cd plugins/sfCacheTaggingPlugin
             $ git pull origin master
             $ cd ../..
-            
+
  * Migrating
-            
-            $ ./symfony doctrine:migrate-generate-diff 
+
+            $ ./symfony doctrine:migrate-generate-diff
 
 ## New in v3.2.0:
 
@@ -53,12 +53,12 @@ are not (atomic counter).
   * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) [GH-8](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/8)
   * New: New methods in the sfComponent to add collection tags [GH-10](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/10)
   * Fixed: ``skipOnChange`` did not work properly
-  
+
 ## <font style="text-decoration: underline;">Quick</font> setup ##
 
  * Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``).
- 
- 
+
+
         [php]
         class ProjectConfiguration extends sfProjectConfiguration
         {
@@ -170,7 +170,7 @@ are not (atomic counter).
           <legend>Articles inside component</legend>
           <?php include_component('articles', 'listOfArticles'); ?>
         </fieldset>
-        
+
 ### How to cache components? (many-table, combining articles and comments 1:M relation)
 
   * Enable component caching in ``cache.yml``
@@ -198,7 +198,7 @@ are not (atomic counter).
             $this->articles = $articles;
           }
         }
-        
+
   * ``indexSuccess.php``
 
         [php]
@@ -225,10 +225,10 @@ are not (atomic counter).
           {
             $car = Doctrine::getTable('car')
               ->find($request->getParameter('id'));
-              
+
             $driver = Doctrine::getTable('driver')
               ->find($request->getParameter('driverId'));
-            
+
             $this->setPageTags($car);
             $this->addPageTags($driver);
 
@@ -263,7 +263,7 @@ are not (atomic counter).
 ### How to cache Doctrine_Records/Doctrine_Collections?
 
   * Does not depends on ``cache.yml`` file
-  
+
   * To cache objects/collection with its tags you have just to enable
     result cache by calling ``Doctrine_Query::useResultCache()``:
 

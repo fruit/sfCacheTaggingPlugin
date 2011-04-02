@@ -29,7 +29,7 @@
   {
     $t->pass('Exception InvalidArgumentException is thrown');
   }
-  
+
   $t->can_ok($obj, array(
     'updateObjectVersion',
     'getCacheTags',

@@ -25,6 +25,5 @@
   $t = new lime_test();
 
   $t->is($row, 1, 'Default value for "object_version" is 1');
-  
+
   $connection->rollback();
-  

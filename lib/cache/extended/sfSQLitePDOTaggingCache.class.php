@@ -81,7 +81,7 @@
       $stmt->execute();
 
       $rows = array();
-      
+
       while ($row = $stmt->fetch(PDO::FETCH_ASSOC))
       {
         $rows[$row['key']] = unserialize($row['data']);

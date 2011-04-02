@@ -99,7 +99,7 @@
       else # invalidate definitions
       {
         # do not call cascade - due to SET NULL only updates columns
-        
+
         # do not add tag, if its already on deletion list
         if (! array_key_exists($record->getOid(), $this->tagNamesToDelete))
         {
@@ -247,4 +247,3 @@
     }
   }
 
-  

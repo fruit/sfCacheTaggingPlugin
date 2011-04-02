@@ -33,7 +33,7 @@
     );
 
     /**
-     * Copy & pasted from Doctrine_Record::toArray() 
+     * Copy & pasted from Doctrine_Record::toArray()
      *
      * @var integer $_state the state of this record
      * @see Doctrine_Record::STATE_* constants
@@ -145,7 +145,7 @@
       );
 
       $tagHandler->addContentTags($invokerTags, $this->getInvokerNamespace());
-      
+
       if ($deep)
       {
         foreach ($invoker->getReferences() as $reference)
@@ -202,7 +202,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        
+
       }
 
       return false;
@@ -275,7 +275,7 @@
       }
       catch (sfCacheDisabledException $e)
       {
-        
+
       }
 
       return '1';
@@ -358,7 +358,7 @@
         if (null === $value)
         {
           $table->setAttribute($accessorOverrideFlag, $accessorOverrideAttribute);
-          
+
           throw new InvalidArgumentException(
             sprintf(
               'sfCacheTaggingPlugin: Object(%s) contains invalid value ' .
@@ -366,9 +366,9 @@
               $objectClassName, $columnName
             )
           );
-          
+
         }
-        
+
         $columnValues[] = $value;
       }
 

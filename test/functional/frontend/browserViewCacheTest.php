@@ -18,7 +18,7 @@
     ->with('view_cache')
     ->begin()
     ->isUriCached(
-      '@sf_cache_partial?' . 
+      '@sf_cache_partial?' .
         'module=blog_post&' .
         'action=_ten_posts_partial_cached&' .
         'sf_cache_key=index-page-ten-posts-enabled-partial',

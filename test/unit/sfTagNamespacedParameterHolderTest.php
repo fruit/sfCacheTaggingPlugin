@@ -1,5 +1,5 @@
 <?php
-  
+
   /*
    * This file is part of the sfCacheTaggingPlugin package.
    * (c) 2009-2011 Ilya Sabelnikov <fruit.dev@gmail.com>
@@ -67,7 +67,7 @@
     try
     {
       $h->set($arg1, $arg2);
-      $t->ok( ! $withException, 
+      $t->ok( ! $withException,
         sprintf(
           'arg1: %s=%s, arg2: %s=%s OK',
           gettype($arg1), $arg1, gettype($arg2), $arg2

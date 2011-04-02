@@ -13,10 +13,10 @@
 
   require_once
     sfConfig::get('sf_symfony_lib_dir') . '/../test/unit/cache/sfCacheDriverTests.class.php';
-  
+
   $t = new lime_test();
 
-  
+
   # Driver tests
 
   $t->diag('Symfony build-in cache driver tests');
@@ -46,7 +46,7 @@
     'dsn' => "sqlite::memory:",
   ));
 
-  
+
   # create dir "-r"
   $testDir = "{$dir}/content/storage/cache";
   $testFile = "{$testDir}/my.db";

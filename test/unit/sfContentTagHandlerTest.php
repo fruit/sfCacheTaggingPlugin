@@ -79,7 +79,7 @@
     $t->isa_ok($handler->getContentTags($namespace), 'array');
     $t->is(count($handler->getContentTags($namespace)), 0);
 
-    
+
     $handler->removeContentTags($namespace);
     $t->is(count($handler->getContentTags($namespace)), 0);
 

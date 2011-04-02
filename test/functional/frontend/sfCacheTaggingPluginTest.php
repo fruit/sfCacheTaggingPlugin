@@ -9,7 +9,7 @@
    */
 
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
-  
+
   $browser = new sfTestFunctional(new sfBrowser());
 
   define('PLUGIN_DATA_DIR', realpath(dirname(__FILE__) . '/../../data'));
@@ -19,7 +19,7 @@
   $sfContext = sfContext::getInstance();
 
   $sfContext->getConfiguration()->loadHelpers(array('Url'));
-  
+
   $sfEventDispatcher = $sfContext->getEventDispatcher();
   $cacheManager = $sfContext->getViewCacheManager();
 
@@ -96,7 +96,7 @@
   BlogPostTable::getInstance()->findAll()->delete();
   BlogPostCommentTable::getInstance()->findAll()->delete();
   BlogPostVoteTable::getInstance()->findAll()->delete();
-  
+
   Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml', true);
 
   foreach ($dataCacheSetups as $dataCache)
@@ -156,7 +156,7 @@
       sfConfig::set('sf_web_debug', $sfWebDebug);
 
       $connection->beginTransaction();
-      
+
       $t->is($taggingCache->get('posts'), false, '"posts" cache is empty');
 
       $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();

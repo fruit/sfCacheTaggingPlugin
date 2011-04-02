@@ -7,7 +7,7 @@
    * For the full copyright and license information, please view the LICENSE
    * file that was distributed with this source code.
    */
-  
+
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
 
   $browser = new sfTestFunctional(new sfBrowser());
@@ -58,7 +58,7 @@
 
 
   $t->diag('Build-in  cache driver');
-  
+
   $q = new Doctrine_Query_Cachetaggable();
   $q->from('BlogPost p')->useResultCache(new Doctrine_Cache_Array());
 

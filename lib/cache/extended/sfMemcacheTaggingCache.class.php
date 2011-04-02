@@ -19,7 +19,7 @@
     public function getCacheKeys ()
     {
       $keys = array();
-      
+
       foreach ($this->getCacheInfo() as $key)
       {
         $keys[] = substr($key, strlen($this->getOption('prefix')));

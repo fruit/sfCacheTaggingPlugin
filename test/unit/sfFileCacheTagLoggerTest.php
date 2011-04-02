@@ -42,7 +42,7 @@
   }
   catch (sfConfigurationException $e)
   {
-    $t->pass($e->getMessage()); 
+    $t->pass($e->getMessage());
   }
 
   # __constructor
@@ -124,5 +124,5 @@
   $fp = fopen(LOGS_FILE, 'r');
   $t->is(fgetc($fp), 'U');
   fclose($fp);
-  
+
   cleanLogDir();

@@ -1,5 +1,5 @@
 <?php
-  
+
   /*
    * This file is part of the sfCacheTaggingPlugin package.
    * (c) 2009-2011 Ilya Sabelnikov <fruit.dev@gmail.com>
@@ -29,7 +29,7 @@
   sfConfig::set('sf_cache', $option);
 
   # getModelTagNameSeparator
-  
+
   $t->is(sfCacheTaggingToolkit::getModelTagNameSeparator(), sfCache::SEPARATOR);
 
   $option = sfConfig::get('app_sfcachetaggingplugin_model_tag_name_separator');

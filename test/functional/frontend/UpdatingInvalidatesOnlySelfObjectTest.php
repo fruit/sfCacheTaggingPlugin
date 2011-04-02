@@ -34,7 +34,7 @@
 
   # obtainCollectionVersion 1
   $t->cmp_ok($banana->obtainCollectionVersion(), '>', $versionBeforeFoodCreated, 'Food version is higher then it could be before creation');
-  
+
   # obtainCollectionVersion 2
   $banana->setTitle('Tasty banana')->save();
   $t->is($bananaCollectionVersion, $banana->obtainCollectionVersion(), 'By updating banana collection version stays unchanged');
@@ -51,9 +51,9 @@
   # Delete with SoftDelete
   $eggsCollectionVersion = $eggs->obtainCollectionVersion();
   $eggs->delete();
-  
+
   $t->cmp_ok($eggsCollectionVersion, '<', $banana->obtainCollectionVersion(), 'Banana collection version increased when some other Food object is deleted (object)');
-  
+
   # obtainCollectionVersion 6
 
   $bananaCollectionVersion = $banana->obtainCollectionVersion();
