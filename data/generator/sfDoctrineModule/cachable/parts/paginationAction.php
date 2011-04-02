@@ -1,11 +1,7 @@
   protected function getPager()
   {
     $pager = $this->configuration->getPager('<?php echo $this->getModelClass() ?>');
-
-    $q = $this->buildQuery();
-    $q->useResultCache();
-
-    $pager->setQuery($q);
+    $pager->setQuery($this->buildQuery());
     $pager->setPage($this->getPage());
     $pager->init();
 

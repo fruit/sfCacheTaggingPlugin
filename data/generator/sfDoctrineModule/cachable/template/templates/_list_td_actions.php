@@ -6,9 +6,6 @@
 
 <?php elseif ('_edit' == $name): ?>
     <?php echo $this->addCredentialCondition('[?php echo $helper->linkToEdit($'.$this->getSingularName().', '.$this->asPhp($params).') ?]', $params) ?>
-<?php elseif (isset($params['is_helper']) && true == $params['is_helper']): ?>
-
-  <?php echo $this->addCredentialCondition('[?php echo $helper->linkTo'.sfInflector::camelize($name).'($'.$this->getSingularName().', '.$this->asPhp($params).') ?]', $params) ?>
 
 <?php else: ?>
     <li class="sf_admin_action_<?php echo $params['class_suffix'] ?>">

@@ -23,7 +23,7 @@
           'backend-form-module:%s-id:%d',
           '<?php echo $this->getModuleName() ?>',
           $sf_data->getRaw('form')->getObject()->getId()
-        ), 
+        ),
         'sf_cache_tags' => $form->getObject()->getCacheTags(),
       )
     ) ?]
