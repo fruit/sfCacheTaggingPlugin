@@ -41,13 +41,6 @@
     protected $_state = null;
 
     /**
-     * Unique key names buffer
-     *
-     * @var array
-     */
-    protected $objectIdentifiers = array();
-
-    /**
      * Object unique namespace name to store Doctrine_Record's tags
      *
      * @var string
@@ -305,22 +298,9 @@
 
       if (0 == count($uniqueColumns))
       {
-        if (! array_key_exists($objectClassName, $this->objectIdentifiers))
-        {
-          $uniqueColumns = $table->getIdentifierColumnNames();
+        $uniqueColumns = $table->getIdentifierColumnNames();
 
-          $keyFormat = str_repeat("{$separator}%s", count($uniqueColumns));
-
-          $this->objectIdentifiers[$objectClassName] = array(
-            $uniqueColumns,
-            $keyFormat
-          );
-        }
-        else
-        {
-          list($uniqueColumns, $keyFormat)
-            = $this->objectIdentifiers[$objectClassName];
-        }
+        $keyFormat = str_repeat("{$separator}%s", count($uniqueColumns));
       }
       else
       {
