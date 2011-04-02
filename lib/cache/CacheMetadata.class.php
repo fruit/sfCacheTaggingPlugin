@@ -38,13 +38,8 @@
         return;
       }
 
-      $data = isset($metadata['data'])
-        ? $metadata['data']
-        : null;
-
-      $tags = isset($metadata['tags'])
-        ? $metadata['tags']
-        : array();
+      $data = isset($metadata['data']) ? $metadata['data'] : null;
+      $tags = isset($metadata['tags']) ? $metadata['tags'] : array();
 
       $this->initialize($data, $tags);
     }

@@ -52,12 +52,12 @@ are not (atomic counter).
   * New: Cascading tag deletion through the model relations [GH-6](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/6)
   * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) [GH-8](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/8)
   * New: New methods in the sfComponent to add collection tags [GH-10](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/10)
+  * New: ``Doctrine_Record::link`` and ``Doctrine_Record::unlink`` updates refTable's tags
   * Fixed: ``skipOnChange`` did not work properly
 
 ## <font style="text-decoration: underline;">Quick</font> setup ##
 
  * Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``).
-
 
         [php]
         class ProjectConfiguration extends sfProjectConfiguration
@@ -68,6 +68,28 @@ are not (atomic counter).
             $this->enablePlugins('sfCacheTaggingPlugin');
           }
         }
+
+  * Change default model class ``sfDoctineRecord`` to ``sfCachetaggableDoctrineRecord``
+
+        [php]
+        <?php
+
+        class ProjectConfiguration extends sfProjectConfiguration
+        {
+          # …
+
+          public function configureDoctrine (Doctrine_Manager $manager)
+          {
+            sfConfig::set(
+              'doctrine_model_builder_options',
+              array('baseClassName' => 'sfCachetaggableDoctrineRecord')
+            );
+          }
+        }
+
+    And after, rebuild your models:
+
+        ./symfony doctrine:build-model
 
  * Setup ``/config/factories.yml``
 
@@ -313,18 +335,17 @@ are not (atomic counter).
 
   * In case, when model has translations (I18n behavior), it is enough to add
     ``Cachetaggable`` behavior to the root model. I18n behavior should be free from ``Cachetaggable`` behavior.
-  * linked/unlinked objects does not invalidate owner object (``Doctrine_Record::link``, ``Doctrine_Record::unlink``)
   * You can`t pass ``I18n`` table columns to the ``skipOnChange``.
   * Doctrine ``$q->count()`` can't be cached with tags
-  * Be careful with caching DQL with joined I18n tables.
+  * Be careful with joined I18n tables, cached result may differs from the expected.
     Due the [unresolved ticket](http://trac.symfony-project.org/ticket/7220) it *could be* impossible.
 
 ## TDD ##
 
   * Environment: PHP 5.3
   * Unit tests: 12
-  * Functional tests: 28
-  * Checks: 2446
+  * Functional tests: 29
+  * Checks: 2456
   * Code coverage: 97%
 
 ## Contribution ##

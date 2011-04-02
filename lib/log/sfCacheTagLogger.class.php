@@ -37,8 +37,7 @@
     protected $timeFormat = '%Y-%b-%d %T%z';
 
     /**
-     *
-     * @var <type>
+     * @var array
      */
     protected $options = array();
 
@@ -101,6 +100,8 @@
     }
 
     /**
+     * Returns the value by its name
+     *
      * @param string $name Option name
      * @param mixed  $default Return this value if option does not exists
      * @return mixed|null
@@ -134,6 +135,12 @@
       return (boolean) $this->doLog($char, $key);
     }
 
+    /**
+     * Retuns char explanation
+     *
+     * @param string $char
+     * @return string
+     */
     protected function explainChar ($char)
     {
       switch ($char)

@@ -116,6 +116,8 @@
         return array();
       }
 
+      $tagHandler = null;
+
       try
       {
         $tagHandler = $this->getContentTagHandler();
@@ -275,6 +277,73 @@
     }
 
     /**
+     * Suggests unique columns
+     *
+     * @return array
+     */
+    public function getOptionUniqueColumns ()
+    {
+      $uniqueColumns = (array) $this->getOption('uniqueColumn');
+
+      if (0 == count($uniqueColumns))
+      {
+        $invoker = $this->getInvoker();
+
+        $uniqueColumns = $invoker->getTable()->getIdentifierColumnNames();
+      }
+
+      return $uniqueColumns;
+    }
+
+    /**
+     * Buils key format for tag
+     *
+     * @param array $uniqueColumns
+     * @return string
+     */
+    public function getOptionKeyFormat ($uniqueColumns)
+    {
+      $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
+
+      $keyFormat = trim((string) $this->getOption('uniqueKeyFormat'));
+
+      if (! $keyFormat)
+      {
+        $keyFormat = '%s' . str_repeat("{$separator}%s", count($uniqueColumns));
+      }
+      else
+      {
+        $keyFormat = "%s{$separator}{$keyFormat}";
+      }
+
+      return $keyFormat;
+    }
+
+    /**
+     * Builds tag name by keyFormat and passed values
+     *
+     * @param string  $keyFormat
+     * @param array   $values
+     * @return string
+     */
+    public function buildTagKey ($keyFormat, array $values)
+    {
+      $invoker = $this->getInvoker();
+      $table = $invoker->getTable();
+
+      $objectClassName = $table->getClassnameToReturn();
+      $columnValues = array(
+        sfCacheTaggingToolkit::getBaseClassName($objectClassName)
+      );
+
+      $columnValues = array_merge($columnValues, $values);
+
+      return call_user_func_array(
+        'sprintf', array_merge(array($keyFormat), $columnValues)
+      );
+    }
+
+    /**
      * Retrieves object unique tag name based on its class
      *
      * @throws InvalidArgumentException
@@ -282,54 +351,21 @@
      */
     public function obtainTagName ()
     {
+      $uniqueColumns = $this->getOptionUniqueColumns();
+
+      $keyFormat = $this->getOptionKeyFormat($uniqueColumns);
+
       $invoker = $this->getInvoker();
-
       $table = $invoker->getTable();
-
-      $objectClassName = $table->getClassnameToReturn();
-
-      $columnValues = array(
-        sfCacheTaggingToolkit::getBaseClassName($objectClassName)
-      );
-
-      $uniqueColumns = (array) $this->getOption('uniqueColumn');
-
-      $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
-
-      if (0 == count($uniqueColumns))
-      {
-        $uniqueColumns = $table->getIdentifierColumnNames();
-
-        $keyFormat = str_repeat("{$separator}%s", count($uniqueColumns));
-      }
-      else
-      {
-        $keyFormat = $this->getOption('uniqueKeyFormat');
-
-        if (! $keyFormat)
-        {
-          $keyFormat = str_repeat("{$separator}%s", count($uniqueColumns));
-        }
-        else
-        {
-          $keyFormat = $separator . $keyFormat;
-        }
-      }
-
-      $keyFormat = '%s' . $keyFormat;
-
-      /**
-       * $keyFormat is now ~ "%s:%s:%s" => MyModel:2:3
-       */
 
       /**
        * Hack to speed-up Doctrine_Record::get()
        */
       $accessorOverrideFlag = Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE;
-
       $accessorOverrideAttribute = $table->getAttribute($accessorOverrideFlag);
-
       $table->setAttribute(Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE, false);
+
+      $columnValues = array();
 
       foreach ($uniqueColumns as $columnName)
       {
@@ -354,9 +390,7 @@
 
       $table->setAttribute($accessorOverrideFlag, $accessorOverrideAttribute);
 
-      return call_user_func_array(
-        'sprintf', array_merge(array($keyFormat), $columnValues)
-      );
+      return $this->buildTagKey($keyFormat, $columnValues);
     }
 
     /**

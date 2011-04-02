@@ -113,4 +113,95 @@
     {
       return $this->getCachetaggable('obtainCollectionVersion')->obtainCollectionVersion();
     }
+
+    /**
+     * Generates tags for refTable
+     *
+     * @param string    $alias
+     * @param array     $ids
+     * @return boolean
+     */
+    protected function getTagNamesByAlias ($alias, $ids)
+    {
+      if (0 == count($ids))
+      {
+        return;
+      }
+
+      $relation = $this->getTable()->getRelation($alias);
+
+      if (! $relation instanceof Doctrine_Relation_Association)
+      {
+        return;
+      }
+
+      /* @var $refTable Doctrine_Table */
+      $refTable = $relation->getAssociationTable();
+
+      if (! $refTable->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
+      {
+        return;
+      }
+
+      $template = $refTable->getTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME);
+
+      $values = array();
+
+      foreach ($ids as $id)
+      {
+        foreach ($refTable->getIdentifierColumnNames() as $columnName)
+        {
+          if ($relation->getLocal() == $columnName)
+          {
+            $values[$id][$columnName] = $this->getPrimaryKey();
+          }
+          else
+          {
+            $values[$id][$columnName] = $id;
+          }
+        }
+      }
+
+      $uniqueColumns = $template->getOptionUniqueColumns();
+      $keyFormat = $template->getOptionKeyFormat($uniqueColumns);
+
+      $tagNames = array();
+
+      foreach ($values as $columnValues)
+      {
+        $tagName = $template->buildTagKey($keyFormat, array_values($columnValues));
+
+        $tagNames[$tagName] = true;
+      }
+
+      return $tagNames;
+    }
+
+    public function link ($alias, $ids, $now = false)
+    {
+      $self = parent::link($alias, $ids, $now);
+
+      $tagNames = $this->getTagNamesByAlias($alias, $ids);
+
+      if ($tagNames)
+      {
+        sfCacheTaggingToolkit::getTaggingCache()->invalidateTags($tagNames);
+      }
+
+      return $self;
+    }
+
+    public function unlink ($alias, $ids = array(), $now = false)
+    {
+      $self = parent::unlink($alias, $ids, $now);
+
+      $tagNames = $this->getTagNamesByAlias($alias, $ids);
+
+      if ($tagNames)
+      {
+        sfCacheTaggingToolkit::getTaggingCache()->deleteTags($tagNames);
+      }
+
+      return $self;
+    }
   }

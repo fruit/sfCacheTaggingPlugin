@@ -24,7 +24,6 @@
      * @throws sfCacheDisabledException         when "sf_cache" is OFF
      * @throws sfCacheMissingContextException   if context is not initialized
      * @throws sfConfigurationException         on plugin configuration issues
-     *
      * @return sfTaggingCache
      */
     public static function getTaggingCache ()
@@ -110,6 +109,8 @@
      */
     public static function formatTags ($argument)
     {
+      $tagsToReturn = null;
+      
       if (false === $argument)
       {
         $tagsToReturn = array();
@@ -222,8 +223,8 @@
      * Useful, when backend works with classes prefixed by "Backend*Models"
      * and frontend with "Frontend*Models", and tags should be equal to "Models"
      *
-     * @staticvar array $classNames stores function calls results
-     * @param string $className get_class of Doctrine_Record's model
+     * @staticvar array   $classNames   stores function calls results
+     * @param     string  $className    get_class of Doctrine_Record's model
      * @return string
      */
     public static function getBaseClassName ($className)

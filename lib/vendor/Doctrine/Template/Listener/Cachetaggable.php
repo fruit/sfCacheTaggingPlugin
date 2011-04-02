@@ -60,7 +60,6 @@
      * __construct
      *
      * @param array $options
-     * @return null
      */
     public function __construct(array $options)
     {
@@ -268,6 +267,8 @@
         return;
       }
 
+      $taggingCache = null;
+
       try
       {
         $taggingCache = $this->getTaggingCache();
@@ -326,6 +327,8 @@
      */
     public function preDqlUpdate (Doctrine_Event $event)
     {
+      $taggingCache = null;
+
       try
       {
         $taggingCache = $this->getTaggingCache();
@@ -423,6 +426,8 @@
      */
     public function preDqlDelete (Doctrine_Event $event)
     {
+      $taggingCache = null;
+
       try
       {
         $taggingCache = $this->getTaggingCache();

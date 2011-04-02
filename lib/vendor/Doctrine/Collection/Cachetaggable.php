@@ -102,6 +102,8 @@
 
       $namespace = $this->getNamespace();
 
+      $tagHandler = null;
+
       try
       {
         $taggingCache = $this->getTaggingCache();
@@ -119,8 +121,6 @@
       {
         foreach ($this as $object)
         {
-          $objectVersion = $object->obtainObjectVersion();
-
           $tags = $object->getCacheTags($deep);
 
           $tagHandler->addContentTags($tags, $namespace);

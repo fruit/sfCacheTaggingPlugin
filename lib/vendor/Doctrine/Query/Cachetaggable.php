@@ -18,7 +18,6 @@
    * @subpackage doctrine
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    * @param array $params
-   * @return Doctrine_Collection the root collection
    */
   class Doctrine_Query_Cachetaggable extends Doctrine_Query
   {
@@ -33,6 +32,8 @@
       // Clean any possible processed params
       $this->_execParams = array();
 
+      $result = null;
+      
       if (empty($this->_dqlParts['from']) && empty($this->_sqlParts['from']))
       {
         throw new Doctrine_Query_Exception(

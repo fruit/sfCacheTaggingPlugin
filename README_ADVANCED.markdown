@@ -225,6 +225,12 @@
             # (default: [])
             object_class_tag_name_provider: []
 
+            # This class responses to save/fetch data and tags
+            # from/to cache with custom serialization/de-serialization
+            # (default: "CacheMetadata")
+            metadata_class: CacheMetadata
+
+
 
 ## Hacks / Enhancements / Recommendations
 
@@ -267,7 +273,9 @@
     One of solutions to create direct proxy methods to ``Doctrine_Template_Cachetaggable`` class.
 
     By extending ``sfDoctrineRecord`` class with build-in ``sfCachetaggableDoctrineRecord``
-    we make frequently used methods as proxy (i.e. faster):
+    we make frequently used methods as proxy (i.e. faster).
+
+    Since v3.1.2 this is required setup for plugin users.
 
         [php]
         <?php
@@ -287,4 +295,4 @@
 
     And REMEMBER TO rebuild your models after this changes:
 
-        ./symfony doctrine:build-model --env=YOUR_ENV
+        ./symfony doctrine:build-model
