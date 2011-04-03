@@ -1,11 +1,11 @@
-# sfCacheTaggingPlugin #
+# sfCacheTaggingPlugin
 
 The ``sfCacheTaggingPlugin`` is a ``Symfony`` plugin, that helps to store cache with
 associated tags and to keep cache content up-to-date based by incrementing tag
 version when cache objects are edited/removed or new objects are ready to be a
 part of cache content.
 
-## Description ##
+## Description
 
 Tagging a cache is a concept that was invented in the same time by many developers
 ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/)
@@ -13,7 +13,7 @@ and, perhaps, by somebody else)
 
 This software was developed inspired by Andrey Smirnoff's theoretical work
 ["Cache tagging with Memcached (on Russian)"](http://www.smira.ru/tag/memcached/).
-Some ideas are implemented in the real world (e.g. tag versions based on datetime
+Some ideas are implemented in the real world (e.i. tag versions based on datetime
 and micro time, cache hit/set logging, cache locking) and part of them
 are not (atomic counter).
 
@@ -49,97 +49,100 @@ are not (atomic counter).
 
 ## New in v3.2.0:
 
+  * Update: Many changes in API
   * New: Cascading tag deletion through the model relations [GH-6](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/6)
   * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) [GH-8](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/8)
   * New: New methods in the sfComponent to add collection tags [GH-10](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/10)
   * New: ``Doctrine_Record::link`` and ``Doctrine_Record::unlink`` updates refTable's tags
   * Fixed: ``skipOnChange`` did not work properly
 
-## <font style="text-decoration: underline;">Quick</font> setup ##
+# <font style="text-decoration: underline;">Quick</font> setup ##
 
- * Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``).
+  _After quick setup you may be interested in advanced setup (file: **README_ADVANCED**)._
 
-        [php]
-        class ProjectConfiguration extends sfProjectConfiguration
-        {
-          public function setup ()
-          {
-            # … other plugins
-            $this->enablePlugins('sfCacheTaggingPlugin');
-          }
-        }
+## Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``).
 
-  * Change default model class ``sfDoctineRecord`` to ``sfCachetaggableDoctrineRecord``
+    [php]
+    class ProjectConfiguration extends sfProjectConfiguration
+    {
+      public function setup ()
+      {
+        # … other plugins
+        $this->enablePlugins('sfCacheTaggingPlugin');
+      }
+    }
 
-        [php]
-        <?php
+## Change default model class ``sfDoctineRecord`` to ``sfCachetaggableDoctrineRecord``
 
-        class ProjectConfiguration extends sfProjectConfiguration
-        {
-          # …
+    [php]
+    <?php
 
-          public function configureDoctrine (Doctrine_Manager $manager)
-          {
-            sfConfig::set(
-              'doctrine_model_builder_options',
-              array('baseClassName' => 'sfCachetaggableDoctrineRecord')
-            );
-          }
-        }
+    class ProjectConfiguration extends sfProjectConfiguration
+    {
+      # …
 
-    And after, rebuild your models:
+      public function configureDoctrine (Doctrine_Manager $manager)
+      {
+        sfConfig::set(
+          'doctrine_model_builder_options',
+          array('baseClassName' => 'sfCachetaggableDoctrineRecord')
+        );
+      }
+    }
 
-        ./symfony doctrine:build-model
+And after, rebuild your models:
 
- * Setup ``/config/factories.yml``
+    ./symfony doctrine:build-model
 
-        all:
-          view_cache:
-            class: sfTaggingCache
+## Setup ``/config/factories.yml``
+
+    all:
+      view_cache:
+        class: sfTaggingCache
+        param:
+          data:
+            class: sfFileTaggingCache
             param:
-              data:
-                class: sfFileTaggingCache
-                param:
-                  automatic_cleaning_factor: 0
-                  cache_dir: %SF_CACHE_DIR%/sf_tag_cache/data
-              tags:
-                class: sfFileTaggingCache
-                param:
-                  automatic_cleaning_factor: 0
-                  cache_dir: %SF_CACHE_DIR%/sf_tag_cache/tags
-              logger:
-                class: sfFileCacheTagLogger
-                param:
-                  file: %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
-                  format: "%char% %microtime% %key%%EOL%"
+              automatic_cleaning_factor: 0
+              cache_dir: %SF_CACHE_DIR%/sf_tag_cache/data
+          tags:
+            class: sfFileTaggingCache
+            param:
+              automatic_cleaning_factor: 0
+              cache_dir: %SF_CACHE_DIR%/sf_tag_cache/tags
+          logger:
+            class: sfFileCacheTagLogger
+            param:
+              file: %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
+              format: "%char% %microtime% %key%%EOL%"
 
-          view_cache_manager:
-            class: sfViewCacheTagManager
+      view_cache_manager:
+        class: sfViewCacheTagManager
 
 
 
- * Add "Cachetaggable" behavior to the each model you want to cache
+ ## Add "Cachetaggable" behavior to the each model you want to cache
 
-        Article:
-          tableName: articles
-          actAs:
-            Cachetaggable: ~
+    Article:
+      tableName: articles
+      actAs:
+        Cachetaggable: ~
 
- * Enable cache in all applications ``settings.yml`` and declare required helpers:
+## Enable cache in all applications ``settings.yml`` and declare required helpers:
 
-        dev:
-          .settings:
-            cache: true
+    dev:
+      .settings:
+        cache: true
 
-        all:
-          .settings:
-            standard_helpers:
-              - Partial
-              - Cache
+    all:
+      .settings:
+        standard_helpers:
+          - Partial
+          - Cache
 
-## Usage ##
+# Usage
 
-### How to cache partials?
+## How to cache partials?
 
   * Enable cache in ``cache.yml``:
 
@@ -157,7 +160,7 @@ are not (atomic counter).
           'sf_cache_tags' => $articles->getCacheTags(),
         )) ?>
 
-### How to cache components? (one-table)
+## How to cache components? (one-table)
 
   * Enable component caching in ``cache.yml``:
 
@@ -179,7 +182,7 @@ are not (atomic counter).
               ->limit(3)
               ->execute();
 
-            $this->setPartialTags($articles);
+            $this->setContentTags($articles);
 
             $this->articles = $articles;
           }
@@ -193,7 +196,7 @@ are not (atomic counter).
           <?php include_component('articles', 'listOfArticles'); ?>
         </fieldset>
 
-### How to cache components? (many-table, combining articles and comments 1:M relation)
+## How to cache components? (many-table, combining articles and comments 1:M relation)
 
   * Enable component caching in ``cache.yml``
 
@@ -215,7 +218,7 @@ are not (atomic counter).
               ->limit(3)
               ->execute();
 
-            $this->setPartialTags($articles);
+            $this->setContentTags($articles);
 
             $this->articles = $articles;
           }
@@ -230,7 +233,7 @@ are not (atomic counter).
         </fieldset>
 
 
-### How to cache action with layout?
+## How to cache action with layout?
 
   * Enable caching in ``cache.yml``:
 
@@ -251,15 +254,15 @@ are not (atomic counter).
             $driver = Doctrine::getTable('driver')
               ->find($request->getParameter('driverId'));
 
-            $this->setPageTags($car);
-            $this->addPageTags($driver);
+            $this->setContentTags($car);
+            $this->addContentTags($driver);
 
             $this->car = $car;
             $this->driver = $driver;
           }
         }
 
-### How to cache action _without_ layout?
+## How to cache action _without_ layout?
 
   * Enable cache in ``cache.yml``:
 
@@ -276,13 +279,13 @@ are not (atomic counter).
           {
             $car = Doctrine::getTable('car')->find($request->getParameter('id'));
 
-            $this->setActionTags($car);
+            $this->setContentTags($car);
 
             $this->car = $car;
           }
         }
 
-### How to cache Doctrine_Records/Doctrine_Collections?
+## How to cache Doctrine_Records/Doctrine_Collections?
 
   * Does not depends on ``cache.yml`` file
 
@@ -331,7 +334,7 @@ are not (atomic counter).
           }
         }
 
-## Limitations / Specificity ##
+# Limitations / Specificity
 
   * In case, when model has translations (I18n behavior), it is enough to add
     ``Cachetaggable`` behavior to the root model. I18n behavior should be free from ``Cachetaggable`` behavior.
@@ -340,15 +343,15 @@ are not (atomic counter).
   * Be careful with joined I18n tables, cached result may differs from the expected.
     Due the [unresolved ticket](http://trac.symfony-project.org/ticket/7220) it *could be* impossible.
 
-## TDD ##
+# TDD
 
   * Environment: PHP 5.3
   * Unit tests: 12
   * Functional tests: 29
-  * Checks: 2456
+  * Checks: 1950
   * Code coverage: 97%
 
-## Contribution ##
+# Contribution
 
 * [Repository (GitHub)](http://github.com/fruit/sfCacheTaggingPlugin "Repository (GitHub)")
 * [Issues (GitHub)](http://github.com/fruit/sfCacheTaggingPlugin/issues "Issues")

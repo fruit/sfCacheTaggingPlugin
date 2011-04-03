@@ -31,36 +31,30 @@
     protected $component;
 
     /**
+     * @var sfContext
+     */
+    protected $context;
+
+    /**
+     * @var string
+     */
+    protected $namespace = null;
+
+    /**
+     * List of allowed methods to call.
+     * Its made so, due to is_callable(array('sfContentTagHandler', $method))
+     * throws sfCacheDisabledException
+     *
      * @var array
      */
     protected $allowedCallMethods = array(
-      sfViewCacheTagManager::NAMESPACE_ACTION => array(
-        'setActionTags',
-        'addActionTags',
-        'getActionTags',
-        'removeActionTags',
-        'setActionTag',
-        'hasActionTag',
-        'removeActionTag',
-      ),
-      sfViewCacheTagManager::NAMESPACE_PARTIAL => array(
-        'setPartialTags',
-        'addPartialTags',
-        'getPartialTags',
-        'removePartialTags',
-        'setPartialTag',
-        'hasPartialTag',
-        'removePartialTag',
-      ),
-      sfViewCacheTagManager::NAMESPACE_PAGE => array(
-        'setPageTags',
-        'addPageTags',
-        'getPageTags',
-        'removePageTags',
-        'setPageTag',
-        'hasPageTag',
-        'removePageTag',
-      ),
+      'setContentTags',
+      'addContentTags',
+      'getContentTags',
+      'removeContentTags',
+      'setContentTag',
+      'hasContentTag',
+      'removeContentTag'
     );
 
     /**
@@ -69,6 +63,7 @@
     public function __construct (sfComponent $component)
     {
       $this->component = $component;
+      $this->context = $component->getContext();
     }
 
     /**
@@ -81,76 +76,119 @@
     }
 
     /**
-     * Magic method __call
+     * Detects content type and returns relevent namespace name
      *
-     *    If user calls:
-     *        $this->setActionTags($tags);
-     *    transform it to:
-     *        $this->setContentTags(
-     *          $tags, sfViewCacheTagManager::NAMESPACE_ACTION
-     *        );
-     *
-     *    If user calls:
-     *       $this->hasPageTag();
-     *    transform it to:
-     *       $this->hasContentTag(sfViewCacheTagManager::NAMESPACE_PAGE);
+     * @return string
+     */
+    protected function autoDetectNamespace ()
+    {
+      $component = $this->component;
+      $context   = $this->context;
+
+      /**
+       * Auto-detect component type:
+       *  - Action with layout
+       *  - Action without layout
+       *  - Component
+       */
+      if ($component instanceof sfAction)
+      {
+        $viewManager = $context->getViewCacheManager();
+
+        $uri = $viewManager->getCurrentCacheKey();
+
+        if ($viewManager->withLayout($uri))
+        {
+          return sfViewCacheTagManager::NAMESPACE_PAGE;
+        }
+        else
+        {
+          return sfViewCacheTagManager::NAMESPACE_ACTION;
+        }
+      }
+      else
+      {
+        return sfViewCacheTagManager::NAMESPACE_PARTIAL;
+      }
+    }
+
+    /**
+     * Magic method __call to proxy extra methods
      *
      * @param string  $method
      * @param array   $arguments
-     * @throws BadMethodCallException
+     * @throws
+     *    BadMethodCallException    When method is invalid (even cache is off)
+     *    sfCacheDisabledException  When sf_cache is turned off
      * @return null|array|boolean
      */
     public function __call ($method, $arguments)
     {
-      $contentNamespace = null;
-
-      foreach ($this->allowedCallMethods as $namespace => $methods)
-      {
-        if (in_array($method, $methods))
-        {
-          $contentNamespace = $namespace;
-
-          break;
-        }
-      }
-
-      if (null === $contentNamespace)
+      if (! in_array($method, $this->allowedCallMethods))
       {
         throw new BadMethodCallException(sprintf(
           'Method "%s" does not exists in %s', $method, get_class($this)
         ));
       }
 
-      $storeInNamespace = $contentNamespace;
+      if (! sfConfig::get('sf_cache'))
+      {
+        throw new sfCacheDisabledException('Cache "sf_cache" is disabled');
+      }
+
+      $namespace = $this->autoDetectNamespace();
+
+      $storeInNamespace = $namespace;
 
       /**
        * Using partial-in-partial tags should not be overwriten
        */
-      if (sfViewCacheTagManager::NAMESPACE_PARTIAL == $contentNamespace)
+      if (sfViewCacheTagManager::NAMESPACE_PARTIAL == $namespace)
       {
         $storeInNamespace = sprintf(
           '%s-_%s-%s',
           $this->component->getModuleName(),
           $this->component->getActionName(),
-          $contentNamespace
+          $namespace
         );
       }
 
+      $contentHandler = $this->getTaggingCache()->getContentTagHandler();
+
+      $callable = new sfCallableArray(array($contentHandler, $method));
+
       array_push($arguments, $storeInNamespace);
 
-      $nsLength = strlen($contentNamespace);
-
-      # transforms "getPageTag" to "getContentTag"
-      $contentAbstractMethod = substr_replace(
-        $method, 'Content', strpos($method, $contentNamespace), $nsLength
-      );
-
-      $callable = new sfCallableArray(array(
-        $this->getTaggingCache()->getContentTagHandler(),
-        $contentAbstractMethod
-      ));
-
       return $callable->callArray($arguments);
+    }
+
+    /**
+     * Disables on fly action cache
+     *
+     * @param string $moduleName
+     * @param string $actionName
+     * @return boolean
+     */
+    public function disableCache ($moduleName = null, $actionName = null)
+    {
+      if (! sfConfig::get('sf_cache'))
+      {
+        return false;
+      }
+
+      if (! $moduleName && ! $actionName)
+      {
+        $moduleName = $this->component->getModuleName();
+        $actionName = $this->component->getActionName();
+      }
+
+      $this
+        ->context
+        ->getViewCacheManager()
+        ->disableCache($moduleName, $actionName)
+      ;
+
+      return true;
     }
 
     /**

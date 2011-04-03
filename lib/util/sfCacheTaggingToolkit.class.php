@@ -17,8 +17,7 @@
    */
   class sfCacheTaggingToolkit
   {
-    const NAMESPACE_CACHE_TAGS = 'symfony.cache.tags';
-    const TEMPLATE_NAME        = 'Cachetaggable';
+    const TEMPLATE_NAME = 'Cachetaggable';
 
     /**
      * @throws sfCacheDisabledException         when "sf_cache" is OFF
@@ -110,7 +109,7 @@
     public static function formatTags ($argument)
     {
       $tagsToReturn = null;
-      
+
       if (false === $argument)
       {
         $tagsToReturn = array();

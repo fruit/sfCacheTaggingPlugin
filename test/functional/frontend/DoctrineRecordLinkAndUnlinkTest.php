@@ -20,18 +20,26 @@
   $con = Doctrine_Manager::getInstance()->getConnection('doctrine');
   $con->beginTransaction();
 
+  $site = RelSiteTable::getInstance()->find(1);
+  $site->link('Category', array(2));
+  $site->save();
+
+  $t->is($site->getCultures()->count(), 3, 'linking incorrect alias');
+  $t->is($site->getCategory()->getId(), 2, 'linking still work for other relations');
+  $con->rollback();
+
   # update all tags
   $sfTagger->clean();
   RelSiteCultureTable::getInstance()->createQuery()->useResultCache()->execute();
 
   $con->beginTransaction();
   $site = RelSiteTable::getInstance()->find(1);
-  $site->unlink('RelCultures', $ids = array(1, 2, 5));
+  $site->unlink('Cultures', $ids = array(1, 2, 5));
   $site->save();
   foreach ($ids as $id)
   {
     $tagName = sprintf('RelSiteCulture:%d:%d', $id, 1);
-    $t->ok(! $sfTagger->hasTag($tagName), sprintf("Tag `%s` is removed", $tagName));
+    $t->ok(! $sfTagger->hasTag($tagName), sprintf("Tag `%s` is removed (Cultures)", $tagName));
   }
   $con->rollback();
 
@@ -39,12 +47,12 @@
   RelSiteCultureTable::getInstance()->createQuery()->useResultCache()->execute();
 
   $con->beginTransaction();
-  $site->link('RelCultures', $ids = array(3, 4));
+  $site->link('Cultures', $ids = array(3, 4));
   $site->save();
   foreach ($ids as $id)
   {
     $tagName = sprintf('RelSiteCulture:%d:%d', $id, 1);
-    $t->ok($sfTagger->hasTag($tagName), sprintf("Tag `%s` is created", $tagName));
+    $t->ok($sfTagger->hasTag($tagName), sprintf("Tag `%s` is created (Cultures)", $tagName));
   }
   $con->rollback();
 
@@ -53,27 +61,39 @@
 
   $con->beginTransaction();
   $culture = RelCultureTable::getInstance()->find(1);
-  $culture->unlink('RelSites', $ids = array(1, 3));
+  $culture->unlink('Sites', $ids = array(1, 3));
   $culture->save();
   foreach ($ids as $id)
   {
     $tagName = sprintf('RelSiteCulture:%d:%d', 1, $id);
-    $t->ok(! $sfTagger->hasTag($tagName), sprintf("Tag `%s` is removed", $tagName));
+    $t->ok(! $sfTagger->hasTag($tagName), sprintf("Tag `%s` is removed (Sites)", $tagName));
   }
   $con->rollback();
 
 
   $sfTagger->clean();
-  RelSiteCultureTable::getInstance()->createQuery()->useResultCache()->execute();
+  $cultures = RelSiteCultureTable::getInstance()->createQuery()->useResultCache()->execute();
 
   $con->beginTransaction();
   $culture = RelCultureTable::getInstance()->find(1);
-  $culture->link('RelSites', $ids = array(1, 3, 4));
+  $culture->link('Sites', $ids = array(2, 4));
   $culture->save();
   foreach ($ids as $id)
   {
-    $tagName = sprintf('RelSiteCulture:%d:%d', $id, 1);
-    $t->ok($sfTagger->hasTag($tagName), sprintf("Tag `%s` is created", $tagName));
+    $tagName = sprintf('RelSiteCulture:%d:%d', 1, $id);
+    $t->ok($sfTagger->hasTag($tagName), sprintf("Tag `%s` is created (Sites)", $tagName));
   }
+  $con->rollback();
 
+  $con->beginTransaction();
+  $culture = RelCultureTable::getInstance()->find(1);
+  $culture->link('Sites', $ids = array());
+  $culture->save();
+  foreach ($cultures as $culture)
+  {
+    $t->ok(
+      $sfTagger->hasTag($culture->obtainTagName()),
+      sprintf("Tag `%s` still there", $culture->obtainTagName())
+    );
+  }
   $con->rollback();

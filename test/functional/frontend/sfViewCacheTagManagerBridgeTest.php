@@ -23,66 +23,61 @@
   $bridge = new sfViewCacheTagManagerBridge($action);
 
   $validPatternMethods = array(
-    'get%sTags' => array(),
-    'set%sTags' => array(array('A' => sfCacheTaggingToolkit::generateVersion())),
-    'add%sTags' => array(array('B' => sfCacheTaggingToolkit::generateVersion())),
-    'remove%sTags' => array(),
-    'has%sTag' => array('A'),
-    'set%sTag' => array('C', sfCacheTaggingToolkit::generateVersion()),
-    'remove%sTag' => array('C'),
+    'getContentTags' => array(),
+    'setContentTags' => array(array('A' => sfCacheTaggingToolkit::generateVersion())),
+    'addContentTags' => array(array('B' => sfCacheTaggingToolkit::generateVersion())),
+    'removeContentTags' => array(),
+    'hasContentTag' => array('A'),
+    'setContentTag' => array('C', sfCacheTaggingToolkit::generateVersion()),
+    'removeContentTag' => array('C'),
   );
 
   $invalidPatternMethods = array(
-    array('get%sTaags', array()),
-    array('set%sTags', array(1)),
-    array('set%sTags', array(new stdClass())),
-    array('add%sTags', array(1)),
-    array('add%sTags', array('aaaa')),
-    array('add%sTags', array(null)),
-    array('removeMy%sTags', array()),
-    array('set%sTag', array('MyTag', array())),
-    array('set%sTag', array('MyTag', new stdClass())),
-    array('remove%sTag', array(null)),
-    array('remove%sTag', array(3)),
-    array('remove%sTag', array(new stdClass())),
+    array('getContentTaags', array()),
+    array('setContentTags', array(1)),
+    array('setContentTags', array(new stdClass())),
+    array('addContentTags', array(1)),
+    array('addContentTags', array('aaaa')),
+    array('addContentTags', array(null)),
+    array('removeMyContentTags', array()),
+    array('setContentTag', array('MyTag', array())),
+    array('setContentTag', array('MyTag', new stdClass())),
+    array('removeContentTag', array(null)),
+    array('removeContentTag', array(3)),
+    array('removeContentTag', array(new stdClass())),
     array('callMe', array()),
   );
 
-  foreach (sfViewCacheTagManager::getNamespaces() as $namespace)
+  foreach ($validPatternMethods as $method => $arguments)
   {
-    foreach ($validPatternMethods as $patternMethod => $arguments)
+    try
     {
-      $method = sprintf($patternMethod, $namespace);
+      $c = new sfCallableArray(array($bridge, $method));
+      $c->callArray($arguments);
 
-      try
-      {
-        $c = new sfCallableArray(array($bridge, $method));
-        $c->callArray($arguments);
-
-        $t->pass(sprintf('Calling a valid method %s()', $method));
-      }
-      catch (Exception $e)
-      {
-        $t->fail(sprintf('Calling a valid method %s(). Catched "%s" with messsage: %s', $method, get_class($e), $e->getMessage()));
-      }
+      $t->pass(sprintf('Calling a valid method %s()', $method));
     }
-
-    foreach ($invalidPatternMethods as $callable)
+    catch (Exception $e)
     {
-      $method = sprintf($callable[0], $namespace);
+      $t->fail(sprintf('Calling a valid method %s(). Catched "%s" with messsage: %s', $method, get_class($e), $e->getMessage()));
+    }
+  }
 
-      $arguments = $callable[1];
-      try
-      {
-        $c = new sfCallableArray(array($bridge, $method));
-        $c->callArray($arguments);
+  foreach ($invalidPatternMethods as $callable)
+  {
+    $method = sprintf($callable[0], $namespace);
 
-        $t->fail(sprintf('Calling a invalid method %s()', $method));
-      }
-      catch (Exception $e)
-      {
-        $t->pass(sprintf('Calling a invalid method %s(). Catched "%s" with messsage: %s', $method, get_class($e), $e->getMessage()));
-      }
+    $arguments = $callable[1];
+    try
+    {
+      $c = new sfCallableArray(array($bridge, $method));
+      $c->callArray($arguments);
+
+      $t->fail(sprintf('Calling a invalid method %s()', $method));
+    }
+    catch (Exception $e)
+    {
+      $t->pass(sprintf('Calling a invalid method %s(). Catched "%s" with messsage: %s', $method, get_class($e), $e->getMessage()));
     }
   }
 
@@ -156,23 +151,23 @@
   $posts->delete();
 
   $posts = BlogPostTable::getInstance()->findAll();
-  $bridge->addPartialTags($posts);
+  $bridge->addContentTags($posts);
 
   $postTagKey = BlogPostTable::getInstance()->getClassnameToReturn();
   $postCollectionTag = array("{$postTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
 
   $t->is(
-    $bridge->getPartialTags(),
+    $bridge->getContentTags(),
     $postCollectionTag,
     'Tags stored in manager are full/same'
   );
 
-  $bridge->addPartialTags(
+  $bridge->addContentTags(
     array('SomeTag' => 1234567890)
   );
 
   $t->is(
-    $bridge->getPartialTags(),
+    $bridge->getContentTags(),
     array_merge(
       array('SomeTag' => 1234567890),
       $postCollectionTag
@@ -180,21 +175,27 @@
     'Tags with new tag are successfully saved'
   );
 
-  $bridge->removePartialTags();
+  $bridge->removeContentTags();
 
   $t->is(
-    $bridge->getPartialTags(),
+    $bridge->getContentTags(),
     array(),
     'All tags are cleared'
   );
 
+
+  $t->is($bridge->disableCache(), true, 'Disabled default controllers module and action');
+  $t->is($bridge->disableCache('blog_post', 'index'), true, 'Disabled blog_post/index to cache');
+
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
+
+  $t->is($bridge->disableCache('blog_post'), false, 'Return false, if cache is disabled');
 
   # existing method, with disabled cache
   try
   {
-    $t->is(null, $bridge->addActionTags(array('Tag:1' => sfCacheTaggingToolkit::generateVersion())));
+    $t->is(null, $bridge->addContentTags(array('Tag:1' => sfCacheTaggingToolkit::generateVersion())));
     $t->fail('Exception sfCacheDisabledException not thrown');
   }
   catch (sfCacheDisabledException $e)
@@ -211,6 +212,12 @@
   catch (BadMethodCallException $e)
   {
     $t->pass('BadMethodCallException cached when calling unknown method unknownMethod()');
+  }
+  catch (Exception $e)
+  {
+    $t->fail(sprintf(
+      'Cached incorrect exception (%s): %s', get_class($e), $e->getMessage()
+    ));
   }
 
   sfConfig::set('sf_cache', $optionSfCache);

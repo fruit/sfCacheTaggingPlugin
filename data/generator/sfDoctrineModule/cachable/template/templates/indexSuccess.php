@@ -23,15 +23,16 @@
 
     [?php include_partial('<?php echo $this->getModuleName() ?>/list', array(
       'pager' => $pager,
+      'results' => $results,
       'sort' => $sort,
       'helper' => $helper,
       'sf_cache_key' => sprintf(
-        'backend-list-module:%s-pager:%s-sorting:%s',
+        'backend-list-module:%s-page:%s-sorting:%s',
         '<?php echo $this->getModuleName() ?>',
-        sha1(serialize($pager)),
-        sha1(serialize($sort))
+        md5(serialize(sfOutputEscaper::unescape($pager))),
+        http_build_query(sfOutputEscaper::unescape($sort), '', ':')
       ),
-      'sf_cache_tags' => $pager->getResults()->getCacheTags(),
+      'sf_cache_tags' => $results->getCacheTags(),
     )) ?]
 
     <ul class="sf_admin_actions">

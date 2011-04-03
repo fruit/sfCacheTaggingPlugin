@@ -203,6 +203,14 @@
     }
 
     /**
+     * @return sfController
+     */
+    protected function getController ()
+    {
+      return $this->controller;
+    }
+
+    /**
      * Due to an optimized version (self::_get) and compatibility
      *
      * @param string $internalUri
@@ -335,7 +343,7 @@
       $content = $cache['content'];
       $cache['response'] = unserialize($cache['response']);
       $cache['response']->setEventDispatcher($this->getEventDispatcher());
-      $this->context->getResponse()->copyProperties($cache['response']);
+      $this->getContext()->getResponse()->copyProperties($cache['response']);
 
       if (sfConfig::get('sf_web_debug'))
       {
@@ -345,7 +353,7 @@
               $this,
               'view.cache.filter_content',
               array(
-                'response' => $this->context->getResponse(),
+                'response' => $this->getContext()->getResponse(),
                 'uri' => $uri,
                 'new' => false
               )
@@ -383,7 +391,7 @@
       $actionCacheValue = array(
         'content'           => $content,
         'decoratorTemplate' => $decoratorTemplate,
-        'response'          => serialize($this->context->getResponse())
+        'response'          => serialize($this->getContext()->getResponse())
       );
 
       $saved = $this->set($actionCacheValue, $uri, $actionTags);
@@ -396,7 +404,7 @@
               $this,
               'view.cache.filter_content',
               array(
-                'response' => $this->context->getResponse(),
+                'response' => $this->getContext()->getResponse(),
                 'uri' => $uri,
                 'new' => true
               )
@@ -416,7 +424,7 @@
      */
     public function setPageCache ($uri)
     {
-      if (sfView::RENDER_CLIENT != $this->controller->getRenderMode())
+      if (sfView::RENDER_CLIENT != $this->getController()->getRenderMode())
       {
         return;
       }
@@ -429,7 +437,7 @@
 
       // save content in cache
       $saved = $this->set(
-        $this->context->getResponse(), $uri, $pageTags
+        $this->getContext()->getResponse(), $uri, $pageTags
       );
 
       if ($saved && sfConfig::get('sf_web_debug'))
@@ -441,16 +449,16 @@
               $this,
               'view.cache.filter_content',
               array(
-                'response' => $this->context->getResponse(),
+                'response' => $this->getContext()->getResponse(),
                 'uri' => $uri,
                 'new' => true
               )
             ),
-            $this->context->getResponse()->getContent()
+            $this->getContext()->getResponse()->getContent()
           )
           ->getReturnValue();
 
-        $this->context->getResponse()->setContent($content);
+        $this->getContext()->getResponse()->setContent($content);
       }
     }
 
@@ -483,7 +491,7 @@
       $saved = $this->set(
         array(
           'content' => $content,
-          'response' => serialize($this->context->getResponse()),
+          'response' => serialize($this->getContext()->getResponse()),
         ),
         $uri,
         $partialTags
@@ -498,7 +506,7 @@
               $this,
               'view.cache.filter_content',
               array(
-                'response' => $this->context->getResponse(),
+                'response' => $this->getContext()->getResponse(),
                 'uri' => $uri,
                 'new' => true,
               )
@@ -616,14 +624,14 @@
 
       $cachedResponse->setEventDispatcher($this->getEventDispatcher());
 
-      if (sfView::RENDER_VAR == $this->controller->getRenderMode())
+      if (sfView::RENDER_VAR == $this->getController()->getRenderMode())
       {
-        $this->controller->getActionStack()->getLastEntry()->setPresentation($cachedResponse->getContent());
-        $this->context->getResponse()->setContent('');
+        $this->getController()->getActionStack()->getLastEntry()->setPresentation($cachedResponse->getContent());
+        $this->getContext()->getResponse()->setContent('');
       }
       else
       {
-        $this->context->setResponse($cachedResponse);
+        $this->getContext()->setResponse($cachedResponse);
 
         if (sfConfig::get('sf_web_debug'))
         {
@@ -634,17 +642,16 @@
                 $this,
                 'view.cache.filter_content',
                 array(
-                  'response' => $this->context->getResponse(),
+                  'response' => $this->getContext()->getResponse(),
                   'uri' => $uri,
                   'new' => false,
                 )
               ),
-              $this->context->getResponse()->getContent()
+              $this->getContext()->getResponse()->getContent()
             )
-            ->getReturnValue()
-            ;
+            ->getReturnValue();
 
-          $this->context->getResponse()->setContent($content);
+          $this->getContext()->getResponse()->setContent($content);
         }
       }
 
@@ -693,13 +700,86 @@
 
       $content = $cache['content'];
       $cache['response'] = unserialize($cache['response']);
-      $this->context->getResponse()->merge($cache['response']);
+      $this->getContext()->getResponse()->merge($cache['response']);
 
       if (sfConfig::get('sf_web_debug'))
       {
-        $content = $this->dispatcher->filter(new sfEvent($this, 'view.cache.filter_content', array('response' => $this->context->getResponse(), 'uri' => $uri, 'new' => false)), $content)->getReturnValue();
+        $content = $this
+          ->getEventDispatcher()
+          ->filter(
+            new sfEvent(
+              $this,
+              'view.cache.filter_content',
+              array(
+                'response' => $this->getContext()->getResponse(),
+                'uri' => $uri,
+                'new' => false
+              )
+            ),
+            $content
+          )
+          ->getReturnValue();
       }
 
       return $content;
+    }
+
+    /**
+     * Disables cache on the fly (used in "cachable" generator)
+     * Solved the problem when action contains form, after form is saved
+     * displayed flashes are cached.
+     *
+     * @param string $moduleName
+     * @param string $actionName
+     * @return array
+     */
+    public function disableCache ($moduleName, $actionName = null)
+    {
+      if ($moduleName && $actionName)
+      {
+        if (isset($this->cacheConfig[$moduleName], $this->cacheConfig[$moduleName][$actionName]))
+        {
+          unset($this->cacheConfig[$moduleName][$actionName]);
+        }
+
+        return;
+      }
+
+      if ($moduleName)
+      {
+        if (isset($this->cacheConfig[$moduleName]))
+        {
+          unset($this->cacheConfig[$moduleName]);
+        }
+      }
+
+      return;
+    }
+
+    public function remove ($internalUri, $hostName = '', $vary = '', $contextualPrefix = '**')
+    {
+      if (sfConfig::get('sf_logging_enabled'))
+      {
+        $this->getEventDispatcher()->notify(
+          new sfEvent(
+            $this,
+            'application.log',
+            array(sprintf('Remove cache for "%s"', $internalUri))
+          )
+        );
+      }
+
+      $cacheKey = $this->generateCacheKey($internalUri, $hostName, $vary, $contextualPrefix);
+
+      $taggingCache = $this->getTaggingCache();
+
+      if (strpos($cacheKey, '*'))
+      {
+        return $taggingCache->removePattern($cacheKey);
+      }
+      elseif ($taggingCache->has($cacheKey))
+      {
+        return $taggingCache->remove($cacheKey);
+      }
     }
   }

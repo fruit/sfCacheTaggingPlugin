@@ -22,8 +22,8 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2011-02-20</date>
-  <time>00:00:00</time>
+  <date>2011-03-03</date>
+  <time>13:10:00</time>
   <version>
     <release>3.2.0</release>
     <api>3.2.0</api>
@@ -34,135 +34,18 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
+    * ilya: [added] Admin generator "cachable"
     * ilya: [added] Option invalidateCollectionVersionByChangingColumns to setup Cachetaggable behavior
+    * ilya: [added] Cascading tag deletion through the model relations
+    * ilya: [added] New methods in the sfComponent to add collection tags
+    * ilya: [added] Doctrine_Record::link and Doctrine_Record::unlink updates refTable's tags
+    * ilya: [updated] Quick start in README, Customizations in README_ADVANCED
+    * ilya: [updated] new API
     * ilya: [fixed] skipOnChange did not work properly
   </notes>
   <contents>
     <dir name="/">
-      <file name="LICENSE" role="data" />
-      <file name="README" role="data" />
-      <dir name="config">
-        <file name="sfCacheTaggingPluginConfiguration.class.php" role="data" />
-      </dir>
-      <dir name="lib">
-        <dir name="doctrine">
-          <file name="sfCachetaggableDoctrineRecord.class.php" role="data" />
-        </dir>
-        <dir name="cache">
-          <dir name="drivers">
-            <file name="sfSQLitePDOCache.class.php" role="data" />
-          </dir>
-          <dir name="extended">
-            <file name="sfAPCTaggingCache.class.php" role="data" />
-            <file name="sfEAcceleratorTaggingCache.class.php" role="data" />
-            <file name="sfFileTaggingCache.class.php" role="data" />
-            <file name="sfMemcacheTaggingCache.class.php" role="data" />
-            <file name="sfSQLitePDOTaggingCache.class.php" role="data" />
-            <file name="sfSQLiteTaggingCache.class.php" role="data" />
-            <file name="sfXCacheTaggingCache.class.php" role="data" />
-          </dir>
-          <file name="CacheMetadata.class.php" role="data" />
-          <file name="sfNoTaggingCache.class.php" role="data" />
-          <file name="sfTaggingCache.class.php" role="data" />
-          <file name="sfTaggingCacheInterface.class.php" role="data" />
-        </dir>
-        <dir name="exception">
-          <file name="sfCacheDisabledException.class.php" role="data" />
-          <file name="sfCacheMissingContextException.class.php" role="data" />
-        </dir>
-        <dir name="log">
-          <file name="sfCacheTagLogger.class.php" role="data" />
-          <file name="sfFileCacheTagLogger.class.php" role="data" />
-          <file name="sfNoCacheTagLogger.class.php" role="data" />
-        </dir>
-        <dir name="util">
-          <file name="sfCacheTaggingToolkit.class.php" role="data" />
-          <file name="sfCallableArray.class.php" role="data" />
-          <file name="sfContentTagHandler.class.php" role="data" />
-          <file name="sfTagNamespacedParameterHolder.class.php" role="data" />
-          <file name="sfViewCacheTagManagerBridge.class.php" role="data" />
-        </dir>
-        <dir name="vendor">
-          <dir name="Doctrine">
-            <dir name="Cache">
-              <file name="Proxy.php" role="data" />
-            </dir>
-            <dir name="Collection">
-              <file name="Cachetaggable.php" role="data" />
-            </dir>
-            <dir name="Query">
-              <file name="Cachetaggable.php" role="data" />
-            </dir>
-            <dir name="Template">
-              <dir name="Listener">
-                <file name="Cachetaggable.php" role="data" />
-              </dir>
-              <file name="Cachetaggable.php" role="data" />
-            </dir>
-          </dir>
-        </dir>
-        <dir name="view">
-          <file name="sfViewCacheTagManager.class.php" role="data" />
-        </dir>
-      </dir>
-      <dir name="test">
-        <dir name="data">
-          <dir name="config">
-            <file name="cache_setup.yml" role="data" />
-          </dir>
-          <dir name="fixtures">
-            <file name="cascade.yml" role="data" />
-            <file name="fixtures.yml" role="data" />
-          </dir>
-        </dir>
-        <dir name="functional">
-          <dir name="frontend">
-            <file name="CascadeDeleteOrInvalidateTest.php" role="data" />
-            <file name="DefaultObjectVersionValueTest.php" role="data" />
-            <file name="DoctrineCacheProxyTest.php" role="data" />
-            <file name="DoctrineCollectionCachetaggableTest.php" role="data" />
-            <file name="DoctrineListenerCachetaggableTest.php" role="data" />
-            <file name="DoctrineQueryCachetaggableTest.php" role="data" />
-            <file name="DoctrineTemplateCachetaggableTest.php" role="data" />
-            <file name="I18nBehaviorTest.php" role="data" />
-            <file name="InvalidateCollectionVersionByChangingColumnsTest" role="data" />
-            <file name="InvalidateCollectionVersionOnUpdateTest.php" role="data" />
-            <file name="ManyToManyTableTest.php" role="data" />
-            <file name="PartialTest.php" role="data" />
-            <file name="SkipOnColumnUpdateTest.php" role="data" />
-            <file name="actionWithLayoutTest.php" role="data" />
-            <file name="actionWithoutLayoutTest.php" role="data" />
-            <file name="browserViewCacheTest.php" role="data" />
-            <file name="sfCacheTaggingPluginTest.php" role="data" />
-            <file name="sfCacheTaggingToolkitTest.php" role="data" />
-            <file name="sfCachetaggableDoctrineRecordTest.php" role="data" />
-            <file name="sfContentTagHandlerTest.php" role="data" />
-            <file name="sfViewCacheTagManagerBridgeTest.php" role="data" />
-            <file name="sfViewCacheTagManagerTest.php" role="data" />
-          </dir>
-          <dir name="notag">
-            <file name="DoctrineListenerCachetaggableTest.php" role="data" />
-            <file name="UnknownMethodCallInActionTest.php" role="data" />
-            <file name="ValidMethodCallInActionTest.php" role="data" />
-            <file name="ValidObjectMethodCallsInActionTest.php" role="data" />
-            <file name="sfCacheTaggingToolkitTest.php" role="data" />
-          </dir>
-        </dir>
-        <dir name="unit">
-          <file name="CacheMetadataTest.php" role="data" />
-          <file name="sfCacheTagLoggerTest.php" role="data" />
-          <file name="sfCacheTaggingToolkitTest.php" role="data" />
-          <file name="sfCallableArrayTest.php" role="data" />
-          <file name="sfContentTagHandlerTest.php" role="data" />
-          <file name="sfFileCacheTagLoggerTest.php" role="data" />
-          <file name="sfNoCacheTagLoggerTest.php" role="data" />
-          <file name="sfNoTaggingCacheTest.php" role="data" />
-          <file name="sfSQLitePDOCacheTest.php" role="data" />
-          <file name="sfTagNamespacedParameterHolderTest.php" role="data" />
-          <file name="sfTaggingCacheInterfaceTest.php" role="data" />
-          <file name="sfTaggingCacheTest.php" role="data" />
-        </dir>
-      </dir>
+
     </dir>
   </contents>
   <dependencies>
@@ -177,8 +60,8 @@
         <name>symfony</name>
         <channel>pear.symfony-project.com</channel>
         <min>1.3.0</min>
-	      <max>1.5.0</max>
-	      <exclude>1.5.0</exclude>
+        <max>1.5.0</max>
+        <exclude>1.5.0</exclude>
       </package>
     </required>
   </dependencies>
@@ -193,11 +76,15 @@
         <release>stable</release>
         <api>stable</api>
       </stability>
-      <date>2011-02-20</date>
+      <date>2011-03-03</date>
       <license uri="http://www.symfony-project.com/license">MIT</license>
       <notes>
-        * ilya: [added] Option invalidateCollectionVersionByChangingColumns to setup Cachetaggable behavior
-        * ilya: [fixed] skipOnChange did not work properly
+    * ilya: [added] Option invalidateCollectionVersionByChangingColumns to setup Cachetaggable behavior
+    * ilya: [added] Cascading tag deletion through the model relations
+    * ilya: [added] New methods in the sfComponent to add collection tags
+    * ilya: [added] Doctrine_Record::link and Doctrine_Record::unlink updates refTable's tags
+    * ilya: [fixed] skipOnChange did not work properly
+
       </notes>
     </release>
     <release>

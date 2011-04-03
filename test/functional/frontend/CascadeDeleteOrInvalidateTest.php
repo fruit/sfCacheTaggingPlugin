@@ -92,6 +92,7 @@
       )
     );
   }
+  die;
 
   if (in_array(2, $run))
   {

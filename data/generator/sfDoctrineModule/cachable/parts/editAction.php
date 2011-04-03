@@ -3,5 +3,16 @@
     $this-><?php echo $this->getSingularName() ?> = $this->getRoute()->getObject();
     $this->form = $this->configuration->getForm($this-><?php echo $this->getSingularName() ?>);
 
-    $this->setActionTags($this->form->getObject());
+    $notice = $this->getUser()->getFlash('notice');
+    $error = $this->getUser()->getFlash('error');
+
+    /**
+     * Do not cache flash messages
+     */
+    if (($notice || $error) && sfConfig::get('sf_cache'))
+    {
+      $this->disableCache(/*$this->getModuleName(), $this->getActionName()*/);
+    }
+
+    $this->setContentTags($this->form->getObject());
   }
