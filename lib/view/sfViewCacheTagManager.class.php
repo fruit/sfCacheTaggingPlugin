@@ -57,7 +57,7 @@
      *
      * @var null
      */
-    protected $tempPartialTags = null;
+    protected $temporaryContentTags = null;
 
     /**
      * Returns predefined namespaces
@@ -382,7 +382,7 @@
         return $content;
       }
 
-      $actionTags = $this
+      $contentTags = $this
         ->getContentTagHandler()
         ->getContentTags(
           self::NAMESPACE_ACTION
@@ -394,7 +394,7 @@
         'response'          => serialize($this->getContext()->getResponse())
       );
 
-      $saved = $this->set($actionCacheValue, $uri, $actionTags);
+      $saved = $this->set($actionCacheValue, $uri, $contentTags);
 
       if ($saved && sfConfig::get('sf_web_debug'))
       {
@@ -429,7 +429,7 @@
         return;
       }
 
-      $pageTags = $this
+      $contentTags = $this
         ->getContentTagHandler()
         ->getContentTags(
           self::NAMESPACE_PAGE
@@ -437,7 +437,7 @@
 
       // save content in cache
       $saved = $this->set(
-        $this->getContext()->getResponse(), $uri, $pageTags
+        $this->getContext()->getResponse(), $uri, $contentTags
       );
 
       if ($saved && sfConfig::get('sf_web_debug'))
@@ -486,7 +486,7 @@
 
       $namespace = sprintf('%s-%s-%s', $module, $action, self::NAMESPACE_PARTIAL);
 
-      $partialTags = $tagHandler->getContentTags($namespace);
+      $contentTags = $tagHandler->getContentTags($namespace);
 
       $saved = $this->set(
         array(
@@ -494,7 +494,7 @@
           'response' => serialize($this->getContext()->getResponse()),
         ),
         $uri,
-        $partialTags
+        $contentTags
       );
 
       if ($saved && sfConfig::get('sf_web_debug'))
@@ -586,7 +586,7 @@
     {
       $tagsKey = 'sf_cache_tags';
 
-      $this->tempPartialTags = null;
+      $this->temporaryContentTags = null;
 
       if (isset($parameters[$tagsKey]))
       {
@@ -598,7 +598,7 @@
 
         if (is_array($tags))
         {
-          $this->tempPartialTags = $tags;
+          $this->temporaryContentTags = $tags;
         }
       }
 
@@ -676,7 +676,7 @@
         return null;
       }
 
-      if (null !== $this->tempPartialTags)
+      if (null !== $this->temporaryContentTags)
       {
         $namespace = sprintf(
           '%s-%s-%s', $module, $action, self::NAMESPACE_PARTIAL
@@ -684,10 +684,10 @@
 
         $this
           ->getContentTagHandler()
-          ->setContentTags($this->tempPartialTags, $namespace)
+          ->setContentTags($this->temporaryContentTags, $namespace)
         ;
 
-        $this->tempPartialTags = null;
+        $this->temporaryContentTags = null;
       }
 
       // retrieve content from cache
