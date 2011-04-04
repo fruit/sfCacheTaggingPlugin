@@ -379,6 +379,7 @@
     {
       if (! $this->isCacheable($uri) || $this->withLayout($uri))
       {
+        print "AAAAAA\n";
         return $content;
       }
 
@@ -756,6 +757,10 @@
       return;
     }
 
+    /**
+     * @see parent::remove()   The main difference, instead of $this->cache is
+     *                         used $this->getTaggingCache()
+     */
     public function remove ($internalUri, $hostName = '', $vary = '', $contextualPrefix = '**')
     {
       if (sfConfig::get('sf_logging_enabled'))

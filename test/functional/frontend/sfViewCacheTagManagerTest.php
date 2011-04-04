@@ -134,7 +134,6 @@
   $cacheManager->getContentTagHandler()->removeContentTags(sfViewCacheTagManager::NAMESPACE_ACTION);
 
 
-
   # (set|get)PageCache
 
 
@@ -217,7 +216,6 @@
   sfConfig::set('sf_web_debug', $sfWebDebug);
 
 
-
   $t->comment('listeners counts');
   try
   {
@@ -231,6 +229,52 @@
       get_class($e)
     ));
   }
+
+
+  $layout = sfConfig::get('sf_root_dir') . '/apps/frontend/templates/layout.php';
+  $v = $cacheManager->setActionCache('/blog_post/actionWithoutLayout', 'Content, may be, to cache', $layout);
+
+  $t->is(
+    $cacheManager->isCacheable('/blog_post/actionWithoutLayout'),
+    true,
+    'Checking again, action is still cachable'
+  );
+
+  $cacheManager->disableCache('blog_post', 'actionWithoutLayout');
+
+  $t->is(
+    $cacheManager->isCacheable('/blog_post/actionWithoutLayout'),
+    false,
+    'Ok, then, it should be not cachable now'
+  );
+
+  $cacheManager->addCache(
+    'blog_post',
+    'actionWithoutLayout',
+    array(
+      'lifeTime'    => 100,
+      'withLayout'  => false,
+    )
+  );
+
+  $t->is(
+    $cacheManager->isCacheable('/blog_post/actionWithoutLayout'),
+    true,
+    'Added again to cache'
+  );
+
+  $cacheManager->disableCache('blog_post');
+
+  $t->is(
+    $cacheManager->isCacheable('/blog_post/actionWithoutLayout'),
+    false,
+    'Disaled all module cache, action now should not be cachable too'
+  );
+
+
+  /**
+   * After all $cacheManager->configCache[] is empty
+   */
 
   $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
   $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());

@@ -28,7 +28,6 @@
 
   $sfTagger->setTags($alltags = array_merge($a, $b, $c, $d));
 
-
   function checkTags ($microtime, array $toDelete, array $toInvalidate)
   {
     global $t, $sfTagger, $alltags;
@@ -65,7 +64,6 @@
   }
 
   $run = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
-//  $run = array(5);
 
   $t->diag('RelSite model');
 
@@ -92,7 +90,6 @@
       )
     );
   }
-  die;
 
   if (in_array(2, $run))
   {
@@ -141,6 +138,8 @@
     );
   }
 
+  return;
+
   $t->diag('RelCulture model (tree)');
 
   if (in_array(4, $run))
@@ -169,6 +168,9 @@
       )
     );
   }
+
+
+
 
   if (in_array(5, $run))
   {
@@ -219,6 +221,7 @@
     );
   }
 
+
   $t->diag('RelSiteCulture model (M:M)');
 
   if (in_array(7, $run))
@@ -241,6 +244,7 @@
     );
   }
 
+
   if (in_array(8, $run))
   {
     $version = sfCacheTaggingToolkit::generateVersion();
@@ -262,6 +266,7 @@
       )
     );
   }
+
 
   $t->diag('RelSiteSetting model (1:1)');
 

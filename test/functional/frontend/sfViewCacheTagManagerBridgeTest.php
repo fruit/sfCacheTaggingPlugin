@@ -183,7 +183,6 @@
     'All tags are cleared'
   );
 
-
   $t->is($bridge->disableCache(), true, 'Disabled default controllers module and action');
   $t->is($bridge->disableCache('blog_post', 'index'), true, 'Disabled blog_post/index to cache');
 

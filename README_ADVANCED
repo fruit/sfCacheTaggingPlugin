@@ -233,11 +233,6 @@ Explained behavior setup, file ``/config/doctrine/schema.yml``:
         # (default: [])
         object_class_tag_name_provider: []
 
-        # This class responses to save/fetch data and tags
-        # from/to cache with custom serialization/de-serialization
-        # (default: "CacheMetadata")
-        metadata_class: CacheMetadata
-
 
 ## Tag manipulations
 
