@@ -177,29 +177,55 @@
       return $tagNames;
     }
 
+    /**
+     * @see Doctrine_Record::link()
+     * @return sfCachetaggableDoctrineRecord
+     */
     public function link ($alias, $ids, $now = false)
     {
       $self = parent::link($alias, $ids, $now);
 
+      try
+      {
+        $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
+      }
+      catch (sfException $e)
+      {
+        return $self;
+      }
+
       $tagNames = $this->getTagNamesByAlias($alias, $ids);
 
-      if ($tagNames)
+      if (is_array($tagNames))
       {
-        sfCacheTaggingToolkit::getTaggingCache()->invalidateTags($tagNames);
+        $taggingCache->invalidateTags($tagNames);
       }
 
       return $self;
     }
 
+    /**
+     * @see Doctrine_Record::unlink()
+     * @return sfCachetaggableDoctrineRecord
+     */
     public function unlink ($alias, $ids = array(), $now = false)
     {
       $self = parent::unlink($alias, $ids, $now);
 
+      try
+      {
+        $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
+      }
+      catch (sfException $e)
+      {
+        return $self;
+      }
+
       $tagNames = $this->getTagNamesByAlias($alias, $ids);
 
-      if ($tagNames)
+      if (is_array($tagNames))
       {
-        sfCacheTaggingToolkit::getTaggingCache()->deleteTags($tagNames);
+        $taggingCache->deleteTags($tagNames);
       }
 
       return $self;
