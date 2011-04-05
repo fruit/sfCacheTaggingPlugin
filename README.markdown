@@ -47,9 +47,10 @@ are not (atomic counter).
 
             $ ./symfony doctrine:migrate-generate-diff
 
-## New in v3.2.0:
+## New in v4.0.0:
 
   * Update: Many changes in API
+  * New: Admin generator "cachable" (see more info in README_ADVANCED)
   * New: Cascading tag deletion through the model relations [GH-6](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/6)
   * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) [GH-8](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/8)
   * New: New methods in the sfComponent to add collection tags [GH-10](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/10)
@@ -157,7 +158,7 @@ And after, rebuild your models:
         <h1><?php __('Articles') ?></h1>
         <?php include_partial('articles/listing', array(
           'articles' => $articles,
-          'sf_cache_tags' => $articles->getCacheTags(),
+          'sf_cache_tags' => $articles,
         )) ?>
 
 ## How to cache components? (one-table)
@@ -347,9 +348,9 @@ And after, rebuild your models:
 
   * Environment: PHP 5.3
   * Unit tests: 12
-  * Functional tests: 29
-  * Checks: 1950
-  * Code coverage: 97%
+  * Functional tests: 30
+  * Checks: 2053
+  * Code coverage: 95%
 
 # Contribution
 

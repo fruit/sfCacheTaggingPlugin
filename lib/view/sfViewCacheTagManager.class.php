@@ -55,7 +55,7 @@
      * Stored in temp variable due to unavailability of variables
      * action and module names
      *
-     * @var null
+     * @var mixed
      */
     protected $temporaryContentTags = null;
 
@@ -551,6 +551,8 @@
       }
 
       $tags = $cacheMetadata->getTags();
+      ksort($tags, SORT_ASC);
+
       $tagsCount = count($tags);
 
       $tagsContent = sprintf('[cache&nbsp;tags]&nbsp;count:&nbsp;%d', $tagsCount);
@@ -562,9 +564,9 @@
         foreach ($tags as $name => $version)
         {
           $tagsContent .= sprintf(
-            ' %s(%s),',
-            htmlspecialchars($name, ENT_QUOTES, sfConfig::get('sf_charset')),
-            htmlspecialchars($version, ENT_QUOTES, sfConfig::get('sf_charset'))
+            ' <span title="%s">%s</span>,',
+            htmlspecialchars($version, ENT_QUOTES, sfConfig::get('sf_charset')),
+            htmlspecialchars($name, ENT_QUOTES, sfConfig::get('sf_charset'))
           );
         }
 
@@ -597,7 +599,7 @@
 
         unset($parameters[$tagsKey]);
 
-        if (is_array($tags))
+        if ($tags)
         {
           $this->temporaryContentTags = $tags;
         }
@@ -677,7 +679,7 @@
         return null;
       }
 
-      if (null !== $this->temporaryContentTags)
+      if ($this->temporaryContentTags)
       {
         $namespace = sprintf(
           '%s-%s-%s', $module, $action, self::NAMESPACE_PARTIAL

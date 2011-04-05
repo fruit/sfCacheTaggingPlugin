@@ -114,7 +114,7 @@
 
   $cacheManager->getContentTagHandler()->setContentTag('Magnolia_731', 9127561923, sfViewCacheTagManager::NAMESPACE_ACTION);
 
-  $match = '/ContentActionText.*cache.*tags.*Magnolia_731.*9127561923/';
+  $match = '/ContentActionText.*cache.*tags.*9127561923.*Magnolia_731/';
 
   $layout = sfConfig::get('sf_root_dir') . '/apps/frontend/templates/layout.php';
 
@@ -144,7 +144,7 @@
 
   $cacheManager->getContentTagHandler()->setContentTag('VivaLaVida_1788', 190126012976, sfViewCacheTagManager::NAMESPACE_PAGE);
 
-  $match = '/ContentPageText.*cache.*tags.*VivaLaVida_1788.*190126012976/';
+  $match = '/ContentPageText.*cache.*tags.*190126012976.*VivaLaVida_1788/';
 
   $t->is($cacheManager->setPageCache('/blog_post/actionWithoutLayout'), null, 'page is not in cached.yml with true value');
   $cacheManager->setPageCache('/blog_post/actionWithLayout');
@@ -182,7 +182,7 @@
     'partial is not cachable'
   );
 
-  $match = '/BazBazBaz.*cache.*tags.*RunLolaRun_98186.*1261029732/';
+  $match = '/BazBazBaz.*cache.*tags.*1261029732.*RunLolaRun_98186/';
 
   $cacheManager->getContentTagHandler()->setContentTag(
     'RunLolaRun_98186', 1261029732,
