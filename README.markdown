@@ -290,7 +290,7 @@ And after, rebuild your models:
 
   * Does not depends on ``cache.yml`` file
 
-  * To cache objects/collection with its tags you have just to enable
+  * To cache objects/collection with its tags you need to enable
     result cache by calling ``Doctrine_Query::useResultCache()``:
 
         [php]

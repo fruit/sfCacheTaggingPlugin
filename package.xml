@@ -22,11 +22,11 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2011-03-03</date>
-  <time>13:10:00</time>
+  <date>2011-04-XX</date>
+  <time>XX:XX:XX</time>
   <version>
-    <release>3.2.0</release>
-    <api>3.2.0</api>
+    <release>4.0.0</release>
+    <api>4.0.0</api>
   </version>
   <stability>
     <release>stable</release>
@@ -69,22 +69,24 @@
   <changelog>
     <release>
       <version>
-        <release>3.2.0</release>
-        <api>3.2.0</api>
+        <release>4.0.0</release>
+        <api>4.0.0</api>
       </version>
       <stability>
         <release>stable</release>
         <api>stable</api>
       </stability>
-      <date>2011-03-03</date>
+      <date>2011-04-XX</date>
       <license uri="http://www.symfony-project.com/license">MIT</license>
       <notes>
-    * ilya: [added] Option invalidateCollectionVersionByChangingColumns to setup Cachetaggable behavior
-    * ilya: [added] Cascading tag deletion through the model relations
-    * ilya: [added] New methods in the sfComponent to add collection tags
-    * ilya: [added] Doctrine_Record::link and Doctrine_Record::unlink updates refTable's tags
-    * ilya: [fixed] skipOnChange did not work properly
-
+        * ilya: [added] Admin generator "cachable"
+        * ilya: [added] Option invalidateCollectionVersionByChangingColumns to setup Cachetaggable behavior
+        * ilya: [added] Cascading tag deletion through the model relations
+        * ilya: [added] New methods in the sfComponent to add collection tags
+        * ilya: [added] Doctrine_Record::link and Doctrine_Record::unlink updates refTable's tags
+        * ilya: [updated] Quick start in README, Customizations in README_ADVANCED
+        * ilya: [updated] new API
+        * ilya: [fixed] skipOnChange did not work properly
       </notes>
     </release>
     <release>
