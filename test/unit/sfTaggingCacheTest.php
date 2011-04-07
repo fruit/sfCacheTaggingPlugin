@@ -20,53 +20,49 @@
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfCallable', 'param' => array()),
-        'logger' => array('class' => 'sfNoLogger'),
-      ),
-      'exceptionClass' => 'sfInitializationException',
-    ),
-    array(
-      'options' => array(
-        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
-        'tags' => array(),
+        'storage' => array('class' => 'sfCallable', 'param' => array()),
         'logger' => array('class' => 'sfNoTaggingLogger'),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
-        'tags' => array('class' => 'sfCallable', 'param' => array()),
-        'logger' => array('class' => 'sfNoLogger'),
+        'storage' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
+        'logger' => array('class' => 'sfNoTaggingLogger'),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
-        'tags' => array('class' => 'noSuchClassExists', 'param' => array()),
-        'logger' => array('class' => 'sfNoLogger'),
+        'storage' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
+        'logger' => array('class' => 'sfNoTaggingLogger'),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
-        'tags' => array('param' => array()),
-        'logger' => array('class' => 'sfNoLogger'),
+        'storage' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
+        'logger' => array('class' => 'sfNoTaggingLogger'),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'noExistingClassName'),
-        'logger' => array('class' => 'sfNoLogger'),
+        'storage' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
+        'logger' => array('class' => 'sfNoTaggingLogger'),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
+        'storage' => array('class' => 'noExistingClassName'),
+        'logger' => array('class' => 'sfNoTaggingLogger'),
+      ),
+      'exceptionClass' => 'sfInitializationException',
+    ),
+    array(
+      'options' => array(
+        'storage' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
@@ -80,28 +76,28 @@
 
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
+        'storage' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'logger' => array('class' => null),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
+        'storage' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'logger' => array('class' => 'sfCallable', 'param' => array()),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
+        'storage' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'logger' => array('class' => 'sfClassNotFound', 'param' => array()),
       ),
       'exceptionClass' => 'sfInitializationException',
     ),
     array(
       'options' => array(
-        'data' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
+        'storage' => array('class' => 'sfAPCTaggingCache', 'param' => array()),
         'logger' => array('class' => 'sfFileCacheTagLogger', 'param' => array(
           'file' => sfConfig::get('sf_log_dir') . '/cache.log',
         )),
@@ -132,18 +128,11 @@
 
   # getDataCache/getTagsCache
 
-  $differentCacheEngines = array(
-    'data' => array(
+  $cacheEngines = array(
+    'storage' => array(
       'class' => 'sfAPCTaggingCache',
       'param' => array(
         'cache_dir' => sfConfig::get('sf_cache_dir') . '/test',
-        'automatic_cleaning_factor' => 0,
-      )
-    ),
-    'tags' => array(
-      'class' => 'sfSQLitePDOTaggingCache',
-      'param' => array(
-        'dsn' => 'sqlite::memory:',
         'automatic_cleaning_factor' => 0,
       )
     ),
@@ -156,18 +145,11 @@
     )
   );
 
-  $similarCacheEngines = $differentCacheEngines;
-  $similarCacheEngines['tags'] = null;
 
-  $c = new sfTaggingCache($differentCacheEngines);
-  $t->isa_ok($c->getDataCache(), $differentCacheEngines['data']['class'], 'getDataCache returns right object');
-  $t->isa_ok($c->getTagsCache(), $differentCacheEngines['tags']['class'], 'getTagsCache return right object');
+  $c = new sfTaggingCache($cacheEngines);
+  $t->isa_ok($c->getCache(), $cacheEngines['storage']['class'], 'getCache returns right object');
 
-  $c = new sfTaggingCache($similarCacheEngines);
-  $t->isa_ok($c->getDataCache(), $similarCacheEngines['data']['class'], 'getDataCache returns right object ');
-  $t->isa_ok($c->getTagsCache(), $similarCacheEngines['data']['class'], 'getTagsCache return right object ');
-
-  $c->initialize($similarCacheEngines);
+  $c->initialize($cacheEngines);
 
   $c->clean();
 
@@ -297,7 +279,7 @@
 
   $c->clean(sfCache::ALL);
 
-  $c = new sfTaggingCache($differentCacheEngines);
+  $c = new sfTaggingCache($cacheEngines);
 
   $t->ok($c->set('file', 'robots.txt', 1000, array('X_1' => 928, 'X_3' => '187')));
   $t->is($c->getTags('file'), array('X_1' => 928, 'X_3' => '187'));

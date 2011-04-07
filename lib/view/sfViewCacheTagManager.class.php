@@ -149,7 +149,7 @@
       }
 
       $this->setTaggingCache($taggingCache);
-      $this->cache = $this->getTaggingCache()->getDataCache();
+      $this->cache = $this->getTaggingCache()->getCache();
 
       $this->setEventDispatcher($context->getEventDispatcher());
 

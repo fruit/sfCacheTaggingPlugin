@@ -101,16 +101,11 @@ And after, rebuild your models:
       view_cache:
         class: sfTaggingCache
         param:
-          data:
+          storage:
             class: sfFileTaggingCache
             param:
               automatic_cleaning_factor: 0
               cache_dir: %SF_CACHE_DIR%/sf_tag_cache/data
-          tags:
-            class: sfFileTaggingCache
-            param:
-              automatic_cleaning_factor: 0
-              cache_dir: %SF_CACHE_DIR%/sf_tag_cache/tags
           logger:
             class: sfFileCacheTagLogger
             param:
@@ -145,7 +140,7 @@ And after, rebuild your models:
 
 ## How to cache partials?
 
-  * Enable cache in ``cache.yml``:
+  * Enable cache in ``apps/%APP%/modules/%MODULE%/config/cache.yml``:
 
         _listing:
           enabled: true
@@ -163,7 +158,7 @@ And after, rebuild your models:
 
 ## How to cache components? (one-table)
 
-  * Enable component caching in ``cache.yml``:
+  * Enable component caching in ``apps/%APP%/modules/%MODULE%/config/cache.yml``:
 
         _listOfArticles:
           enabled: true
@@ -199,7 +194,7 @@ And after, rebuild your models:
 
 ## How to cache components? (many-table, combining articles and comments 1:M relation)
 
-  * Enable component caching in ``cache.yml``
+  * Enable component caching in ``apps/%APP%/modules/%MODULE%/config/cache.yml``
 
         _listOfArticlesAndComments:
           enabled: true
@@ -236,7 +231,7 @@ And after, rebuild your models:
 
 ## How to cache action with layout?
 
-  * Enable caching in ``cache.yml``:
+  * Enable caching in ``apps/%APP%/modules/%MODULE%/config/cache.yml``:
 
         showSuccess:
           with_layout: true
@@ -265,7 +260,7 @@ And after, rebuild your models:
 
 ## How to cache action _without_ layout?
 
-  * Enable cache in ``cache.yml``:
+  * Enable cache in ``apps/%APP%/modules/%MODULE%/config/cache.yml``:
 
         show:
           with_layout: false
@@ -290,7 +285,7 @@ And after, rebuild your models:
 
   * Does not depends on ``cache.yml`` file
 
-  * To cache objects/collection with its tags you need to enable
+  * To cache objects/collection with tags you need to enable
     result cache by calling ``Doctrine_Query::useResultCache()``:
 
         [php]
@@ -310,31 +305,6 @@ And after, rebuild your models:
           }
         }
 
-
-  * Appending tags to existing Doctrine tags:
-
-        [php]
-        class articleActions extends sfActions
-        {
-          public function executeArticles (sfWebRequest $request)
-          {
-            $articles = Doctrine::getTable('Article')
-              ->createQuery()
-              ->useResultCache()
-              ->addWhere('lang = ?')
-              ->addWhere('is_visible = ?')
-              ->limit(15)
-              ->execute(array('en_GB', true));
-
-            $q = Doctrine::getTable('Culture')->createQuery();
-            $cultures = $q->execute();
-
-            $this->addDoctrineTags($cultures, $q);
-
-            $this->articles = $articles;
-          }
-        }
-
 # Limitations / Specificity
 
   * In case, when model has translations (I18n behavior), it is enough to add
@@ -349,7 +319,7 @@ And after, rebuild your models:
   * Environment: PHP 5.3
   * Unit tests: 12
   * Functional tests: 30
-  * Checks: 2053
+  * Checks: 1330
   * Code coverage: 95%
 
 # Contribution

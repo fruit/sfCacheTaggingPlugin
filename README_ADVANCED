@@ -32,7 +32,7 @@ into your brand new created file) or merge this configuration with each applicat
           # Content will be stored in Memcache
           # Here you can switch to any other backend
           # (see below "Restrictions" for more info)
-          data:
+          storage:
             class: sfMemcacheTaggingCache
             param:
               persistent: true
@@ -40,13 +40,6 @@ into your brand new created file) or merge this configuration with each applicat
               host: localhost
               port: 11211
               lifetime: 86400
-
-          # storage for tags (could be the same as the cache storage)
-          # if "tags" is NULL (~), it will be the same as "data" (e.i. sfMemcacheTaggingCache)
-          tags:
-            class: sfFileTaggingCache
-            param:
-              cache_dir: %SF_CACHE_DIR%/sf_tag_cache/tags
 
           logger:
             class: sfFileCacheTagLogger   # to disable logger, set class to "sfNoCacheTagLogger"

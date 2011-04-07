@@ -23,14 +23,7 @@
      *
      * @var sfCache
      */
-    protected $dataCache = null;
-
-    /**
-     * This cache stores tags
-     *
-     * @var sfCache
-     */
-    protected $tagsCache = null;
+    protected $cache = null;
 
     /**
      * Log file pointer
@@ -123,67 +116,31 @@
 
       $this->contentTagHandler = new sfContentTagHandler();
 
-      $dataCacheClassName = $this->getOption('data.class');
+      $cacheClassName = $this->getOption('storage.class');
 
-      if (! $dataCacheClassName)
+      if (! $cacheClassName)
       {
         throw new sfInitializationException(sprintf(
-          'You must pass a "data.class" option to initialize a %s object.',
+          'You must pass a "storage.class" option to initialize a %s object.',
           __CLASS__
         ));
       }
 
-      if (! class_exists($dataCacheClassName, true))
+      if (! class_exists($cacheClassName, true))
       {
         throw new sfInitializationException(
-          sprintf('Data cache class "%s" not found', $dataCacheClassName)
+          sprintf('Data cache class "%s" not found', $cacheClassName)
         );
       }
 
       # check is valid class
-      $this->dataCache = new $dataCacheClassName(
-        $this->getOption('data.param', array())
-      );
+      $this->cache = new $cacheClassName($this->getOption('storage.param', array()));
 
-      if (! $this->dataCache instanceof sfCache)
+      if (! $this->cache instanceof sfCache)
       {
         throw new sfInitializationException(
           'Data cache class is not instance of sfCache.'
         );
-      }
-
-      if (! $this->getOption('tags'))
-      {
-        $this->tagsCache = $this->dataCache;
-      }
-      else
-      {
-        $tagsClassName = $this->getOption('tags.class');
-
-        if (! $tagsClassName)
-        {
-          throw new sfInitializationException(sprintf(
-            'You must pass a "tags.class" option to initialize a %s object.',
-            __CLASS__
-          ));
-        }
-
-        if (! class_exists($tagsClassName, true))
-        {
-          throw new sfInitializationException(
-            sprintf('tags cache class "%s" not found', $tagsClassName)
-          );
-        }
-
-        # check is valid class
-        $this->tagsCache = new $tagsClassName($options['tags']['param']);
-
-        if (! $this->tagsCache instanceof sfCache)
-        {
-          throw new sfInitializationException(
-            'tags cache class is not instance of sfCache'
-          );
-        }
       }
 
       if (! $this->getOption('logger.class'))
@@ -221,9 +178,9 @@
      *
      * @return sfCache
      */
-    public function getDataCache ()
+    public function getCache ()
     {
-      return $this->dataCache;
+      return $this->cache;
     }
 
     /**
@@ -232,16 +189,6 @@
     protected function getLogger ()
     {
       return $this->logger;
-    }
-
-    /**
-     * Returns cache class for tags
-     *
-     * @return sfCache
-     */
-    public function getTagsCache ()
-    {
-      return $this->tagsCache;
     }
 
     /**
@@ -273,11 +220,11 @@
      */
     public function remove ($key)
     {
-      $cacheMetadata = new CacheMetadata($this->getDataCache()->get($key));
+      $cacheMetadata = new CacheMetadata($this->getCache()->get($key));
 
       $this->deleteTags($cacheMetadata->getTags());
 
-      $result = $this->getDataCache()->remove($key);
+      $result = $this->getCache()->remove($key);
 
       $this->getLogger()->log($result ? 'D' : 'd', $key);
 
@@ -291,7 +238,7 @@
      */
     public function removePattern ($pattern)
     {
-      return $this->getDataCache()->removePattern($pattern);
+      return $this->getCache()->removePattern($pattern);
     }
 
     /**
@@ -301,7 +248,7 @@
      */
     public function getTimeout ($key)
     {
-      return $this->getDataCache()->getTimeout($key);
+      return $this->getCache()->getTimeout($key);
     }
 
     /**
@@ -324,7 +271,7 @@
      */
     public function getLastModified ($key)
     {
-      return $this->getDataCache()->getLastModified($key);
+      return $this->getCache()->getLastModified($key);
     }
 
     /**
@@ -341,7 +288,7 @@
      */
     public function addTagsToCache ($key, array $tags)
     {
-      $cacheMetadata = new CacheMetadata($this->getDataCache()->get($key));
+      $cacheMetadata = new CacheMetadata($this->getCache()->get($key));
 
       $data = $cacheMetadata->getData();
 
@@ -376,7 +323,7 @@
       {
         $this->lock($key);
 
-        $result = $this->getDataCache()->set(
+        $result = $this->getCache()->set(
           $key, array('data' => $data, 'tags' => $tags), $timeout
         );
 
@@ -404,7 +351,7 @@
      */
     public function setTag ($key, $tagVersion, $lifetime = null)
     {
-      $result = $this->getTagsCache()->set($key, $tagVersion, $lifetime);
+      $result = $this->getCache()->set($key, $tagVersion, $lifetime);
 
       $this->getLogger()->log($result ? 'P' :'p', sprintf('%s(%s)', $key, $tagVersion));
 
@@ -433,7 +380,7 @@
      */
     public function getTag ($key)
     {
-      $result = $this->getTagsCache()->get($key);
+      $result = $this->getCache()->get($key);
 
       $this->getLogger()->log(
         $result ? 'T' : 't',
@@ -451,7 +398,7 @@
      */
     public function hasTag ($key)
     {
-      $has = $this->getTagsCache()->has($key);
+      $has = $this->getCache()->has($key);
 
       $this->getLogger()->log($has ? 'I' : 'i', $key);
 
@@ -466,7 +413,7 @@
      */
     public function getTags ($key)
     {
-      $cacheMetadata = new CacheMetadata($this->getDataCache()->get($key));
+      $cacheMetadata = new CacheMetadata($this->getCache()->get($key));
 
       return $cacheMetadata->getTags();
     }
@@ -479,7 +426,7 @@
      */
     public function deleteTag ($key)
     {
-      $result = $this->getTagsCache()->remove($key);
+      $result = $this->getCache()->remove($key);
 
       $this->getLogger()->log($result ? 'E' : 'e', $key);
 
@@ -530,7 +477,7 @@
     public function get ($key, $default = null)
     {
       $cacheMetadata = new CacheMetadata(
-        $this->getDataCache()->get($key, $default)
+        $this->getCache()->get($key, $default)
       );
 
       $data = $cacheMetadata->getData();
@@ -546,7 +493,9 @@
            */
           $tagKeys = array_keys($fetchedCacheTags);
 
-          $storedTags = $this->getTagsCache()->getMany($tagKeys);
+          $storedTags = $this->getCache()->getMany($tagKeys);
+
+          $hasExpired = false;
 
           /**
            * getMany returns keys with NULL value if some key is missing.
@@ -558,15 +507,12 @@
 
             # one tag is expired, no reasons to continue
             # (should revalidate cache data)
-            $hasExpired = false;
           }
           else
           {
             $extendedKeysWithCurrentVersions = array_combine(array_keys($storedTags), array_values($fetchedCacheTags));
 
             # check for data tags is expired
-            $hasExpired = false;
-
             foreach ($storedTags as $tagKey => $tagLatestVersion)
             {
               $tagVersion = $extendedKeysWithCurrentVersions[$tagKey];
@@ -632,7 +578,7 @@
     {
       $key = $this->generateLockKey($lockName);
 
-      $result = $this->getDataCache()->set($key, 1, $expire);
+      $result = $this->getCache()->set($key, 1, $expire);
 
       $this->getLogger()->log($result ? 'L' : 'l', $key);
 
@@ -649,7 +595,7 @@
     {
       $key = $this->generateLockKey($lockName);
 
-      $result = $this->getDataCache()->has($key);
+      $result = $this->getCache()->has($key);
 
       $this->getLogger()->log($result ? 'R' : 'r', $key);
 
@@ -666,7 +612,7 @@
     {
       $key = $this->generateLockKey($lockName);
 
-      $result = $this->getDataCache()->remove($key);
+      $result = $this->getCache()->remove($key);
 
       $this->getLogger()->log($result ? 'U' : 'u', $lockName);
 
@@ -680,12 +626,7 @@
      */
     public function clean ($mode = sfCache::ALL)
     {
-      if ($this->getDataCache() !== $this->getTagsCache())
-      {
-        $this->getTagsCache()->clean($mode);
-      }
-
-      $this->getDataCache()->clean($mode);
+      $this->getCache()->clean($mode);
     }
 
     /**
@@ -714,6 +655,6 @@
      */
     public function getCacheKeys ()
     {
-      return $this->getDataCache()->getCacheKeys();
+      return $this->getCache()->getCacheKeys();
     }
   }
