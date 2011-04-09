@@ -379,7 +379,6 @@
     {
       if (! $this->isCacheable($uri) || $this->withLayout($uri))
       {
-        print "AAAAAA\n";
         return $content;
       }
 
