@@ -49,7 +49,7 @@ are not (atomic counter).
 
 ## New in v4.0.0:
 
-  * Update: Many changes in API
+  * Update: Many API changes
   * New: Admin generator "cachable" (see more info in README_ADVANCED)
   * New: Cascading tag deletion through the model relations [GH-6](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/6)
   * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) [GH-8](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/8)
@@ -105,7 +105,7 @@ And after, rebuild your models:
             class: sfFileTaggingCache
             param:
               automatic_cleaning_factor: 0
-              cache_dir: %SF_CACHE_DIR%/sf_tag_cache/data
+              cache_dir: %SF_CACHE_DIR%/sf_tag_cache
           logger:
             class: sfFileCacheTagLogger
             param:

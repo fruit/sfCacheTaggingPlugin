@@ -435,10 +435,10 @@
           self::NAMESPACE_PAGE
         );
 
+      $response = $this->getContext()->getResponse();
+
       // save content in cache
-      $saved = $this->set(
-        $this->getContext()->getResponse(), $uri, $contentTags
-      );
+      $saved = $this->set($response, $uri, $contentTags);
 
       if ($saved && sfConfig::get('sf_web_debug'))
       {
@@ -449,16 +449,16 @@
               $this,
               'view.cache.filter_content',
               array(
-                'response' => $this->getContext()->getResponse(),
+                'response' => $response,
                 'uri' => $uri,
                 'new' => true
               )
             ),
-            $this->getContext()->getResponse()->getContent()
+            $response->getContent()
           )
           ->getReturnValue();
 
-        $this->getContext()->getResponse()->setContent($content);
+        $response->setContent($content);
       }
     }
 
@@ -488,10 +488,12 @@
 
       $contentTags = $tagHandler->getContentTags($namespace);
 
+      $response = $this->getContext()->getResponse();
+
       $saved = $this->set(
         array(
           'content' => $content,
-          'response' => serialize($this->getContext()->getResponse()),
+          'response' => serialize($response),
         ),
         $uri,
         $contentTags
@@ -506,7 +508,7 @@
               $this,
               'view.cache.filter_content',
               array(
-                'response' => $this->getContext()->getResponse(),
+                'response' => $response,
                 'uri' => $uri,
                 'new' => true,
               )
@@ -635,6 +637,8 @@
       {
         $this->getContext()->setResponse($cachedResponse);
 
+        $response = $this->getContext()->getResponse();
+
         if (sfConfig::get('sf_web_debug'))
         {
           $content = $this
@@ -644,16 +648,16 @@
                 $this,
                 'view.cache.filter_content',
                 array(
-                  'response' => $this->getContext()->getResponse(),
+                  'response' => $response,
                   'uri' => $uri,
                   'new' => false,
                 )
               ),
-              $this->getContext()->getResponse()->getContent()
+              $response->getContent()
             )
             ->getReturnValue();
 
-          $this->getContext()->getResponse()->setContent($content);
+          $response->setContent($content);
         }
       }
 
