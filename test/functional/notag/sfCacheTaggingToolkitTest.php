@@ -88,16 +88,16 @@
     }
   }
 
-  $optionProvider = sfConfig::get('app_sfcachetaggingplugin_object_class_tag_name_provider');
+  $optionProvider = sfConfig::get('app_sfCacheTagging_object_class_tag_name_provider');
 
-  sfConfig::set('app_sfcachetaggingplugin_object_class_tag_name_provider', null);
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', null);
   $t->is(
     sfCacheTaggingToolkit::getBaseClassName('FrontendCompany'),
     'FrontendCompany'
   );
 
   sfConfig::set(
-    'app_sfcachetaggingplugin_object_class_tag_name_provider',
+    'app_sfCacheTagging_object_class_tag_name_provider',
     array('ClassNameProvider', 'decorate')
   );
 
@@ -107,4 +107,4 @@
   $t->is(sfCacheTaggingToolkit::getBaseClassName('FrontendCompany'), 'Company');
 
 
-  sfConfig::set('app_sfcachetaggingplugin_object_class_tag_name_provider', $optionProvider);
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', $optionProvider);

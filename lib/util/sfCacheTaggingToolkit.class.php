@@ -72,13 +72,13 @@
     public static function getPrecision ()
     {
       $presision = (int) sfConfig::get(
-        'app_sfcachetaggingplugin_microtime_precision', 5
+        'app_sfCacheTagging_microtime_precision', 5
       );
 
       if (0 > $presision || 6 < $presision)
       {
         throw new OutOfRangeException(sprintf(
-          'Value of "app_sfcachetaggingplugin_microtime_precision" is ' .
+          'Value of "app_sfCacheTagging_microtime_precision" is ' .
             'out of the range (0…6)'
         ));
       }
@@ -93,7 +93,7 @@
     public static function getModelTagNameSeparator ()
     {
       return (string) sfConfig::get(
-        'app_sfcachetaggingplugin_model_tag_name_separator', sfCache::SEPARATOR
+        'app_sfCacheTagging_model_tag_name_separator', sfCache::SEPARATOR
       );
     }
 
@@ -231,10 +231,10 @@
       static $classNames = array();
 
       $callableArray = sfConfig::get(
-        'app_sfcachetaggingplugin_object_class_tag_name_provider'
+        'app_sfCacheTagging_object_class_tag_name_provider'
       );
 
-      if (null !== $callableArray)
+      if (is_array($callableArray) && (2 == count($callableArray)))
       {
         if (! array_key_exists($className, $classNames))
         {

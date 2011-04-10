@@ -11,7 +11,7 @@
   require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
   require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
-  $optionMicrotimePrecision = sfConfig::get('app_sfcachetaggingplugin_microtime_precision');
+  $optionMicrotimePrecision = sfConfig::get('app_sfCacheTagging_microtime_precision');
 
   class ArrayAsIteratorAggregate implements IteratorAggregate
   {
@@ -77,7 +77,7 @@
   {
     try
     {
-      sfConfig::set('app_sfcachetaggingplugin_microtime_precision', $precisionTest['value']);
+      sfConfig::set('app_sfCacheTagging_microtime_precision', $precisionTest['value']);
 
       sfCacheTaggingToolkit::getPrecision();
 
@@ -115,7 +115,7 @@
     }
   }
 
-  sfConfig::set('app_sfcachetaggingplugin_microtime_precision', $optionMicrotimePrecision);
+  sfConfig::set('app_sfCacheTagging_microtime_precision', $optionMicrotimePrecision);
 
   include_once sfConfig::get('sf_apps_dir') . '/frontend/modules/blog_post/actions/actions.class.php';
 

@@ -32,12 +32,12 @@
 
   $t->is(sfCacheTaggingToolkit::getModelTagNameSeparator(), sfCache::SEPARATOR);
 
-  $option = sfConfig::get('app_sfcachetaggingplugin_model_tag_name_separator');
+  $option = sfConfig::get('app_sfCacheTagging_model_tag_name_separator');
 
-  sfConfig::set('app_sfcachetaggingplugin_model_tag_name_separator', '_');
+  sfConfig::set('app_sfCacheTagging_model_tag_name_separator', '_');
 
   $t->is(sfCacheTaggingToolkit::getModelTagNameSeparator(), '_');
 
-  sfConfig::set('app_sfcachetaggingplugin_model_tag_name_separator', $option);
+  sfConfig::set('app_sfCacheTagging_model_tag_name_separator', $option);
 
 

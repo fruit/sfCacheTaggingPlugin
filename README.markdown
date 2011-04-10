@@ -5,7 +5,16 @@ associated tags and to keep cache content up-to-date based by incrementing tag
 version when cache objects are edited/removed or new objects are ready to be a
 part of cache content.
 
-## Description
+# Table of contents
+
+ * <a href="#desc">Description</a>
+ * <a href="#install">Installation</a>
+ * <a href="#quick-setup">Quick setup</a>
+ * <a href="#usage">Usage</a>
+ * <a href="#advanced-setup">Advanced setup</a>
+ * <a href="#misc">Miscellaneous</a>
+
+# <a id="desc">Description</a>
 
 Tagging a cache is a concept that was invented in the same time by many developers
 ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/)
@@ -17,7 +26,7 @@ Some ideas are implemented in the real world (e.i. tag versions based on datetim
 and micro time, cache hit/set logging, cache locking) and part of them
 are not (atomic counter).
 
-## Installation ##
+# <a id="install">Installation</a>
 
  * As Symfony plugin
 
@@ -45,23 +54,13 @@ are not (atomic counter).
 
  * Migrating
 
-            $ ./symfony doctrine:migrate-generate-diff
+        $ ./symfony doctrine:migrate-generate-diff
 
-## New in v4.0.0:
+# <a id="quick-setup">Quick setup</a>
 
-  * Update: Many API changes
-  * New: Admin generator "cachable" (see more info in README_ADVANCED)
-  * New: Cascading tag deletion through the model relations [GH-6](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/6)
-  * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior (see below) [GH-8](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/8)
-  * New: New methods in the sfComponent to add collection tags [GH-10](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/10)
-  * New: ``Doctrine_Record::link`` and ``Doctrine_Record::unlink`` updates refTable's tags
-  * Fixed: ``skipOnChange`` did not work properly
+  _After quick setup you may be interested in "<a href="#advanced-setup">Advanced setup</a>"_
 
-# <font style="text-decoration: underline;">Quick</font> setup ##
-
-  _After quick setup you may be interested in advanced setup (file: **README_ADVANCED**)._
-
-## Check ``sfCacheTaggingPlugin`` plugin is enabled (``/config/ProjectConfiguration.class.php``).
+## 1. Check "_sfCacheTaggingPlugin_" plugin is enabled (``/config/ProjectConfiguration.class.php``).
 
     [php]
     class ProjectConfiguration extends sfProjectConfiguration
@@ -73,7 +72,7 @@ are not (atomic counter).
       }
     }
 
-## Change default model class ``sfDoctineRecord`` to ``sfCachetaggableDoctrineRecord``
+## 2. Change default model class "_sfDoctineRecord_" to "_sfCachetaggableDoctrineRecord_"
 
     [php]
     <?php
@@ -91,13 +90,16 @@ are not (atomic counter).
       }
     }
 
-And after, rebuild your models:
+Then rebuild your models:
 
     ./symfony doctrine:build-model
 
-## Setup ``/config/factories.yml``
+## 3. Configure "_view_cache_" and "_view_cache_manager_" in ``/config/factories.yml``
 
     all:
+      view_cache_manager:
+        class: sfViewCacheTagManager
+
       view_cache:
         class: sfTaggingCache
         param:
@@ -112,19 +114,16 @@ And after, rebuild your models:
               file: %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
               format: "%char% %microtime% %key%%EOL%"
 
-      view_cache_manager:
-        class: sfViewCacheTagManager
 
 
-
- ## Add "Cachetaggable" behavior to the each model you want to cache
+## 4. Add "_Cachetaggable_" behavior to the each model you want to cache
 
     Article:
       tableName: articles
       actAs:
         Cachetaggable: ~
 
-## Enable cache in all applications ``settings.yml`` and declare required helpers:
+## 5. Enable cache and declare required helpers in ``/apps/%APP%/config/settings.yml``:
 
     dev:
       .settings:
@@ -136,11 +135,11 @@ And after, rebuild your models:
           - Partial
           - Cache
 
-# Usage
+# <a id="usage">Usage</a>
 
 ## How to cache partials?
 
-  * Enable cache in ``apps/%APP%/modules/%MODULE%/config/cache.yml``:
+  * Enable cache in ``/apps/%APP%/modules/%MODULE%/config/cache.yml``:
 
         _listing:
           enabled: true
@@ -157,11 +156,6 @@ And after, rebuild your models:
         )) ?>
 
 ## How to cache components? (one-table)
-
-  * Enable component caching in ``apps/%APP%/modules/%MODULE%/config/cache.yml``:
-
-        _listOfArticles:
-          enabled: true
 
   * ``components.class.php``
 
@@ -192,12 +186,12 @@ And after, rebuild your models:
           <?php include_component('articles', 'listOfArticles'); ?>
         </fieldset>
 
-## How to cache components? (many-table, combining articles and comments 1:M relation)
+  * Enable component caching in ``/apps/%APP%/modules/%MODULE%/config/cache.yml``:
 
-  * Enable component caching in ``apps/%APP%/modules/%MODULE%/config/cache.yml``
-
-        _listOfArticlesAndComments:
+        _listOfArticles:
           enabled: true
+
+## How to cache components? (many-table, combining articles and comments 1:M relation)
 
   * ``components.class.php``
 
@@ -228,14 +222,13 @@ And after, rebuild your models:
           <?php include_component('article', 'listOfArticlesAndComments'); ?>
         </fieldset>
 
+  * Enable component caching in ``/apps/%APP%/modules/%MODULE%/config/cache.yml``
+
+        _listOfArticlesAndComments:
+          enabled: true
+
 
 ## How to cache action with layout?
-
-  * Enable caching in ``apps/%APP%/modules/%MODULE%/config/cache.yml``:
-
-        showSuccess:
-          with_layout: true
-          enabled:     true
 
   * Controller example:
 
@@ -258,13 +251,13 @@ And after, rebuild your models:
           }
         }
 
-## How to cache action _without_ layout?
+  * Enable caching in ``/apps/%APP%/modules/%MODULE%/config/cache.yml``:
 
-  * Enable cache in ``apps/%APP%/modules/%MODULE%/config/cache.yml``:
-
-        show:
-          with_layout: false
+        showSuccess:
+          with_layout: true
           enabled:     true
+
+## How to cache action _without_ layout?
 
   * Action example
 
@@ -280,6 +273,12 @@ And after, rebuild your models:
             $this->car = $car;
           }
         }
+
+  * Enable cache in ``/apps/%APP%/modules/%MODULE%/config/cache.yml``:
+
+        show:
+          with_layout: false
+          enabled:     true
 
 ## How to cache Doctrine_Records/Doctrine_Collections?
 
@@ -305,7 +304,354 @@ And after, rebuild your models:
           }
         }
 
-# Limitations / Specificity
+# <a id="advanced-setup">Advanced setup</a>
+
+_NB. Please read "<a href="#quick-setup">Quick setup</a>" before reading this._
+
+## Explaining ``/config/factories.yml``
+
+    all:
+      view_cache_manager:
+        class: sfViewCacheTagManager
+
+      view_cache:
+        class: sfTaggingCache
+        param:
+
+          # Content will be stored in Memcache
+          # Here you can switch to any other backend
+          # (see below "Restrictions" for more info)
+          storage:
+            class: sfMemcacheTaggingCache
+            param:
+              persistent: true
+              storeCacheInfo: true
+              host: localhost
+              port: 11211
+              lifetime: 86400
+
+          logger:
+            class: sfFileCacheTagLogger   # to disable logger, set class to "sfNoCacheTagLogger"
+            param:
+              # All given parameters are default
+              file:         %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
+              file_mode:    0640
+              dir_mode:     0750
+              time_format:  "%Y-%b-%d %T%z"   # e.i. 2010-Sep-01 15:20:58+0300
+              skip_chars:   ""
+
+              # Logging format
+              # There are such available place-holders:
+              #   %char%              - Operation char (see char explanation in sfCacheTagLogger::explainChar())
+              #   %char_explanation%  - Operation explanation string
+              #   %time%              - Time, when data/tag was accessed
+              #   %key%               - Cache name or tag name with its version
+              #   %microtime%         - Micro time timestamp when data/tag was accessed
+              #   %EOL%               - Whether to append \n in the end of line
+              #
+              # (Example: "%char% %microtime% %key%%EOL%")
+              format:       "%char%"
+
+> **Restrictions**: Backend's class should be inherited from ``sfCache``
+  class. Then, it should be implement ``sfTaggingCacheInterface``
+  (due to a ``Doctrine`` cache engine compatibility).
+  Also, it should support the caching of objects and/or arrays.
+
+Therefor, plugin comes with additional extended backend classes:
+
+  - sfAPCTaggingCache
+  - sfEAcceleratorTaggingCache
+  - sfFileTaggingCache
+  - sfMemcacheTaggingCache
+  - sfSQLiteTaggingCache
+  - sfXCacheTaggingCache
+
+And bonus one:
+
+  - sfSQLitePDOTaggingCache (based on stand alone sfSQLitePDOCache)
+
+
+## Adding "Cachetaggable" behavior to the models
+
+Two major setups to pay attention:
+
+  * **Model setup**
+    * When object tag will be invalidated
+    * How object tag will stored (tag naming)
+  * **Relation setup**
+    * What will happen with related objects in case root-object is deleted or updated
+    * Choosing cascading type (deleteTags, invalidateTags)
+
+Explained behavior setup, file ``/config/doctrine/schema.yml``:
+
+    Article:
+      tableName: articles
+      actAs:
+        Cachetaggable:
+
+          # If you have more then 1 unique column, you could pass all of them
+          # as array (tag name will be based on all of them)
+          # (default: [], primary keys will be auto-detected)
+          uniqueColumn:    [id, is_visible]
+
+
+          # cache tag will be based on 2 columns
+          # (e.g. "Article:5:01", "Article:912:00")
+          # matches the "uniqueColumn" column order
+          # (default: "")
+          uniqueKeyFormat: '%d-%02b'
+
+
+          # Column name, where object version will be stored in table
+          # (default: "object_version")
+          versionColumn:    version_microtime
+
+
+          # Option to skip object invalidation by changing listed columns
+          # Useful for sf_guard_user.last_login or updated_at
+          # (default: [])
+          skipOnChange:
+            - last_accessed
+
+
+          # Invalidates or not object collection tag when any
+          # record was updated (BC with v2.*)
+          # Useful, when table contains rarely changed data (e.g. Countries, Currencies)
+          # allowed values: true/false
+          # (default: false)
+          invalidateCollectionVersionOnUpdate: false
+
+
+          # Useful option when model contains columns like "is_visible", "is_active"
+          # updates collection tag, if one of columns was updated.
+          # will not work if "invalidateCollectionVersionOnUpdate" is set to "true"
+          # will not work if one of columns are in "skipOnChange" list.
+          # (default: [])
+          invalidateCollectionVersionByChangingColumns:
+            - is_visible
+
+      columns:
+        id:
+          type: integer(4)
+          autoincrement: true
+          primary: true
+        culture_id:
+          type: integer(4)
+          notnull: false
+          default: null
+        category_id:
+          type: integer(4)
+          notnull: true
+        slug: string(255)
+        is_visible: boolean(true)
+        is_moderated: boolean(false)
+        last_accessed: date(25)
+      relations:
+        Culture:
+          class: Culture
+          local: culture_id
+          foreign: id
+          foreignAlias: Articles
+          type: one
+          foreignType: many
+          # Cascading type chosen "invalidateTags"
+          # Due to foreign key "onDelete" type is "SET NULL"
+          cascade: [invalidateTags]
+        Category:
+          class: Category
+          local: category_id
+          foreign: id
+          foreignAlias: Categories
+          type: one
+          foreignType: many
+          # Cascading type chosen "deleteTags"
+          # Due to foreign key "onDelete" type is "CASCADE"
+          cascade: [deleteTags]
+
+    Culture:
+      tableName: cultures
+      columns:
+        id:
+          type: integer(4)
+          autoincrement: true
+          primary: true
+        lang: string(10)
+        is_visible: boolean(true)
+      relations:
+        Articles:
+          onDelete: SET NULL
+          onUpdate: CASCADE
+
+    Category:
+      tableName: categories
+      columns:
+        id:
+          type: integer(4)
+          autoincrement: true
+          primary: true
+        name: string(127)
+      relations:
+        Articles:
+          onDelete: CASCADE
+          onUpdate: CASCADE
+
+## Explained ``sfCacheTaggingPlugin`` options (file ``/config/app.yml``):
+
+    all:
+      sfCacheTagging:
+
+        # Tag name delimiter
+        # (default: ":")
+        model_tag_name_separator: ":"
+
+        # Version of precision
+        # 0: without micro time, version length 10 digits
+        # 5: with micro time part, version length 15 digits
+        # allowed decimal numbers in range [0, 6]
+        # (default: 5)
+        microtime_precision: 5
+
+        # Callable array
+        # Example: [ClassName, StaticClassMethod]
+        # useful when tag name should contains extra information
+        # (e.g. Environment name, or application name)
+        # (default: [])
+        object_class_tag_name_provider: []
+
+
+## Tag manipulations
+
+Hire is all available methods you can call inside sfComponent & sfAction to manage tags:
+
+ - setContentTags (mixed $tags)
+ - addContentTags (mixed $tags)
+ - getContentTags ()
+ - removeContentTags ()
+ - setContentTag (string $tagName, string $tagVersion)
+ - hasContentTag (string $tagName)
+ - removeContentTag (string $tagName)
+ - disableCache (string $moduleName = null, string $actionName = null)
+ - addDoctrineTags (mixed $tags, Doctrine_Query $q, array $params = array())
+
+More about is you could find in ``sfViewCacheTagManagerBridge.class.php``
+
+Component example:
+
+    [php]
+    <?php
+
+    class articlesComponents extends sfComponents
+    {
+      public function executeList ($request)
+      {
+        $articles = ArticleTable::getInstance()->findAll();
+        $this->setContentTags($articles);
+
+        # Appending tags to already set $articles tags
+        $banners = BannerTable::getInstance()->findByCategoryId(4);
+        $this->addContentTags($articles);
+
+        # adding only Culture collection tag "Culture"
+        # useful when page contains all cultures output in form widget
+        $this->addContentTags(CultureTable::getInstance());
+
+
+        # adding personal tag
+        $this->addContentTag('Portal_EN', sfCacheTaggingToolkit::generateVersion());
+
+        # deleting added before tag
+        $this->removeContentTag('Article:31');
+
+        # printing all set tags, excepting removed one
+        var_dump($this->getContentTags());
+
+        $this->articles = $articles;
+        $this->banners = $banners;
+      }
+    }
+
+## Configurating Doctrine`s query cache
+
+Remember to enable Doctrine query cache in production:
+
+    [yml]
+    # config/app.yml
+    dev:
+      doctrine:
+        query_cache: ~
+
+    prod:
+      doctrine:
+        query_cache:
+          class: Doctrine_Cache_Apc # or another backend class Doctrine_Cache_*
+          param:
+            prefix: doctrine_dql_query_cache
+            lifetime: 86400
+
+And plug in query cache:
+
+    [php]
+    <?php
+
+    class ProjectConfiguration extends sfProjectConfiguration
+    {
+      public function configureDoctrine (Doctrine_Manager $manager)
+      {
+        $doctrineQueryCache = sfConfig::get('app_doctrine_query_cache');
+
+        if ($doctrineQueryCache)
+        {
+          list($class, $param) = array_values($doctrineQueryCache);
+          $manager->setAttribute(
+            Doctrine_Core::ATTR_QUERY_CACHE,
+            new $class($param)
+          );
+
+          if (isset($param['lifetime']))
+          {
+            $manager->setAttribute(
+              Doctrine_Core::ATTR_QUERY_CACHE_LIFESPAN,
+              (int) $param['lifetime']
+            );
+          }
+        }
+      }
+    }
+
+## Clarifying  Doctrine`s result cache
+
+Plugin contains universal proxy class ``Doctrine_Cache_Proxy`` to connect Doctrine
+cache mechanisms with Symfony's one. This mean, when you setup "storage" cache back-end to
+file cache, [Doctrine`s result cache](http://www.doctrine-project.org/projects/orm/1.2/docs/manual/caching/en#query-cache-result-cache:result-cache) will use it to store cached ``DQL`` results.
+
+To enable result cache use:
+
+    $q->useResultCache();
+
+Set hydration to ``Doctrine_Core::HYDRATE_RECORD`` (NB! using another hydrator, its impossible to cache ``DQL`` result with tags.)
+
+    $q
+      ->setHydrationMode(Doctrine_Core::HYDRATE_RECORD)
+      ->execute();
+
+    // or
+    $q->execute(array(), Doctrine_Core::HYDRATE_RECORD);
+
+Cached ``DQL`` results will be associated with all linked tags based on query results.
+
+# <a id="misc">Miscellaneous</a>
+
+## New in v4.0.0:
+
+  * Update: Many API changes
+  * New: Cascading tag deletion through the model relations [GH-6](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/6)
+  * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior [GH-8](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/8)
+  * New: New methods in the sfComponent to add collection tags [GH-10](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/10)
+  * New: ``Doctrine_Record::link`` and ``Doctrine_Record::unlink`` updates refTable's tags
+  * New: Added default plugin's app.yml config
+  * Fixed: ``skipOnChange`` did not work properly
+
+## Limitations / Specificity
 
   * In case, when model has translations (I18n behavior), it is enough to add
     ``Cachetaggable`` behavior to the root model. I18n behavior should be free from ``Cachetaggable`` behavior.
@@ -314,7 +660,7 @@ And after, rebuild your models:
   * Be careful with joined I18n tables, cached result may differs from the expected.
     Due the [unresolved ticket](http://trac.symfony-project.org/ticket/7220) it *could be* impossible.
 
-# TDD
+## TDD
 
   * Environment: PHP 5.3
   * Unit tests: 12
@@ -322,7 +668,7 @@ And after, rebuild your models:
   * Checks: 1330
   * Code coverage: 95%
 
-# Contribution
+## Contribution
 
 * [Repository (GitHub)](http://github.com/fruit/sfCacheTaggingPlugin "Repository (GitHub)")
 * [Issues (GitHub)](http://github.com/fruit/sfCacheTaggingPlugin/issues "Issues")

@@ -9,15 +9,15 @@
    */
 
   /**
-   * Asteric (*) desribes place where you pass values: Partial/Action/Page
+   * 
    *
-   * @method null     set*Tags    set*Tags (mixed $tags)
-   * @method null     add*Tags    add*Tags (mixed $tags)
-   * @method array    get*Tags    get*Tags ()
-   * @method null     remove*Tags remove*Tags ()
-   * @method null     set*Tag     set*Tag (string $tagName, string $tagVersion)
-   * @method boolean  has*Tag     has*Tag (string $tagName)
-   * @method null     remove*Tag  remove*Tag (string $tagName)
+   * @method null     setContentTags    setContentTags (mixed $tags)
+   * @method null     addContentTags    addContentTags (mixed $tags)
+   * @method array    getContentTags    getContentTags ()
+   * @method null     removeContentTags removeContentTags ()
+   * @method null     setContentTag     setContentTag (string $tagName, string $tagVersion)
+   * @method boolean  hasContentTag     hasContentTag (string $tagName)
+   * @method null     removeContentTag  removeContentTag (string $tagName)
    *
    * @package sfCacheTaggingPlugin
    * @subpackage util

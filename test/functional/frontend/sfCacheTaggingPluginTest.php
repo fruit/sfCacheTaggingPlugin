@@ -91,7 +91,7 @@
     ));
   }
 
-  sfConfig::set('app_sfcachetaggingplugin_microtime_precision', 5);
+  sfConfig::set('app_sfCacheTagging_microtime_precision', 5);
 
   BlogPostTable::getInstance()->findAll()->delete();
   BlogPostCommentTable::getInstance()->findAll()->delete();
