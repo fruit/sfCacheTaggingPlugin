@@ -22,8 +22,8 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2011-04-XX</date>
-  <time>XX:XX:XX</time>
+  <date>2011-04-10</date>
+  <time>17:40:00</time>
   <version>
     <release>4.0.0</release>
     <api>4.0.0</api>
@@ -34,18 +34,146 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT</license>
   <notes>
-    * ilya: [added] Admin generator "cachable"
     * ilya: [added] Option invalidateCollectionVersionByChangingColumns to setup Cachetaggable behavior
     * ilya: [added] Cascading tag deletion through the model relations
-    * ilya: [added] New methods in the sfComponent to add collection tags
     * ilya: [added] Doctrine_Record::link and Doctrine_Record::unlink updates refTable's tags
-    * ilya: [updated] Quick start in README, Customizations in README_ADVANCED
+    * ilya: [updated] README
     * ilya: [updated] new API
     * ilya: [fixed] skipOnChange did not work properly
   </notes>
   <contents>
     <dir name="/">
-
+      <dir name="config">
+        <file name="app.yml" md5sum="6f7e6faa779ba005cad6c48da40797fe" role="data" />
+        <file name="sfCacheTaggingPluginConfiguration.class.php" md5sum="5c5fca78d6de507e3aabda7ed6b641e7" role="data" />
+      </dir>
+      <file name="LICENSE" md5sum="d840195351e168d3bc3ab9b626617907" role="data" />
+      <file name="README" md5sum="f3bb454ec8639091887db32a2075ccfc" role="data" />
+      <dir name="lib">
+        <dir name="util">
+          <file name="sfCacheTaggingToolkit.class.php" md5sum="d286536696fd9b9db0937b6bd5385fd9" role="data" />
+          <file name="sfContentTagHandler.class.php" md5sum="5fc1ab0b62e12bde46330cc0ae25ad97" role="data" />
+          <file name="sfCallableArray.class.php" md5sum="e3563a95e13f7f0a4621de56b5119a59" role="data" />
+          <file name="sfTagNamespacedParameterHolder.class.php" md5sum="126fcaf02e158b87e733cbe42e72c2f6" role="data" />
+          <file name="sfViewCacheTagManagerBridge.class.php" md5sum="c8e1eb30d4e72fc3adce96deebe8d238" role="data" />
+        </dir>
+        <dir name="log">
+          <file name="sfNoCacheTagLogger.class.php" md5sum="b57a946d753a714dd1da7ce72014f9ed" role="data" />
+          <file name="sfCacheTagLogger.class.php" md5sum="b11e6ff69fce8d8100e6fa52d823b316" role="data" />
+          <file name="sfFileCacheTagLogger.class.php" md5sum="7537e27f683463c3114cdcc4de87f106" role="data" />
+        </dir>
+        <dir name="doctrine">
+          <file name="sfCachetaggableDoctrineRecord.class.php" md5sum="311f399683cda07990250eacc7ddb04a" role="data" />
+        </dir>
+        <dir name="view">
+          <file name="sfViewCacheTagManager.class.php" md5sum="46aa91fb0cd8eafa3d10a0c5dda27f57" role="data" />
+        </dir>
+        <dir name="exception">
+          <file name="sfCacheDisabledException.class.php" md5sum="589a2a27a80a1ff1a90d8f20968e21e1" role="data" />
+          <file name="sfCacheMissingContextException.class.php" md5sum="b396e6ef4ad273bdf59226c4aff2a6d4" role="data" />
+        </dir>
+        <dir name="cache">
+          <dir name="drivers">
+            <file name="sfSQLitePDOCache.class.php" md5sum="20aa70e04e287bca2d048dd77cb6c8ec" role="data" />
+          </dir>
+          <file name="sfTaggingCacheInterface.class.php" md5sum="2c2e90b610e4f5732f7b45bb0e1ac4c0" role="data" />
+          <dir name="extended">
+            <file name="sfFileTaggingCache.class.php" md5sum="930a684ce643b4300dd0eff839d85c1a" role="data" />
+            <file name="sfSQLitePDOTaggingCache.class.php" md5sum="2dd902d38a7c07caa4b6252d2c94da20" role="data" />
+            <file name="sfSQLiteTaggingCache.class.php" md5sum="dab182011be0ef30ee36286044fe2c82" role="data" />
+            <file name="sfAPCTaggingCache.class.php" md5sum="df41401005e812cd93be17850194838f" role="data" />
+            <file name="sfXCacheTaggingCache.class.php" md5sum="91abe52b95c6f9bbee138c33b9226ee7" role="data" />
+            <file name="sfEAcceleratorTaggingCache.class.php" md5sum="e7fc71e6f46470ddfdd19b73947e6e51" role="data" />
+            <file name="sfMemcacheTaggingCache.class.php" md5sum="a9629a2661ffd636edd898156c1cdd52" role="data" />
+          </dir>
+          <file name="sfTaggingCache.class.php" md5sum="96490c729d109093a083f6059ddc7350" role="data" />
+          <file name="CacheMetadata.class.php" md5sum="20b2b479d5b9389d5671a4c5483ade1b" role="data" />
+          <file name="sfNoTaggingCache.class.php" md5sum="12756d20fffd396da542302f9406044e" role="data" />
+        </dir>
+        <dir name="vendor">
+          <dir name="Doctrine">
+            <dir name="Connection">
+              <file name="CachetaggableUnitOfWork.php" md5sum="edfc6cb33d93721bdee6d0ea1cf39aae" role="data" />
+            </dir>
+            <dir name="Template">
+              <dir name="Listener">
+                <file name="Cachetaggable.php" md5sum="10487f17b6c272701aeac316acb5c850" role="data" />
+              </dir>
+              <file name="Cachetaggable.php" md5sum="806d18a58a516427f013bec26fd23daa" role="data" />
+            </dir>
+            <dir name="Cache">
+              <file name="Proxy.php" md5sum="027c16edf4e53ebd6c0b7296cf8c1eec" role="data" />
+            </dir>
+            <dir name="Collection">
+              <file name="Cachetaggable.php" md5sum="ea21b8010b83faa14aa75c655d0aedaf" role="data" />
+            </dir>
+            <dir name="Query">
+              <file name="Cachetaggable.php" md5sum="78f6ea497d3fb4e2e013bb630e23e263" role="data" />
+            </dir>
+          </dir>
+        </dir>
+      </dir>
+      <dir name="test">
+        <dir name="unit">
+          <file name="sfTaggingCacheTest.php" md5sum="8c05dc26d312a0addf61d0a0d8bc5204" role="data" />
+          <file name="sfCacheTaggingToolkitTest.php" md5sum="a34f2cfd4a70eb1413510959df3fcc69" role="data" />
+          <file name="sfFileCacheTagLoggerTest.php" md5sum="f49572b815c89aa386d934a17b476260" role="data" />
+          <file name="sfNoTaggingCacheTest.php" md5sum="136aec9b41fe1e2a769dbe096efd3f7b" role="data" />
+          <file name="sfTaggingCacheInterfaceTest.php" md5sum="bbaca930233e54ebf26ee8e2c08c7410" role="data" />
+          <file name="sfSQLitePDOCacheTest.php" md5sum="531bae8b621b7e8062397584ac2597de" role="data" />
+          <file name="sfTagNamespacedParameterHolderTest.php" md5sum="65a52303c93df3497f098ade4803f9dd" role="data" />
+          <file name="sfNoCacheTagLoggerTest.php" md5sum="40c3381bd3286991926305cec92c4e7b" role="data" />
+          <file name="sfCallableArrayTest.php" md5sum="c383cf94d2a5f5d7d141a5b25aa560be" role="data" />
+          <file name="CacheMetadataTest.php" md5sum="845d4c762899582e22d0a94e3c4bac5d" role="data" />
+          <file name="sfContentTagHandlerTest.php" md5sum="90025abd7f536407fe39f58f9ef59bff" role="data" />
+          <file name="sfCacheTagLoggerTest.php" md5sum="36e2f0e57a11e8744c7fef18edefc0f1" role="data" />
+        </dir>
+        <dir name="functional">
+          <dir name="notag">
+            <file name="sfCacheTaggingToolkitTest.php" md5sum="708d47f9c44677360c57fa622c2f99e3" role="data" />
+            <file name="UnknownMethodCallInActionTest.php" md5sum="f4dc5cfbd59516d1e0230ab9c912e95f" role="data" />
+            <file name="ValidMethodCallInActionTest.php" md5sum="c8bda028b9acfe172707c55f9c140c24" role="data" />
+            <file name="ValidObjectMethodCallsInActionTest.php" md5sum="b4ffd168333ae96fcc50fe0eb1a94087" role="data" />
+            <file name="DoctrineRecordLinkAndUnlinkTest.php" md5sum="f4a55f7b0460d453edb184898e2948a2" role="data" />
+            <file name="DoctrineListenerCachetaggableTest.php" md5sum="ebd212ed6224bef8c5e0d5207b62a070" role="data" />
+          </dir>
+          <dir name="frontend">
+            <file name="I18nBehaviorTest.php" md5sum="41c2e501ad1f32960aba7e64b4452ccd" role="data" />
+            <file name="DoctrineCollectionCachetaggableTest.php" md5sum="4ff3a4660b7dfc89ff2cb033e6fcec08" role="data" />
+            <file name="sfCacheTaggingToolkitTest.php" md5sum="ba28151684e27029b1c1f3ce8f71aa9e" role="data" />
+            <file name="actionWithoutLayoutTest.php" md5sum="8364437bbdb63117881fee6576d957ce" role="data" />
+            <file name="InvalidateCollectionVersionOnUpdateTest.php" md5sum="146aa827bc8ce514419f2ab9dcb20e12" role="data" />
+            <file name="SkipOnColumnUpdateTest.php" md5sum="21f8a07ff7d29084dbe1d7295df8608e" role="data" />
+            <file name="sfViewCacheTagManagerTest.php" md5sum="0d9925eb44a2be63533d055b6613ba40" role="data" />
+            <file name="UpdatingInvalidatesOnlySelfObjectTest.php" md5sum="c75272a3fc936e7735f736db1eb93ad1" role="data" />
+            <file name="ManyToManyTableTest.php" md5sum="7da6d0d6b802fd1b15412d63f0e0a9a5" role="data" />
+            <file name="DoctrineQueryCachetaggableTest.php" md5sum="99dbfa62049f6fd95cbead14a24442c4" role="data" />
+            <file name="sfCacheTaggingPluginTest.php" md5sum="d883509ded73bd883c814d7ad652a432" role="data" />
+            <file name="sfCachetaggableDoctrineRecordTest.php" md5sum="5651ac767f2260d10d8d72e37ac00cd6" role="data" />
+            <file name="actionWithLayoutTest.php" md5sum="dcea865680e46dd1eb41f0ce1bd4b2cf" role="data" />
+            <file name="sfViewCacheTagManagerBridgeTest.php" md5sum="2fec87d640b449cd850af6fd4011c440" role="data" />
+            <file name="DoctrineRecordLinkAndUnlinkTest.php" md5sum="13de2072c7a212ed20cbfd1818682e5a" role="data" />
+            <file name="PartialTest.php" md5sum="c7952ea58599a3038a57c24a8a425eff" role="data" />
+            <file name="DoctrineTemplateCachetaggableTest.php" md5sum="4fcb0242c3f4aa47622416179a6e5363" role="data" />
+            <file name="DefaultObjectVersionValueTest.php" md5sum="7d0bb625fe93a096928eb3e3328d825f" role="data" />
+            <file name="InvalidateCollectionVersionByChangingColumnsTest.php" md5sum="5dad77b007311bea3549ef4b0296d319" role="data" />
+            <file name="browserViewCacheTest.php" md5sum="674a5979f7b6b695bb4754e0ff5ebdd2" role="data" />
+            <file name="CascadeDeleteOrInvalidateTest.php" md5sum="8ab1227bf02ca04a8e24d95e6d8dd709" role="data" />
+            <file name="sfContentTagHandlerTest.php" md5sum="f72c7f2be9efeebad0712934e752d62b" role="data" />
+            <file name="DoctrineCacheProxyTest.php" md5sum="096099cc5225b7ae696b6a7409660725" role="data" />
+            <file name="DoctrineListenerCachetaggableTest.php" md5sum="16a4e635869a703b970a947d1cb434f6" role="data" />
+          </dir>
+        </dir>
+        <dir name="data">
+          <dir name="config">
+            <file name="cache_setup.yml" md5sum="d57b5e853e7558000c5185202d4a7577" role="data" />
+          </dir>
+          <dir name="fixtures">
+            <file name="fixtures.yml" md5sum="664e0b1e425042f2c643174294654caf" role="data" />
+            <file name="cascade.yml" md5sum="91af0efd79ae501bd63e8db0d562e999" role="data" />
+          </dir>
+        </dir>
+      </dir>
     </dir>
   </contents>
   <dependencies>
@@ -76,15 +204,13 @@
         <release>stable</release>
         <api>stable</api>
       </stability>
-      <date>2011-04-XX</date>
+      <date>2011-04-10</date>
       <license uri="http://www.symfony-project.com/license">MIT</license>
       <notes>
-        * ilya: [added] Admin generator "cachable"
         * ilya: [added] Option invalidateCollectionVersionByChangingColumns to setup Cachetaggable behavior
         * ilya: [added] Cascading tag deletion through the model relations
-        * ilya: [added] New methods in the sfComponent to add collection tags
         * ilya: [added] Doctrine_Record::link and Doctrine_Record::unlink updates refTable's tags
-        * ilya: [updated] Quick start in README, Customizations in README_ADVANCED
+        * ilya: [updated] README
         * ilya: [updated] new API
         * ilya: [fixed] skipOnChange did not work properly
       </notes>
