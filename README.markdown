@@ -470,6 +470,8 @@ Explained behavior setup, file ``/config/doctrine/schema.yml``:
 
     Culture:
       tableName: cultures
+      actAs:
+        Cachetaggable: ~
       columns:
         id:
           type: integer(4)
@@ -484,6 +486,8 @@ Explained behavior setup, file ``/config/doctrine/schema.yml``:
 
     Category:
       tableName: categories
+      actAs:
+        Cachetaggable: ~
       columns:
         id:
           type: integer(4)
@@ -563,7 +567,7 @@ Component example:
         $this->removeContentTag('Article:31');
 
         # printing all set tags, excepting removed one
-        var_dump($this->getContentTags());
+        // var_dump($this->getContentTags());
 
         $this->articles = $articles;
         $this->banners = $banners;
@@ -641,15 +645,9 @@ Cached ``DQL`` results will be associated with all linked tags based on query re
 
 # <a id="misc">Miscellaneous</a>
 
-## New in v4.0.0:
+## New in v4.1.0:
 
-  * Update: Many API changes
-  * New: Cascading tag deletion through the model relations [GH-6](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/6)
-  * New: Option ``invalidateCollectionVersionByChangingColumns`` to setup ``Cachetaggable`` behavior [GH-8](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/8)
-  * New: New methods in the sfComponent to add collection tags [GH-10](https://github.com/fruit/sfCacheTaggingPlugin/issues#issue/10)
-  * New: ``Doctrine_Record::link`` and ``Doctrine_Record::unlink`` updates refTable's tags
-  * New: Added default plugin's app.yml config
-  * Fixed: ``skipOnChange`` did not work properly
+  * New: Added NestedSet behavior support [GH-14](https://github.com/fruit/sfCacheTaggingPlugin/issues/14)
 
 ## Limitations / Specificity
 
@@ -662,10 +660,10 @@ Cached ``DQL`` results will be associated with all linked tags based on query re
 
 ## TDD
 
-  * Environment: PHP 5.3
+  * Environment: PHP 5.3.8
   * Unit tests: 12
-  * Functional tests: 30
-  * Checks: 1330
+  * Functional tests: 31
+  * Checks: 1340
   * Code coverage: 95%
 
 ## Contribution

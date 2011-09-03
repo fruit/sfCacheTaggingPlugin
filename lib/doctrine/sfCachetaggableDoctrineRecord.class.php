@@ -169,7 +169,9 @@
 
       foreach ($values as $columnValues)
       {
-        $tagName = $template->buildTagKey($keyFormat, array_values($columnValues));
+        $tagName = sfCacheTaggingToolkit::buildTagKey(
+          $template, $keyFormat, array_values($columnValues)
+        );
 
         $tagNames[$tagName] = true;
       }

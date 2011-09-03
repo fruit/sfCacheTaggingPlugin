@@ -55,8 +55,11 @@
     $article = new BlogPost();
     $article->setId(1020);
 
-    $t->is($article->obtainTagName(), 'BlogPost:1020');
-    $t->pass('called ->obtainTagName() on new object, but with defined `id`');
+    $t->is(
+      $article->obtainTagName(),
+      'BlogPost:1020',
+      'called ->obtainTagName() on new object, but with defined `id`'
+    );
   }
   catch (InvalidArgumentException $e)
   {

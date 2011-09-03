@@ -346,6 +346,12 @@
       foreach ($q->getDqlPart('set') as $set)
       {
         $matches = null;
+
+        /**
+         * Replace cases:
+         *   Catalogue.is_visible = 1   => is_visible
+         *   is_visible = -1            => is_visible
+         */
         if (preg_match('/(\w+)\ =\ /', $set, $matches))
         {
           $columnsToModify[] = $matches[1];
@@ -381,9 +387,11 @@
       $selectQuery = $table->createQuery();
       $selectQuery->select();
 
-      foreach ($q->getDqlPart('where') as $whereCondition)
+      $where = trim(implode(' ', $q->getDqlPart('where')));
+
+      if (! empty ($where))
       {
-        $selectQuery->addWhere($whereCondition);
+        $selectQuery->addWhere($where);
       }
 
       $params = $q->getParams();
@@ -391,9 +399,14 @@
       $selectQuery->setParams($params);
 
       $tags = array();
-      foreach ($selectQuery->execute() as $object)
+
+      $template = $table->getTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME);
+
+      foreach ($selectQuery->fetchArray() as $objectArray)
       {
-        $tags[$object->obtainTagName()] = $updateVersion;
+        $tagName = sfCacheTaggingToolkit::obtainTagName($template, $objectArray);
+
+        $tags[$tagName] = $updateVersion;
       }
 
       $taggingCache->setTags($tags);
@@ -465,7 +478,7 @@
         $q->getConnection()
       );
 
-      foreach ($q->select()->execute() as $object)
+      foreach ($objects as $object)
       {
         $unitOfWork->collectDeletionsAndInvalidations($object);
 

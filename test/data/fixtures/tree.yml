@@ -1,0 +1,67 @@
+Tree:
+  Tree_1:
+    root_id: '1'
+    lft: '1'
+    rgt: '10'
+    level: '0'
+    name: music
+  Tree_2:
+    root_id: '1'
+    lft: '2'
+    rgt: '3'
+    level: '1'
+    name: pop
+  Tree_3:
+    root_id: '1'
+    lft: '4'
+    rgt: '9'
+    level: '1'
+    name: rock
+  Tree_4:
+    root_id: '1'
+    lft: '5'
+    rgt: '6'
+    level: '2'
+    name: hard rock
+  Tree_5:
+    root_id: '1'
+    lft: '7'
+    rgt: '8'
+    level: '2'
+    name: new age
+  Tree_6:
+    root_id: '6'
+    lft: '1'
+    rgt: '12'
+    level: '0'
+    name: films
+  Tree_7:
+    root_id: '6'
+    lft: '10'
+    rgt: '11'
+    level: '1'
+    name: comedy
+  Tree_8:
+    root_id: '6'
+    lft: '8'
+    rgt: '9'
+    level: '1'
+    name: drama
+  Tree_9:
+    root_id: '6'
+    lft: '6'
+    rgt: '7'
+    level: '1'
+    name: action
+  Tree_10:
+    root_id: '6'
+    lft: '2'
+    rgt: '5'
+    level: '1'
+    name: documentary
+  Tree_11:
+    root_id: '6'
+    lft: '3'
+    rgt: '4'
+    level: '2'
+    name: sociology

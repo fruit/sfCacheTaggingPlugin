@@ -288,4 +288,62 @@
 
       return $collectionVersion;
     }
+
+
+    public static function obtainTagName (Doctrine_Template_Cachetaggable $template, $objectArray)
+    {
+      $uniqueColumns = $template->getOptionUniqueColumns();
+
+      $keyFormat = $template->getOptionKeyFormat($uniqueColumns);
+
+      $table = $template->getTable();
+
+      $columnValues = array();
+
+      foreach ($uniqueColumns as $columnName)
+      {
+        if (! isset($objectArray[$columnName]) || is_object($objectArray[$columnName]))
+        {
+          throw new InvalidArgumentException(
+            sprintf(
+              'sfCacheTaggingPlugin: missing values in an array (row from table "%s") - missing key "%s"',
+              get_class($table), $columnName
+            )
+          );
+        }
+
+        $columnValues[] = $objectArray[$columnName];
+      }
+
+      return self::buildTagKey($template, $keyFormat, $columnValues);
+    }
+
+    /**
+     * Builds tag name by keyFormat and passed values
+     *
+     * @param string  $keyFormat
+     * @param array   $values
+     * @return string
+     */
+    public static function buildTagKey (Doctrine_Template_Cachetaggable $template, $keyFormat, array $values)
+    {
+      /**
+       * First element is object's class name
+       */
+      $columnValues = array(
+        sfCacheTaggingToolkit::getBaseClassName(
+          $template->getTable()->getClassnameToReturn()
+        )
+      );
+
+      /**
+       * following elements are row's "candidate keys"
+       * @link http://databases.about.com/cs/specificproducts/g/candidate.htm
+       */
+      $columnValues = array_merge($columnValues, $values);
+
+      return call_user_func_array(
+        'sprintf', array_merge(array($keyFormat), $columnValues)
+      );
+    }
   }

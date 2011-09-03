@@ -319,29 +319,7 @@
       return $keyFormat;
     }
 
-    /**
-     * Builds tag name by keyFormat and passed values
-     *
-     * @param string  $keyFormat
-     * @param array   $values
-     * @return string
-     */
-    public function buildTagKey ($keyFormat, array $values)
-    {
-      $invoker = $this->getInvoker();
-      $table = $invoker->getTable();
 
-      $objectClassName = $table->getClassnameToReturn();
-      $columnValues = array(
-        sfCacheTaggingToolkit::getBaseClassName($objectClassName)
-      );
-
-      $columnValues = array_merge($columnValues, $values);
-
-      return call_user_func_array(
-        'sprintf', array_merge(array($keyFormat), $columnValues)
-      );
-    }
 
     /**
      * Retrieves object unique tag name based on its class
@@ -351,46 +329,17 @@
      */
     public function obtainTagName ()
     {
-      $uniqueColumns = $this->getOptionUniqueColumns();
-
-      $keyFormat = $this->getOptionKeyFormat($uniqueColumns);
-
       $invoker = $this->getInvoker();
-      $table = $invoker->getTable();
 
       /**
-       * Hack to speed-up Doctrine_Record::get()
+       * Allow to generete tags for new objects - it could already have required
+       * values to generate valid key
+       *
+       * One difference, getData could returns (objects) inside array
        */
-      $accessorOverrideFlag = Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE;
-      $accessorOverrideAttribute = $table->getAttribute($accessorOverrideFlag);
-      $table->setAttribute(Doctrine_Core::ATTR_AUTO_ACCESSOR_OVERRIDE, false);
+      $objectArray = $invoker->isNew() ? $invoker->getData() : $invoker->toArray(false);
 
-      $columnValues = array();
-
-      foreach ($uniqueColumns as $columnName)
-      {
-        $value = $invoker->get($columnName);
-
-        if (null === $value)
-        {
-          $table->setAttribute($accessorOverrideFlag, $accessorOverrideAttribute);
-
-          throw new InvalidArgumentException(
-            sprintf(
-              'sfCacheTaggingPlugin: Object(%s) contains invalid value ' .
-                '(NULL) in column "%s".',
-              $objectClassName, $columnName
-            )
-          );
-
-        }
-
-        $columnValues[] = $value;
-      }
-
-      $table->setAttribute($accessorOverrideFlag, $accessorOverrideAttribute);
-
-      return $this->buildTagKey($keyFormat, $columnValues);
+      return sfCacheTaggingToolkit::obtainTagName($this, $objectArray);
     }
 
     /**
