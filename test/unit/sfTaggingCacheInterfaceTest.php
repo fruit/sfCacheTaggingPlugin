@@ -8,11 +8,11 @@
    * file that was distributed with this source code.
    */
 
-  require_once realpath(dirname(__FILE__) . '/../../../../test/bootstrap/unit.php');
+  include_once realpath(dirname(__FILE__) . '/../bootstrap/unit.php');
 
   $t = new lime_test();
 
-  $cacheSetupLocation = realpath(dirname(__FILE__) . '/../data/config/cache_setup.yml');
+  $cacheSetupLocation = dirname(__FILE__) . '/../fixtures/data/config/cache_setup.yml';
 
   $cacheKeyData = array(
     'Client:Name'     => 'Eddy',

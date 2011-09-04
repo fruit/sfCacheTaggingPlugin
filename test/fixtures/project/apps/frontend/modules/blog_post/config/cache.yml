@@ -1,0 +1,67 @@
+default:
+  enabled: false
+  with_layout: false
+
+index:
+  enabled: false
+
+_indexNews2:
+  enabled: true
+
+page:
+  enabled: true
+  with_layout: false
+
+actionWithoutLayout:
+  enabled: true
+  with_layout: false
+
+actionWithLayout:
+  enabled: true
+  with_layout: true
+
+actionWithDisabledCache:
+  enabled: false
+  with_layout: false
+
+actionWithBlocks:
+  enabled: false
+
+actionWithComponent:
+  enabled: false
+
+_indexNews:
+  enabled: true
+
+_indexNewsComments:
+  enabled: true
+
+_ten_posts_partial_cached:
+  enabled: true
+
+_ten_posts_partial_not_cached:
+  enabled: false
+
+_tenPostsComponentCached:
+  enabled: true
+
+_tenPostsComponentNotCached:
+  enabled: false
+
+_partial_example:
+  enabled: true
+
+_componentExample:
+  enabled: true
+
+_level_1_partial:
+  enabled: true
+
+_level_1_1_partial:
+  enabled: true
+
+_level_1_2_partial:
+  enabled: true
+
+_level_1_2_1_partial:
+  enabled: true

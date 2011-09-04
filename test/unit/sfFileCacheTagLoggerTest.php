@@ -8,7 +8,7 @@
    * file that was distributed with this source code.
    */
 
-  require_once realpath(dirname(__FILE__) . '/../../../../test/bootstrap/unit.php');
+  include_once realpath(dirname(__FILE__) . '/../bootstrap/unit.php');
 
   define('LOGS_DIR', sfConfig::get('sf_plugins_dir') . '/sfCacheTaggingPlugin/test/temp/logs');
   define('LOGS_FILE', LOGS_DIR . '/cache.log');

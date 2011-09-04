@@ -8,7 +8,7 @@
    * file that was distributed with this source code.
    */
 
-  require_once realpath(dirname(__FILE__) . '/../../../../test/bootstrap/unit.php');
+  include_once dirname(__FILE__) . '/../bootstrap/unit.php';
 
   $t = new lime_test();
 

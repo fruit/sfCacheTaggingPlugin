@@ -1,0 +1,1 @@
+<?php include_partial('action_content', array('posts' => $posts, 'layout' => 'without')) ?>

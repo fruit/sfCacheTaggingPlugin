@@ -1,0 +1,186 @@
+detect_relations: false
+options:
+  type: InnoDB
+  charset: utf8
+  collation: utf8_general_ci
+
+RelCategory:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    Cachetaggable: ~
+  columns:
+    id:
+      type: integer(4)
+      unsigned: true
+      primary: true
+      autoincrement: true
+    title: string(255)
+  relations:
+    Sites:
+      foreignAlias: Category
+      onDelete: CASCADE
+      onUpdate: CASCADE
+
+RelCulture:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    Cachetaggable: ~
+  columns:
+    id:
+      type: integer(4)
+      unsigned: true
+      primary: true
+      autoincrement: true
+    rel_culture_id:
+      type: integer(4)
+      notnull: false
+      default: null
+      unsigned: true
+    lang: string(20)
+  relations:
+    Parent:
+      class: RelCulture
+      local: rel_culture_id
+      type: one
+      foreignType: many
+      foreign: id
+      foreignAlias: Childs
+      onDelete: CASCADE
+      onUpdate: CASCADE
+    Childs:
+      class: RelCulture
+      local: id
+      type: many
+      foreignType: one
+      foreign: rel_culture_id
+      cascade: [deleteTags]
+    Sites:
+      class: RelSite
+      refClass: RelSiteCulture
+      local: rel_culture_id
+      foreign: rel_site_id
+    DefaultSites:
+      class: RelSite
+      local: id
+      type: many
+      foreignType: one
+      foreign: rel_culture_id
+      cascade: [invalidateTags]
+    SiteCultures:
+      class: RelSiteCulture
+      local: id
+      type: many
+      foreignType: one
+      foreign: rel_culture_id
+      cascade: [deleteTags]
+
+RelSite:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    Cachetaggable:
+      invalidateCollectionVersionOnUpdate: true
+  columns:
+    id:
+      type: integer(4)
+      unsigned: true
+      primary: true
+      autoincrement: true
+    rel_category_id:
+      type: integer(4)
+      notnull: false
+      unsigned: true
+    domain: string(255)
+  relations:
+    Category:
+      class: RelCategory
+      foreignAlias: Sites
+      local: rel_category_id
+      foreign: id
+      onDelete: SET NULL
+      onUpdate: CASCADE
+    Cultures:
+      class: RelCulture
+      refClass: RelSiteCulture
+      local: rel_site_id
+      foreign: rel_culture_id
+    Setting:
+      class: RelSiteSetting
+      local: id
+      foreign: rel_site_id
+      cascade: [deleteTags]
+      type: one
+      foreignType: one
+      foreignAlias: Site
+    SiteCultures:
+      class: RelSiteCulture
+      local: id
+      foreign: rel_site_id
+      type: many
+      foreignType: one
+      cascade: [deleteTags]
+
+RelSiteCulture:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    Cachetaggable: ~
+  columns:
+    rel_culture_id:
+      type: integer(4)
+      notnull: true
+      primary: true
+      unsigned: true
+    rel_site_id:
+      type: integer(4)
+      notnull: true
+      primary: true
+      unsigned: true
+  relations:
+    Site:
+      class: RelSite
+      local: rel_site_id
+      foreign: id
+      foreignAlias: SiteCultures
+      onDelete: CASCADE
+      onUpdate: CASCADE
+    Culture:
+      class: RelCulture
+      local: rel_culture_id
+      foreign: id
+      foreignAlias: SiteCultures
+      onDelete: CASCADE
+      onUpdate: CASCADE
+
+RelSiteSetting:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    Cachetaggable: ~
+  columns:
+    id:
+      type: integer(4)
+      unsigned: true
+      primary: true
+      autoincrement: true
+    rel_site_id:
+      type: integer(4)
+      notnull: true
+      unsigned: true
+    is_secure: boolean(false)
+    is_closed: boolean(false)
+  indexes:
+    rel_site_id: { fields: [rel_site_id], type: unique }
+  relations:
+    Site:
+      local: rel_site_id
+      class: RelSite
+      foreign: id
+      type: one
+      foreignType: one
+      foreignAlias: Setting
+      onDelete: CASCADE
+      onUpdate: CASCADE
+

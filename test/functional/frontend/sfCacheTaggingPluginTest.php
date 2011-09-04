@@ -8,11 +8,11 @@
    * file that was distributed with this source code.
    */
 
-  require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
+  include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
 
   $browser = new sfTestFunctional(new sfBrowser());
 
-  define('PLUGIN_DATA_DIR', realpath(dirname(__FILE__) . '/../../data'));
+  define('PLUGIN_DATA_DIR', dirname(__FILE__) . '/../../fixtures/data');
 
   define('SF_VIEW_CACHE_MANAGER_EVENT_NAME', 'view.cache.filter_content');
 
@@ -100,7 +100,7 @@
   BlogPostCommentTable::getInstance()->findAll()->delete();
   BlogPostVoteTable::getInstance()->findAll()->delete();
 
-  Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/fixtures.yml', true);
+  Doctrine::loadData(dirname(__FILE__) . '/../../fixtures/project/data/fixtures/fixtures.yml', true);
 
   foreach ($cacheSetups as $cacheSetups)
   {

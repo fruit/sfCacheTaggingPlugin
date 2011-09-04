@@ -1,0 +1,5 @@
+# default values
+all:
+  .plugins:
+    sfcachetaggingplugin: []
+

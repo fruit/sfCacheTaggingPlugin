@@ -8,7 +8,9 @@
    * file that was distributed with this source code.
    */
 
-  require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
+  $app = 'notag';
+
+  include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
 
   $browser = new sfTestFunctional(new sfBrowser());
 

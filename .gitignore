@@ -1,5 +1,10 @@
 *.tgz
 test/temp
 TODO
-!.gitignore
 README
+/test/fixtures/project/cache/*
+/test/fixtures/project/log/*
+/test/fixtures/project/data/sql/*
+/test/fixtures/project/data/sqlite/*
+/test/fixtures/project/lib/model/doctrine/base/*
+!.gitignore

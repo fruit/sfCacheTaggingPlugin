@@ -8,14 +8,16 @@
    * file that was distributed with this source code.
    */
 
-  require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
-  require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
+  $app = 'notag';
+
+  include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
+  include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
   $t = new lime_test();
 
   # check component.method_not_found
 
-  include_once sfConfig::get('sf_apps_dir') . '/notag/modules/blog_post/actions/actions.class.php';
+  include_once dirname(__FILE__) . '/../../fixtures/project/apps/notag/modules/blog_post/actions/actions.class.php';
 
   try
   {
@@ -27,7 +29,7 @@
 
     $v = sfCacheTaggingToolkit::listenOnComponentMethodNotFoundEvent($e);
 
-    $t->ok(null === $v, 'Return null if view manager is defualt');
+    $t->ok(null === $v, 'Return null if view manager is default');
   }
   catch (Exception $e)
   {
@@ -38,7 +40,7 @@
   {
     sfCacheTaggingToolkit::getTaggingCache();
 
-    $t->fail();
+    $t->fail('No exceptions was thrown');
   }
   catch (sfCacheDisabledException $e)
   {
@@ -51,7 +53,8 @@
   try
   {
     sfCacheTaggingToolkit::getTaggingCache();
-    $t->fail();
+    
+    $t->fail('No exceptions was thrown');
   }
   catch (sfConfigurationException $e)
   {

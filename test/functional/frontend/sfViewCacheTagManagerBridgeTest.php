@@ -7,8 +7,8 @@
    * file that was distributed with this source code.
    */
 
-  require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
-  require_once realpath(dirname(__FILE__) . '/../../../../../apps/frontend/modules/blog_post/actions/actions.class.php');
+  include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
+  include_once realpath(dirname(__FILE__) . '/../../fixtures/project/apps/frontend/modules/blog_post/actions/actions.class.php');
 
   $browser = new sfTestFunctional(new sfBrowser());
   $t = $browser->test();

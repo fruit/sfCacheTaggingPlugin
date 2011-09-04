@@ -1,0 +1,45 @@
+detect_relations: false
+options:
+  type:    InnoDB
+  charset: utf8
+  collate: utf8_general_ci
+
+Article:
+  options:
+    symfony: { form: false, filter: false }
+  tableName: articles
+  columns:
+    id:
+      type: integer(4)
+      primary: true
+      autoincrement: true
+      unsigned: true
+    name: string(127)
+    is_visible:
+      type: boolean
+      unsigned: true
+      default: 0
+
+Comment:
+  options:
+    symfony: { form: false, filter: false }
+  tableName: comments
+  columns:
+    id:
+      type: integer(4)
+      primary: true
+      autoincrement: true
+      unsigned: true
+    article_id:
+      type: integer(4)
+      unsigned: true
+    message: clob
+  relations:
+    Article:
+      class: Article
+      local: article_id
+      type: one
+      foreign: id
+      foreignAlias: Comments
+      onDelete: CASCADE
+      onUpdate: CASCADE

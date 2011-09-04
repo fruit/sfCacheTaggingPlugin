@@ -23,7 +23,7 @@
   param:
     prefix: "" # does not have prefixes
     automatic_cleaning_factor: 0
-    database: <?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite.db
+    database: <?php echo sfConfig::get('sf_plugins_dir') ?>/../../../temp/sqlite.db
 -
   class: sfSQLiteTaggingCache
   param:
@@ -37,7 +37,7 @@
   param:
     prefix: "" # does not have prefixes
     automatic_cleaning_factor: 0
-    dsn: "sqlite:<?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/sqlite_pdo.db"
+    dsn: "sqlite:<?php echo sfConfig::get('sf_plugins_dir') ?>/../../../temp/sqlite_pdo.db"
 -
   class: sfSQLitePDOTaggingCache
   param:
@@ -49,7 +49,7 @@
   param:
     prefix: "" # does not have prefixes
     automatic_cleaning_factor: 0
-    cache_dir: <?php echo sfConfig::get('sf_plugins_dir') ?>/sfCacheTaggingPlugin/test/temp/file
+    cache_dir: <?php echo sfConfig::get('sf_plugins_dir') ?>/../../../temp/file
 
 
 

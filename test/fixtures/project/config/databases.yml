@@ -1,0 +1,32 @@
+dev:
+#  doctrine:
+#    param:
+#      dsn:        sqlite:///%SF_DATA_DIR%/sqlite/dev.sqlite
+  doctrine:
+    class:        sfDoctrineDatabase
+    param:
+      classname:  DoctrinePDO
+      dsn:        mysql:dbname=sfcachetaggingplugin_dev;host=localhost
+      username:   root
+      password:
+      encoding:   utf8
+      persistent: true
+      pooling:    true
+
+test:
+  doctrine:
+    class:        sfDoctrineDatabase
+    param:
+      classname:  DoctrinePDO
+      dsn:        mysql:dbname=sfcachetaggingplugin_test;host=localhost
+      username:   root
+      password:
+      encoding:   utf8
+      persistent: true
+      pooling:    true
+
+all:
+  doctrine:
+    class: sfDoctrineDatabase
+    param:
+      classname:  DoctrinePDO

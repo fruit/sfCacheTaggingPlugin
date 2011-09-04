@@ -1,0 +1,24 @@
+all:
+  view_cache:
+    class: sfTaggingCache
+    param:
+      logger:
+        class: sfFileCacheTagLogger
+        param:
+          format: "%char% %microtime% %key%%EOL%"
+#          format: %char%
+#          skip_chars: "vVpPeEtT"
+          file: %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
+          lifetime: 84600
+
+      storage:
+        class: sfFileTaggingCache
+        param:
+          cache_dir: %SF_CACHE_DIR%/sf_tag_cache
+          lifetime: 84600
+
+  view_cache_manager:
+    class: sfViewCacheTagManager
+    param:
+      cache_key_use_vary_headers: true
+      cache_key_use_host_name:    true

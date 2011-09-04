@@ -8,8 +8,10 @@
    * file that was distributed with this source code.
    */
 
-  require_once realpath(dirname(__FILE__) . '/../../../../../test/bootstrap/functional.php');
-  require_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
+  $app = 'notag';
+
+  include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
+  include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
   $sfContext = sfContext::createInstance(
     ProjectConfiguration::getApplicationConfiguration('notag', 'test', true)

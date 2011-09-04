@@ -1,0 +1,17 @@
+detect_relations: false
+options:
+  type:    InnoDB
+  charset: utf8
+  collate: utf8_general_ci
+
+Tree:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    NestedSet:
+      hasManyRoots: true
+      rootColumnName: root_id
+    Cachetaggable: ~
+  columns:
+    name:
+      type: string(255)

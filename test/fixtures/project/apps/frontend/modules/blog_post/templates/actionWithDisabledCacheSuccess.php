@@ -1,0 +1,1 @@
+<?php print rand(0, 10000);

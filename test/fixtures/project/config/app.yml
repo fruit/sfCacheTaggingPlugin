@@ -1,0 +1,15 @@
+all:
+  sfcachetaggingplugin:
+#    template_lock: "lock:%s"
+#    template_tag: "tag:%s"
+#    microtime_precision: 5
+#    tag_lifetime: 86400
+#    lock_lifetime: 1
+#    log_format_extended: 1
+
+  doctrine:
+    query_cache:
+      class: Doctrine_Cache_Apc # or another backend class Doctrine_Cache_*
+      param:
+        prefix:   doctrine_dql_query_cache
+        lifetime: 86400

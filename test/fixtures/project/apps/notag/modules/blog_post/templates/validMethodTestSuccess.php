@@ -1,0 +1,1 @@
+<b>Tags count is <?php print count($tags); ?></b>
