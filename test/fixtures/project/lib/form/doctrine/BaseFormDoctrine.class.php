@@ -3,9 +3,9 @@
 /**
  * Project form base class.
  *
- * @package    ##PROJECT_NAME##
+ * @package    symfony
  * @subpackage form
- * @author     ##AUTHOR_NAME##
+ * @author     Your name here
  * @version    SVN: $Id: sfDoctrineFormBaseTemplate.php 23810 2009-11-12 11:07:44Z Kris.Wallsmith $
  */
 abstract class BaseFormDoctrine extends sfFormDoctrine

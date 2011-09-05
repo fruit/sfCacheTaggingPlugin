@@ -49,6 +49,8 @@
 
       $dir = dirname($file);
 
+      $umask = umask();
+      umask(0000);
       if (! is_dir($dir))
       {
         mkdir($dir, $this->getOption('dir_mode'), true);
@@ -69,6 +71,8 @@
       {
         chmod($file, $this->getOption('file_mode'));
       }
+
+      umask($umask);
     }
 
     protected function doLog ($char, $key)

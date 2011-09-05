@@ -10,7 +10,7 @@
 
   include_once realpath(dirname(__FILE__) . '/../bootstrap/unit.php');
 
-  define('LOGS_DIR', sfConfig::get('sf_plugins_dir') . '/sfCacheTaggingPlugin/test/temp/logs');
+  define('LOGS_DIR', sfConfig::get('sf_plugins_dir') . '/../../../temp/logs');
   define('LOGS_FILE', LOGS_DIR . '/cache.log');
 
   function cleanLogDir()
@@ -62,8 +62,8 @@
     'file' => LOGS_FILE,
   ));
 
-  $t->is(getchmod(LOGS_FILE), 0640, 'file: -rw-r--r--');
-  $t->is(getchmod(LOGS_DIR), 0750, 'dir: -rwxr-x---');
+  $t->is($o = getchmod(LOGS_FILE), $l->getOption('file_mode'), sprintf('file: -rw-r--r--, got %o', $o));
+  $t->is($o = getchmod(LOGS_DIR), $l->getOption('dir_mode'), sprintf('dir: -rwxr-x---, got %o', $o));
 
   cleanLogDir();
 
@@ -73,8 +73,9 @@
     'dir_mode' => 0770,
   ));
 
-  $t->is(getchmod(LOGS_FILE), 0610, 'file: -rw-r-----');
-  $t->is(getchmod(LOGS_DIR), 0770, 'dir: -rwxrwx---');
+
+  $t->is($o = getchmod(LOGS_FILE), 0610, sprintf('file: -rw-r-----, got %o', $o));
+  $t->is($o = getchmod(LOGS_DIR), 0770, sprintf('dir: -rwxrwx---, got %o', $o));
 
   cleanLogDir();
 
