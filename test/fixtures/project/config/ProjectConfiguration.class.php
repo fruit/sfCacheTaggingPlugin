@@ -13,11 +13,7 @@
 
     public function setup ()
     {
-//      print dirname(__FILE__) . '/../../../test' . "\n";
       sfConfig::set('sf_test_dir', dirname(__FILE__) . '/../../../../test');
-
-
-//      require_once(dirname(__FILE__).'/../../../../config/sfCacheTaggingPluginConfiguration.class.php');
 
       $this->setPluginPath('sfCacheTaggingPlugin', dirname(__FILE__) . '/../../../..');
       $this->enablePlugins(array('sfDoctrinePlugin', 'sfCacheTaggingPlugin'));
