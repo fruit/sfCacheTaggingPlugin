@@ -60,9 +60,13 @@ are not (atomic counter).
 
   _After quick setup you may be interested in "<a href="#advanced-setup">Advanced setup</a>"_
 
-## 1. Check "_sfCacheTaggingPlugin_" plugin is enabled (``/config/ProjectConfiguration.class.php``).
+## 1. Check plugin is enabled.
+
+Location: ``/config/ProjectConfiguration.class.php``
 
     [php]
+    <?php
+
     class ProjectConfiguration extends sfProjectConfiguration
     {
       public function setup ()
@@ -72,7 +76,9 @@ are not (atomic counter).
       }
     }
 
-## 2. Change default model class "_sfDoctineRecord_" to "_sfCachetaggableDoctrineRecord_"
+## 2. Change default model class
+
+This will switch default model class ``sfDoctineRecord`` with ``sfCachetaggableDoctrineRecord``
 
     [php]
     <?php
@@ -92,7 +98,7 @@ are not (atomic counter).
 
 Then rebuild your models:
 
-    ./symfony doctrine:build-model
+    $ ./symfony doctrine:build-model
 
 ## 3. Configure "_view_cache_" and "_view_cache_manager_" in ``/config/factories.yml``
 
@@ -160,6 +166,8 @@ Then rebuild your models:
   * ``components.class.php``
 
         [php]
+        <?php
+
         class articlesComponents extends sfComponents
         {
           public function executeListOfArticles ($request)
@@ -196,6 +204,8 @@ Then rebuild your models:
   * ``components.class.php``
 
         [php]
+        <?php
+
         class articlesComponents extends sfComponents
         {
           public function executeListOfArticlesAndComments($request)
@@ -233,6 +243,8 @@ Then rebuild your models:
   * Controller example:
 
         [php]
+        <?php
+
         class carActions extends sfActions
         {
           public function executeShow (sfWebRequest $request)
@@ -262,6 +274,8 @@ Then rebuild your models:
   * Action example
 
         [php]
+        <?php
+
         class carActions extends sfActions
         {
           public function executeShow (sfWebRequest $request)
@@ -288,6 +302,8 @@ Then rebuild your models:
     result cache by calling ``Doctrine_Query::useResultCache()``:
 
         [php]
+        <?php
+
         class articleActions extends sfActions
         {
           public function executeArticles (sfWebRequest $request)
@@ -359,16 +375,16 @@ _NB. Please read "<a href="#quick-setup">Quick setup</a>" before reading this._
 
 Therefor, plugin comes with additional extended backend classes:
 
-  - sfAPCTaggingCache
-  - sfEAcceleratorTaggingCache
-  - sfFileTaggingCache
-  - sfMemcacheTaggingCache
-  - sfSQLiteTaggingCache
-  - sfXCacheTaggingCache
+  - ``sfAPCTaggingCache``
+  - ``sfEAcceleratorTaggingCache``
+  - ``sfFileTaggingCache``
+  - ``sfMemcacheTaggingCache``
+  - ``sfSQLiteTaggingCache``
+  - ``sfXCacheTaggingCache``
 
 And bonus one:
 
-  - sfSQLitePDOTaggingCache (based on stand alone sfSQLitePDOCache)
+  - ``sfSQLitePDOTaggingCache`` (based on stand alone ``sfSQLitePDOCache``)
 
 
 ## Adding "Cachetaggable" behavior to the models
@@ -525,17 +541,17 @@ Explained behavior setup, file ``/config/doctrine/schema.yml``:
 
 ## Tag manipulations
 
-Hire is all available methods you can call inside sfComponent & sfAction to manage tags:
+Here is a list of available methods you can call inside ``sfComponent`` & ``sfAction`` to manage tags:
 
- - setContentTags (mixed $tags)
- - addContentTags (mixed $tags)
- - getContentTags ()
- - removeContentTags ()
- - setContentTag (string $tagName, string $tagVersion)
- - hasContentTag (string $tagName)
- - removeContentTag (string $tagName)
- - disableCache (string $moduleName = null, string $actionName = null)
- - addDoctrineTags (mixed $tags, Doctrine_Query $q, array $params = array())
+ - ``setContentTags (mixed $tags)``
+ - ``addContentTags (mixed $tags)``
+ - ``getContentTags ()``
+ - ``removeContentTags ()``
+ - ``setContentTag (string $tagName, string $tagVersion)``
+ - ``hasContentTag (string $tagName)``
+ - ``removeContentTag (string $tagName)``
+ - ``disableCache (string $moduleName = null, string $actionName = null)``
+ - ``addDoctrineTags (mixed $tags, Doctrine_Query $q, array $params = array())``
 
 More about is you could find in ``sfViewCacheTagManagerBridge.class.php``
 
@@ -634,6 +650,9 @@ To enable result cache use:
 
 Set hydration to ``Doctrine_Core::HYDRATE_RECORD`` (NB! using another hydrator, its impossible to cache ``DQL`` result with tags.)
 
+    [php]
+    <?php
+
     $q
       ->setHydrationMode(Doctrine_Core::HYDRATE_RECORD)
       ->execute();
@@ -645,15 +664,15 @@ Cached ``DQL`` results will be associated with all linked tags based on query re
 
 # <a id="misc">Miscellaneous</a>
 
-## New in v4.1.0:
+## New in v4.1.1:
 
-  * New: Added NestedSet behavior support [GH-14](https://github.com/fruit/sfCacheTaggingPlugin/issues/14)
+  * [Removed] Removing from package test files - all test environment located in GIT repository
 
 ## Limitations / Specificity
 
   * In case, when model has translations (I18n behavior), it is enough to add
     ``Cachetaggable`` behavior to the root model. I18n behavior should be free from ``Cachetaggable`` behavior.
-  * You can`t pass ``I18n`` table columns to the ``skipOnChange``.
+  * You can't pass ``I18n`` table columns to the ``skipOnChange``.
   * Doctrine ``$q->count()`` can't be cached with tags
   * Be careful with joined I18n tables, cached result may differs from the expected.
     Due the [unresolved ticket](http://trac.symfony-project.org/ticket/7220) it *could be* impossible.
@@ -665,6 +684,46 @@ Cached ``DQL`` results will be associated with all linked tags based on query re
   * Functional tests: 31
   * Checks: 1340
   * Code coverage: 95%
+
+Whether you want to run a plugin tests, you need:
+
+  1. Install plugin from GIT repository.
+  2. Install [APC](http://pecl.php.net/package/APC) and [Memcache](http://pecl.php.net/package/Memcache)
+  3. Configure ``php.ini`` and restart Apache/php-fpm:
+
+        [ini]
+        [APC]
+          apc.enabled = 1
+          apc.enable_cli = 1
+          apc.use_request_time = 0
+
+  4. Add CLI variable:
+
+    For current session only:
+
+        $ export SYMFONY=/path/to/symfony/lib
+
+    For all further sessions:
+
+        $ echo "export SYMFONY=/path/to/symfony/lib" >> ~/.bashrc
+
+  5. Run tests:
+
+        [php]
+        $ cd plugins/sfCacheTaggingPlugin/test/fixtures/project/
+
+        # it will create the ``sfcachetaggingplugin_test`` database
+        $ ./symfony doctrine:build --all --and-load --env=test
+
+        # runs unit and functional tests
+        $ ./symfony test:all
+
+        # runs all unit tests
+        $ ./symfony test:unit
+
+        # runs all functional tests
+        $ ./symfony test:functional
+
 
 ## Contribution
 
