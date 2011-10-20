@@ -6,5 +6,5 @@ README
 /test/fixtures/project/log/*
 /test/fixtures/project/data/sql/*
 /test/fixtures/project/data/sqlite/*
-/test/fixtures/project/lib/model/doctrine/base/*
+/test/fixtures/project/lib/model/*
 !.gitignore
