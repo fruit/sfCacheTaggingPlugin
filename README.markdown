@@ -634,20 +634,6 @@ Component example:
       }
     }
 
-
-## Why you might want to unset collection tag from list of existing cache tags
-
-Imagine following situation - you want to cache article
-"Oil is discovered in Saudi Arabia" for 3rd March of 1938.
-
-You know it makes no sense if someone had removed another article or had
-added new one.
-
-Collection tag is used to identify whether this article should be invalidated
-in case new article is added or some other article is removed
-
-TODO: Why do we need collection tag when fetching only ony object with findOneById()?
-
 ## Configurating Doctrine`s query cache
 
 Remember to enable Doctrine query cache in production:
