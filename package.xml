@@ -23,9 +23,9 @@
     <active>yes</active>
   </lead>
   <date>2011-12-06</date>
-  <time>21:40:00</time>
+  <time>22:05:00</time>
   <version>
-    <release>4.2.0</release>
+    <release>4.2.1</release>
     <api>4.0.1</api>
   </version>
   <stability>
@@ -34,9 +34,7 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT license</license>
   <notes>
-    * ilya: [fixed] Attaching unsaved record to cache block cause the error
-    * ilya: [added] Added custom HTTP request class and custom filter to differ cache blocks between authenticated users
-    * ilya: [updated] README - added notes how to keep different cache to each authenticated user
+    * ilya: [updated] README removed unnecessary block
   </notes>
   <contents>
     <dir name="/">
@@ -45,7 +43,7 @@
         <file name="sfCacheTaggingPluginConfiguration.class.php" md5sum="5c5fca78d6de507e3aabda7ed6b641e7" role="data" />
       </dir>
       <file name="LICENSE" md5sum="d840195351e168d3bc3ab9b626617907" role="data" />
-      <file name="README" md5sum="b2aee2cc82c666d9e80957e90323be70" role="data" />
+      <file name="README" md5sum="83e627222228fe70a4a2592d013b04ad" role="data" />
       <dir name="lib">
         <dir name="util">
           <file name="sfCacheTaggingToolkit.class.php" md5sum="035bc2137475cbc2f5354dd664ee4d88" role="data" />
@@ -137,6 +135,21 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>4.2.1</release>
+        <api>4.0.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2011-12-06</date>
+      <license uri="http://www.symfony-project.com/license">MIT license</license>
+      <notes>
+        * ilya: [updated] README removed unnecessary block
+      </notes>
+    </release>
     <release>
       <version>
         <release>4.2.0</release>
