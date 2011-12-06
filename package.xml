@@ -22,10 +22,10 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2011-10-20</date>
-  <time>16:30:00</time>
+  <date>2011-12-06</date>
+  <time>21:40:00</time>
   <version>
-    <release>4.1.1</release>
+    <release>4.2.0</release>
     <api>4.0.1</api>
   </version>
   <stability>
@@ -34,8 +34,9 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT license</license>
   <notes>
-    * ilya: [removed] Test environment files removed from package. All tests available only from GIT repository. [GH-15]
-    * ilya: [updated] README
+    * ilya: [fixed] Attaching unsaved record to cache block cause the error
+    * ilya: [added] Added custom HTTP request class and custom filter to differ cache blocks between authenticated users
+    * ilya: [updated] README - added notes how to keep different cache to each authenticated user
   </notes>
   <contents>
     <dir name="/">
@@ -44,7 +45,7 @@
         <file name="sfCacheTaggingPluginConfiguration.class.php" md5sum="5c5fca78d6de507e3aabda7ed6b641e7" role="data" />
       </dir>
       <file name="LICENSE" md5sum="d840195351e168d3bc3ab9b626617907" role="data" />
-      <file name="README" md5sum="49a01f35f05993f9602431b2fcbc01f4" role="data" />
+      <file name="README" md5sum="b2aee2cc82c666d9e80957e90323be70" role="data" />
       <dir name="lib">
         <dir name="util">
           <file name="sfCacheTaggingToolkit.class.php" md5sum="035bc2137475cbc2f5354dd664ee4d88" role="data" />
@@ -52,6 +53,9 @@
           <file name="sfCallableArray.class.php" md5sum="e3563a95e13f7f0a4621de56b5119a59" role="data" />
           <file name="sfTagNamespacedParameterHolder.class.php" md5sum="126fcaf02e158b87e733cbe42e72c2f6" role="data" />
           <file name="sfViewCacheTagManagerBridge.class.php" md5sum="c8e1eb30d4e72fc3adce96deebe8d238" role="data" />
+        </dir>
+        <dir name="request">
+          <file name="sfCacheTaggingWebRequest.class.php" md5sum="75155dd100eb88aeb5a0ee32694828cf" role="data" />
         </dir>
         <dir name="log">
           <file name="sfNoCacheTagLogger.class.php" md5sum="b57a946d753a714dd1da7ce72014f9ed" role="data" />
@@ -63,6 +67,9 @@
         </dir>
         <dir name="view">
           <file name="sfViewCacheTagManager.class.php" md5sum="46aa91fb0cd8eafa3d10a0c5dda27f57" role="data" />
+        </dir>
+        <dir name="filter">
+          <file name="AuthParamFilter.class.php" md5sum="e59b84f5e32b3a188b1de826b8d9fe8e" role="data" />
         </dir>
         <dir name="exception">
           <file name="sfCacheDisabledException.class.php" md5sum="589a2a27a80a1ff1a90d8f20968e21e1" role="data" />
@@ -95,7 +102,7 @@
               <dir name="Listener">
                 <file name="Cachetaggable.php" md5sum="bb4728b8b2b529634c8f8f10c632522b" role="data" />
               </dir>
-              <file name="Cachetaggable.php" md5sum="67d4aaf7b61d26d919f69662c93bf2f8" role="data" />
+              <file name="Cachetaggable.php" md5sum="fde8c06415b09772d1528259a6a1c704" role="data" />
             </dir>
             <dir name="Cache">
               <file name="Proxy.php" md5sum="027c16edf4e53ebd6c0b7296cf8c1eec" role="data" />
@@ -130,6 +137,23 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>4.2.0</release>
+        <api>4.0.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2011-12-06</date>
+      <license uri="http://www.symfony-project.com/license">MIT license</license>
+      <notes>
+        * ilya: [fixed] Attaching unsaved record to cache block cause the error
+        * ilya: [added] Added custom HTTP request class and custom filter to differ cache blocks between authenticated users
+        * ilya: [updated] README - added notes how to keep different cache to each authenticated user
+      </notes>
+    </release>
     <release>
       <version>
         <release>4.1.1</release>

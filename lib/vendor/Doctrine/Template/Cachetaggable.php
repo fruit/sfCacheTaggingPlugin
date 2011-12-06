@@ -149,6 +149,11 @@
           {
             continue;
           }
+          
+          if ($reference instanceof Doctrine_Record && ! $reference->exists())
+          {
+            continue;
+          }
 
           $table = $reference->getTable();
 

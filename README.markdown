@@ -129,6 +129,10 @@ Then rebuild your models:
       actAs:
         Cachetaggable: ~
 
+And don't forget to rebuild models again:
+
+    $ ./symfony doctrine:build-model
+
 ## 5. Enable cache and declare required helpers in ``/apps/%APP%/config/settings.yml``:
 
     dev:
@@ -294,7 +298,7 @@ Then rebuild your models:
           with_layout: false
           enabled:     true
 
-## How to cache Doctrine_Records/Doctrine_Collections?
+## How to cache ``Doctrine_Record``/``Doctrine_Collection``?
 
   * Does not depends on ``cache.yml`` file
 
@@ -323,6 +327,46 @@ Then rebuild your models:
 # <a id="advanced-setup">Advanced setup</a>
 
 _NB. Please read "<a href="#quick-setup">Quick setup</a>" before reading this._
+
+## How to cache private blocks (actions/pages/partials) for authenticated users
+
+  Symfony's cache mechanism creates the unique key to each block you want to cache based on
+  following arguments:
+
+    - Module name
+    - Action name
+    - $_GET arguments
+
+  In case you would like to cache user's private data you must be very careful.
+  To prevent users of seeing other user private data you need to add
+  additional parameter to distinguish cached blocks among other private blocks.
+
+  The easiest way is to keep user_id/username in URL, but it's awful.
+  I suggest to add custom $_GET parameter on the fly. This will
+  prevent of showing "user_id" in URL.
+
+  What should you do is to register a new filter ``AuthParamFilter`` and switch standard
+  ``sfWebRequest`` with plugin's one ``sfCacheTaggingWebRequest``.
+
+  Place ``AuthParamFilter`` before "caching" filter in ``apps/%application_name%/config/filters.yml``
+
+    rendering: ~
+    security:  ~
+
+    auth_params:
+      class: AuthParamFilter
+
+    cache:     ~
+    execution: ~
+
+  Switch to sfCacheTaggingWebRequest in ``apps/%application_name%/config/factories.yml``
+
+    all:
+      request:
+        class: sfCacheTaggingWebRequest
+
+  That's all. Now cache content will be based on additional parameter "user_id" in case
+  user have successfully authenticated.
 
 ## Explaining ``/config/factories.yml``
 
@@ -589,6 +633,20 @@ Component example:
         $this->banners = $banners;
       }
     }
+
+
+## Why you might want to unset collection tag from list of existing cache tags
+
+Imagine following situation - you want to cache article
+"Oil is discovered in Saudi Arabia" for 3rd March of 1938.
+
+You know it makes no sense if someone had removed another article or had
+added new one.
+
+Collection tag is used to identify whether this article should be invalidated
+in case new article is added or some other article is removed
+
+TODO: Why do we need collection tag when fetching only ony object with findOneById()?
 
 ## Configurating Doctrine`s query cache
 
