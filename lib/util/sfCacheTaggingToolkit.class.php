@@ -284,6 +284,9 @@
       if (null === $collectionVersion)
       {
         $collectionVersion = self::generateVersion();
+        // Set the generated version in the cache so that subsequent calls to 
+        // obtainCollectionVersion return a consistent value
+        self::getTaggingCache()->setTag($collectionVersionName, $collectionVersion);
       }
 
       return $collectionVersion;
