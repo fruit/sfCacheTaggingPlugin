@@ -58,7 +58,7 @@
 
   $t->ok(isset($freshTags[$posts->getTable()->getClassNameToReturn()]));
 
-  $t->cmp_ok($collectionTagVersion, '<', $freshCollectionVersion);
+  $t->cmp_ok($collectionTagVersion, '=', $freshCollectionVersion);
 
   $c = new Doctrine_Collection_Cachetaggable('University');
 

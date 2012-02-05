@@ -19,6 +19,11 @@
   class Doctrine_Template_Cachetaggable extends Doctrine_Template
   {
     /**
+     * The default version value for records which were never saved before
+     */
+    const UNSAVED_RECORD_DEFAULT_VERSION = '1';
+
+    /**
      * Array of Sortable options
      *
      * @var string
@@ -90,7 +95,10 @@
         $this->getOption('versionColumn'),
         'string',
         10 + sfCacheTaggingToolkit::getPrecision(),
-        array('notnull' => false, 'default' => 1)
+        array(
+          'notnull' => false,
+          'default' => self::UNSAVED_RECORD_DEFAULT_VERSION
+        )
       );
 
       $this->addListener(
@@ -149,7 +157,7 @@
           {
             continue;
           }
-          
+
           if ($reference instanceof Doctrine_Record && ! $reference->exists())
           {
             continue;
@@ -278,7 +286,7 @@
 
       }
 
-      return '1';
+      return self::UNSAVED_RECORD_DEFAULT_VERSION;
     }
 
     /**

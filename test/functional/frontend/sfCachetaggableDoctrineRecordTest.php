@@ -42,8 +42,16 @@
   $t->diag('Testing methods content');
 
   $t->diag('obtainObjectVersion() unsaved');
-  $t->is(gettype($obj->obtainObjectVersion()), 'integer', 'Return type is integer');
-  $t->is($obj->obtainObjectVersion(), 1, 'Unsaved object returns 1');
+
+  // default value changed to string '1' (was 1) to match returning value
+  // in Doctrine_Template_Cachetaggable::obtainCollectionVersion and describing
+  // table custom column "object_version" specification
+  $t->is(gettype($obj->obtainObjectVersion()), 'string', 'Return type is string');
+  $t->is(
+    $obj->obtainObjectVersion(),
+    Doctrine_Template_Cachetaggable::UNSAVED_RECORD_DEFAULT_VERSION,
+    'Unsaved object returns 1'
+  );
 
   $t->diag('obtainCollectionVersion() unsaved');
   $t->is(gettype($obj->obtainCollectionVersion()), 'string', 'Return type is string');
@@ -51,7 +59,11 @@
 
   $version1 = $obj->obtainCollectionVersion();
   $version2 = $obj->obtainCollectionVersion();
-  $t->cmp_ok($version1, '<', $version2, 'Unsaved object with neved saved any other objects return always current microtime');
+  /**
+   * @since 4.2.2 Unsaved object memorize first generated version
+   *              for next method calls
+   */
+  $t->cmp_ok($version1, '=', $version2, 'Collection version stays unchanged for future method calls');
 
 
   $obj->set('is_enabled', true);
