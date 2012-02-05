@@ -22,10 +22,10 @@
     <email>fruit.dev@gmail.com</email>
     <active>yes</active>
   </lead>
-  <date>2011-12-06</date>
-  <time>22:05:00</time>
+  <date>2012-02-05</date>
+  <time>12:30:00</time>
   <version>
-    <release>4.2.1</release>
+    <release>4.2.2</release>
     <api>4.0.1</api>
   </version>
   <stability>
@@ -34,82 +34,83 @@
   </stability>
   <license uri="http://www.symfony-project.com/license">MIT license</license>
   <notes>
-    * ilya: [updated] README removed unnecessary block
+    * ilya: [fixed] Minor fix to obtainCollectionVersion (thanks paulkmoore)
+    * ilya: [updated] Renewed copyright years
   </notes>
   <contents>
     <dir name="/">
       <dir name="config">
         <file name="app.yml" md5sum="6f7e6faa779ba005cad6c48da40797fe" role="data" />
-        <file name="sfCacheTaggingPluginConfiguration.class.php" md5sum="5c5fca78d6de507e3aabda7ed6b641e7" role="data" />
+        <file name="sfCacheTaggingPluginConfiguration.class.php" md5sum="7b3a2d4c0e26176c02ec322692fb52aa" role="data" />
       </dir>
-      <file name="LICENSE" md5sum="d840195351e168d3bc3ab9b626617907" role="data" />
+      <file name="LICENSE" md5sum="405a172e07fbccb9037268666541a1c0" role="data" />
       <file name="README" md5sum="83e627222228fe70a4a2592d013b04ad" role="data" />
       <dir name="lib">
         <dir name="util">
-          <file name="sfCacheTaggingToolkit.class.php" md5sum="035bc2137475cbc2f5354dd664ee4d88" role="data" />
-          <file name="sfContentTagHandler.class.php" md5sum="5fc1ab0b62e12bde46330cc0ae25ad97" role="data" />
-          <file name="sfCallableArray.class.php" md5sum="e3563a95e13f7f0a4621de56b5119a59" role="data" />
-          <file name="sfTagNamespacedParameterHolder.class.php" md5sum="126fcaf02e158b87e733cbe42e72c2f6" role="data" />
-          <file name="sfViewCacheTagManagerBridge.class.php" md5sum="c8e1eb30d4e72fc3adce96deebe8d238" role="data" />
+          <file name="sfCacheTaggingToolkit.class.php" md5sum="8b5efb6695eae08c32d3b5a89409bafa" role="data" />
+          <file name="sfContentTagHandler.class.php" md5sum="c33ef8b775ef8c76e2b042897db357f0" role="data" />
+          <file name="sfCallableArray.class.php" md5sum="1bd34a890342ec1122aec9810f9efbb0" role="data" />
+          <file name="sfTagNamespacedParameterHolder.class.php" md5sum="9bb2fe10eff473c7dd04dbd750ad28fc" role="data" />
+          <file name="sfViewCacheTagManagerBridge.class.php" md5sum="80d91e2f2f1a65f8fc21398eb2220aa6" role="data" />
         </dir>
         <dir name="request">
-          <file name="sfCacheTaggingWebRequest.class.php" md5sum="75155dd100eb88aeb5a0ee32694828cf" role="data" />
+          <file name="sfCacheTaggingWebRequest.class.php" md5sum="c58e41d4d4318206801f227b024d3c64" role="data" />
         </dir>
         <dir name="log">
-          <file name="sfNoCacheTagLogger.class.php" md5sum="b57a946d753a714dd1da7ce72014f9ed" role="data" />
-          <file name="sfCacheTagLogger.class.php" md5sum="b11e6ff69fce8d8100e6fa52d823b316" role="data" />
-          <file name="sfFileCacheTagLogger.class.php" md5sum="aba67779f65e59f1751edfe9bb978ff2" role="data" />
+          <file name="sfNoCacheTagLogger.class.php" md5sum="e30f581e0bf449affa0ad845172cdd05" role="data" />
+          <file name="sfCacheTagLogger.class.php" md5sum="670c35873cf26c5ae1dadbf08c8fe719" role="data" />
+          <file name="sfFileCacheTagLogger.class.php" md5sum="a033c0ff42967aa04641db49def7a000" role="data" />
         </dir>
         <dir name="doctrine">
-          <file name="sfCachetaggableDoctrineRecord.class.php" md5sum="ce83ea06bd72151dfb9ec218b5bb8c41" role="data" />
+          <file name="sfCachetaggableDoctrineRecord.class.php" md5sum="c7f53aa0057747c78e3df88748e0c145" role="data" />
         </dir>
         <dir name="view">
-          <file name="sfViewCacheTagManager.class.php" md5sum="46aa91fb0cd8eafa3d10a0c5dda27f57" role="data" />
+          <file name="sfViewCacheTagManager.class.php" md5sum="bbe598c7c2366d156171ece6123b2b34" role="data" />
         </dir>
         <dir name="filter">
-          <file name="AuthParamFilter.class.php" md5sum="e59b84f5e32b3a188b1de826b8d9fe8e" role="data" />
+          <file name="AuthParamFilter.class.php" md5sum="d6a82fa885df4e2e2b55f1537e55dd37" role="data" />
         </dir>
         <dir name="exception">
-          <file name="sfCacheDisabledException.class.php" md5sum="589a2a27a80a1ff1a90d8f20968e21e1" role="data" />
-          <file name="sfCacheMissingContextException.class.php" md5sum="b396e6ef4ad273bdf59226c4aff2a6d4" role="data" />
+          <file name="sfCacheDisabledException.class.php" md5sum="dd1170045ba7dee7495259267b1802d2" role="data" />
+          <file name="sfCacheMissingContextException.class.php" md5sum="76b22ef03b01bf46fbb5a8fc72523d45" role="data" />
         </dir>
         <dir name="cache">
           <dir name="drivers">
-            <file name="sfSQLitePDOCache.class.php" md5sum="20aa70e04e287bca2d048dd77cb6c8ec" role="data" />
+            <file name="sfSQLitePDOCache.class.php" md5sum="05b14c18a0bb07ef5e8f03ec0dadc9ad" role="data" />
           </dir>
-          <file name="sfTaggingCacheInterface.class.php" md5sum="2c2e90b610e4f5732f7b45bb0e1ac4c0" role="data" />
+          <file name="sfTaggingCacheInterface.class.php" md5sum="6d4b3327c47495237b48f41984c07bae" role="data" />
           <dir name="extended">
-            <file name="sfFileTaggingCache.class.php" md5sum="930a684ce643b4300dd0eff839d85c1a" role="data" />
-            <file name="sfSQLitePDOTaggingCache.class.php" md5sum="2dd902d38a7c07caa4b6252d2c94da20" role="data" />
-            <file name="sfSQLiteTaggingCache.class.php" md5sum="dab182011be0ef30ee36286044fe2c82" role="data" />
-            <file name="sfAPCTaggingCache.class.php" md5sum="df41401005e812cd93be17850194838f" role="data" />
-            <file name="sfXCacheTaggingCache.class.php" md5sum="91abe52b95c6f9bbee138c33b9226ee7" role="data" />
-            <file name="sfEAcceleratorTaggingCache.class.php" md5sum="e7fc71e6f46470ddfdd19b73947e6e51" role="data" />
-            <file name="sfMemcacheTaggingCache.class.php" md5sum="a9629a2661ffd636edd898156c1cdd52" role="data" />
+            <file name="sfFileTaggingCache.class.php" md5sum="a5b4b0cede13174bd1a7501dbc7ff2ef" role="data" />
+            <file name="sfSQLitePDOTaggingCache.class.php" md5sum="ff2d9fa04d84fc8e121cd012099ef7b9" role="data" />
+            <file name="sfSQLiteTaggingCache.class.php" md5sum="579e7cc32196d48a7a7ab7cf1257eb39" role="data" />
+            <file name="sfAPCTaggingCache.class.php" md5sum="341f676e3f4fc96f2c39b259516d78c0" role="data" />
+            <file name="sfXCacheTaggingCache.class.php" md5sum="fdab30d69774f142f47018c88a81d590" role="data" />
+            <file name="sfEAcceleratorTaggingCache.class.php" md5sum="8c06ecd26a75403f24222fdc097934cf" role="data" />
+            <file name="sfMemcacheTaggingCache.class.php" md5sum="4c0094dd0ac454d53111da093848ced3" role="data" />
           </dir>
-          <file name="sfTaggingCache.class.php" md5sum="96490c729d109093a083f6059ddc7350" role="data" />
-          <file name="CacheMetadata.class.php" md5sum="20b2b479d5b9389d5671a4c5483ade1b" role="data" />
-          <file name="sfNoTaggingCache.class.php" md5sum="12756d20fffd396da542302f9406044e" role="data" />
+          <file name="sfTaggingCache.class.php" md5sum="5a47f12bac03a29524e8fca19ea739ce" role="data" />
+          <file name="CacheMetadata.class.php" md5sum="d8926d57754fa02b2a6fbe5fbfd959da" role="data" />
+          <file name="sfNoTaggingCache.class.php" md5sum="289cb106922b5b3e67c866ffdd1f75cb" role="data" />
         </dir>
         <dir name="vendor">
           <dir name="Doctrine">
             <dir name="Connection">
-              <file name="CachetaggableUnitOfWork.php" md5sum="edfc6cb33d93721bdee6d0ea1cf39aae" role="data" />
+              <file name="CachetaggableUnitOfWork.php" md5sum="4771619d503af35bb65bb59ec28edc16" role="data" />
             </dir>
             <dir name="Template">
               <dir name="Listener">
-                <file name="Cachetaggable.php" md5sum="bb4728b8b2b529634c8f8f10c632522b" role="data" />
+                <file name="Cachetaggable.php" md5sum="8a8b331132a954501b0d6b820143b9b6" role="data" />
               </dir>
-              <file name="Cachetaggable.php" md5sum="fde8c06415b09772d1528259a6a1c704" role="data" />
+              <file name="Cachetaggable.php" md5sum="022ea8057e037feac52527850bd72163" role="data" />
             </dir>
             <dir name="Cache">
-              <file name="Proxy.php" md5sum="027c16edf4e53ebd6c0b7296cf8c1eec" role="data" />
+              <file name="Proxy.php" md5sum="00d2fba131ea03f283f56bd41aba2c2f" role="data" />
             </dir>
             <dir name="Collection">
-              <file name="Cachetaggable.php" md5sum="ea21b8010b83faa14aa75c655d0aedaf" role="data" />
+              <file name="Cachetaggable.php" md5sum="b0924ba0e6c679696012e17daf05a9d2" role="data" />
             </dir>
             <dir name="Query">
-              <file name="Cachetaggable.php" md5sum="78f6ea497d3fb4e2e013bb630e23e263" role="data" />
+              <file name="Cachetaggable.php" md5sum="e1d27e101609da8b4cff7a7cee17a66f" role="data" />
             </dir>
           </dir>
         </dir>
@@ -135,6 +136,22 @@
   </dependencies>
   <phprelease />
   <changelog>
+    <release>
+      <version>
+        <release>4.2.2</release>
+        <api>4.0.1</api>
+      </version>
+      <stability>
+        <release>stable</release>
+        <api>stable</api>
+      </stability>
+      <date>2012-02-05</date>
+      <license uri="http://www.symfony-project.com/license">MIT license</license>
+      <notes>
+        * ilya: [fixed] Minor fix to obtainCollectionVersion (thanks paulkmoore)
+        * ilya: [updated] Renewed copyright years
+      </notes>
+    </release>
     <release>
       <version>
         <release>4.2.1</release>
