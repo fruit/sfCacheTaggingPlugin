@@ -1,0 +1,20 @@
+detect_relations: true
+options:
+  type: InnoDB
+  charset: utf8
+  collation: utf8_general_ci
+
+PostVote:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    Cachetaggable: ~
+  columns:
+    blog_post_vote_id:
+      type: integer
+      unsigned: true
+      primary: true
+    blog_post_id:
+      type: integer
+      unsigned: true
+      primary: true

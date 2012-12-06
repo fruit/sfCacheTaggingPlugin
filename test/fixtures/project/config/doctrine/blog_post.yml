@@ -1,0 +1,42 @@
+detect_relations: true
+options:
+  type: InnoDB
+  charset: utf8
+  collation: utf8_general_ci
+
+BlogPost:
+  options:
+    symfony: { form: false, filter: false }
+  tableName: blog_post
+  actAs:
+    Cachetaggable: ~
+    I18n:
+      fields: [content]
+  columns:
+    id:
+      type: integer
+      primary: true
+      autoincrement: true
+      unsigned: true
+      notnull: true
+    is_enabled: boolean(true)
+    title: string(255)
+    slug: string(10)
+    content: clob
+  relations:
+    BlogPostComment:
+      class: BlogPostComment
+      type: many
+      foreignType: one
+      local: id
+      foreign: blog_post_id
+      foreignAlias: BlogPost
+      cascade: [delete]
+    BlogPostVote:
+      class: BlogPostVote
+      type: many
+      foreignType: one
+      local: id
+      foreign: blog_post_id
+      foreignAlias: BlogPost
+      cascade: [tags]

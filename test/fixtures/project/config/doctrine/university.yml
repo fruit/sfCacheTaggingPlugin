@@ -1,0 +1,12 @@
+detect_relations: true
+options:
+  type: InnoDB
+  charset: utf8
+  collation: utf8_general_ci
+
+University:
+  options:
+    symfony: { form: false, filter: false }
+  tableName: university
+  columns:
+    name: string(255)

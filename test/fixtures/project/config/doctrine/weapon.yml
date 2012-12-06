@@ -1,0 +1,21 @@
+detect_relations: true
+options:
+  type: InnoDB
+  charset: utf8
+  collation: utf8_general_ci
+
+Weapon:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    Cachetaggable: ~
+  columns:
+    material_id:
+      type: integer(4)
+      primary: true
+      unsigned: true
+    size_id:
+      type: integer(4)
+      primary: true
+      unsigned: true
+    name: string(255)

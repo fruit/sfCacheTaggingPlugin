@@ -1,0 +1,24 @@
+detect_relations: true
+options:
+  type: InnoDB
+  charset: utf8
+  collation: utf8_general_ci
+
+AirCompany:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    Cachetaggable:
+      invalidateCollectionVersionByChangingColumns:
+        - is_enabled
+        - is_deleted
+  columns:
+    id:
+      type: integer
+      primary: true
+      autoincrement: true
+      unsigned: true
+    name: string(255)
+    since: date
+    is_enabled: boolean(true)
+    is_deleted: boolean(false)
