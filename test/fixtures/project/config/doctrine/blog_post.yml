@@ -7,7 +7,6 @@ options:
 BlogPost:
   options:
     symfony: { form: false, filter: false }
-  tableName: blog_post
   actAs:
     Cachetaggable: ~
     I18n:

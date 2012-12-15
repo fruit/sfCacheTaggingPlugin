@@ -7,7 +7,6 @@ options:
 Repository:
   options:
     symfony: { form: false, filter: false }
-  tableName: repository
   actAs:
     Cachetaggable:
       uniqueColumn: [hash, version, fake_column]

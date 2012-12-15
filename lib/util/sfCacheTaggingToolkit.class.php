@@ -18,6 +18,7 @@
   class sfCacheTaggingToolkit
   {
     const TEMPLATE_NAME = 'Cachetaggable';
+    const PLUGIN_NAME   = 'sfCacheTaggingPlugin';
 
     /**
      * @throws sfCacheDisabledException         when "sf_cache" is OFF
@@ -35,7 +36,7 @@
       if (! sfContext::hasInstance())
       {
         throw new sfCacheMissingContextException(
-          sprintf('Content is not initialized for "%s"', __CLASS__)
+          sprintf('Context is not initialized for "%s"', __CLASS__)
         );
       }
 
@@ -44,8 +45,8 @@
       if (! $viewCacheManager instanceof sfViewCacheTagManager)
       {
         throw new sfConfigurationException(
-          'sfCacheTaggingPlugin is not properly configured'
-        );
+          sprintf('%s is not properly configured', self::PLUGIN_NAME
+        ));
       }
 
       return $viewCacheManager->getTaggingCache();
@@ -144,9 +145,9 @@
 
         $tagsToReturn = $argument->getCacheTags();
       }
-      # Doctrine_Collection_Cachetaggable and Doctrine_Record are
-      # instances of ArrayAccess
-      # this check should be after them
+      // Doctrine_Collection_Cachetaggable and Doctrine_Record are
+      // instances of ArrayAccess
+      // this check should be after them
       elseif ($argument instanceof ArrayIterator || $argument instanceof ArrayObject)
       {
         $tagsToReturn = $argument->getArrayCopy();
@@ -182,7 +183,7 @@
     }
 
     /**
-     * Listens on "component.method_not_found"
+     * Triggers on "component.method_not_found" event
      *
      * @param sfEvent $event
      * @return null
@@ -230,21 +231,15 @@
     {
       static $classNames = array();
 
-      $callableArray = sfConfig::get(
-        'app_sfCacheTagging_object_class_tag_name_provider'
-      );
-
-      if (is_array($callableArray) && (2 == count($callableArray)))
+      if (! array_key_exists($className, $classNames))
       {
-        if (! array_key_exists($className, $classNames))
-        {
-          $classNames[$className] = call_user_func($callableArray, $className);
-        }
-
-        return $classNames[$className];
+        $nameProvider = sfConfig::get('app_sfCacheTagging_object_class_tag_name_provider');
+        $classNames[$className] = is_callable($nameProvider)
+          ? call_user_func($nameProvider, $className)
+          : $className;
       }
 
-      return $className;
+      return $classNames[$className];
     }
 
     /**
@@ -284,7 +279,7 @@
       if (null === $collectionVersion)
       {
         $collectionVersion = self::generateVersion();
-        // Set the generated version in the cache so that subsequent calls to 
+        // Set the generated version in the cache so that subsequent calls to
         // obtainCollectionVersion return a consistent value
         self::getTaggingCache()->setTag($collectionVersionName, $collectionVersion);
       }
@@ -292,8 +287,17 @@
       return $collectionVersion;
     }
 
-
-    public static function obtainTagName (Doctrine_Template_Cachetaggable $template, $objectArray)
+    /**
+     * Creates tag name based on Array hydrated record
+     *
+     * @param Doctrine_Template_Cachetaggable $template
+     * @param array $objectArray
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return string
+     */
+    public static function obtainTagName (Doctrine_Template_Cachetaggable $template, array $objectArray)
     {
       $uniqueColumns = $template->getOptionUniqueColumns();
 
@@ -309,8 +313,8 @@
         {
           throw new InvalidArgumentException(
             sprintf(
-              'sfCacheTaggingPlugin: missing values in an array (row from table "%s") - missing key "%s"',
-              get_class($table), $columnName
+              '%s: missing values in an array (row from table "%s") - missing key "%s"',
+              self::PLUGIN_NAME, get_class($table), $columnName
             )
           );
         }

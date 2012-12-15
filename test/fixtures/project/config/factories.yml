@@ -3,9 +3,10 @@ all:
     class: sfTaggingCache
     param:
       logger:
+#        class: sfOutputCacheTagLogger # for debugging purposes
         class: sfFileCacheTagLogger
         param:
-          format: "%char% %microtime% %key%%EOL%"
+          format: "%char% %microtime% %key% // %char_explanation%%EOL%"
 #          format: %char%
 #          skip_chars: "vVpPeEtT"
           file: %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
@@ -16,6 +17,17 @@ all:
         param:
           cache_dir: %SF_CACHE_DIR%/sf_tag_cache
           lifetime: 84600
+
+  logger:
+    class: sfAggregateLogger
+    param:
+      level: debug
+      loggers:
+        sf_file_debug:
+          class: sfFileLogger
+          param:
+            level: debug
+            file: %SF_LOG_DIR%/%SF_APP%_%SF_ENVIRONMENT%.log
 
   view_cache_manager:
     class: sfViewCacheTagManager

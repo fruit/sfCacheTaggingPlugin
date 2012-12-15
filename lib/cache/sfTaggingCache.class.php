@@ -133,7 +133,7 @@
         );
       }
 
-      # check is valid class
+      // check is valid class
       $this->cache = new $cacheClassName($this->getOption('storage.param', array()));
 
       if (! $this->cache instanceof sfCache)
@@ -160,17 +160,17 @@
         );
       }
 
-      $this->logger = new $loggerClassName(
-        $this->getOption('logger.param', array())
-      );
+      $logger = new $loggerClassName($this->getOption('logger.param', array()));
 
-      if (! $this->logger instanceof sfCacheTagLogger)
+      if (! $logger instanceof sfCacheTagLogger)
       {
         throw new sfInitializationException(sprintf(
           'Logger class is not instance of sfCacheTagLogger, got "%s"',
           get_class($this->logger)
         ));
       }
+
+      $this->setLogger($logger);
     }
 
     /**
@@ -186,9 +186,23 @@
     /**
      * @return sfCacheTagLogger
      */
-    protected function getLogger ()
+    public function getLogger ()
     {
       return $this->logger;
+    }
+
+    /**
+     * Sets a logger
+     *
+     * @since v4.3.0
+     * @param sfCacheTagLogger $logger
+     * @return sfTaggingCache
+     */
+    public function setLogger (sfCacheTagLogger $logger)
+    {
+      $this->logger = $logger;
+
+      return $this;
     }
 
     /**
@@ -363,6 +377,8 @@
      *
      * @param array    $tags
      * @param integer  $lifetime optional
+     *
+     * @return sfTaggingCache
      */
     public function setTags (array $tags, $lifetime = null)
     {
@@ -370,6 +386,8 @@
       {
         $this->setTag($tagName, $version, $lifetime);
       }
+
+      return $this;
     }
 
     /**
@@ -505,26 +523,26 @@
           {
             $this->getLogger()->log('V', 'via equal compare');
 
-            # one tag is expired, no reasons to continue
-            # (should revalidate cache data)
+            // one tag is expired, no reasons to continue
+            // (should revalidate cache data)
           }
           else
           {
             $extendedKeysWithCurrentVersions = array_combine(array_keys($storedTags), array_values($fetchedCacheTags));
 
-            # check for data tags is expired
+            // check for data tags is expired
             foreach ($storedTags as $tagKey => $tagLatestVersion)
             {
               $tagVersion = $extendedKeysWithCurrentVersions[$tagKey];
-              # tag is exprired or version is old
+              // tag is exprired or version is old
               if (! $tagLatestVersion || $tagVersion < $tagLatestVersion)
               {
                 $this->getLogger()->log(
                   'v', sprintf('%s(%s=>%s)', $tagKey, $tagVersion, $tagLatestVersion)
                 );
 
-                # one tag is expired, no reasons to continue
-                # (should revalidate cache data)
+                // one tag is expired, no reasons to continue
+                // (should revalidate cache data)
                 $hasExpired = true;
 
                 break;
@@ -541,12 +559,12 @@
           {
             if ($this->isLocked($key))
             {
-              # return old cache coz new data is writing to the current cache
+              // return old cache coz new data is writing to the current cache
               $data = $cacheMetadata->getData();
             }
             else
             {
-              # cache no locked, but cache is expired
+              // cache no locked, but cache is expired
               $data = null;
             }
           }

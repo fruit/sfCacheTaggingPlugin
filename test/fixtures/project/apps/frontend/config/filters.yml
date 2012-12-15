@@ -2,6 +2,9 @@ rendering: ~
 security:  ~
 
 # insert your own filters here
+auth_params:
+  class: AuthParamFilter
+  enabled: true
 
 cache:     ~
 execution: ~

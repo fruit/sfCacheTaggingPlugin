@@ -15,6 +15,8 @@
    * @package sfCacheTaggingPlugin
    * @subpackage request
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
+   *
+   * @deprecated since version v4.3.0
    */
   class sfCacheTaggingWebRequest extends sfWebRequest
   {

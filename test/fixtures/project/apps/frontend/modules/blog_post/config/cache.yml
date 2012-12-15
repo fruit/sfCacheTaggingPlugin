@@ -65,3 +65,19 @@ _level_1_2_partial:
 
 _level_1_2_1_partial:
   enabled: true
+
+_partial_contextual:
+  enabled: true
+  contextual: true
+
+welcome:
+  enabled: true
+  with_layout: false
+
+signIn:
+  enabled: false
+  with_layout: false
+
+actionWithAutoSignIn:
+  enabled: true
+  with_layout: false

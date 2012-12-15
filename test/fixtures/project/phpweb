@@ -1,0 +1,9 @@
+#!/usr/bin/sh
+
+$(which php) \
+   -dsession.save_path=data/sessions \
+   -derror_log=php_errors.log \
+   -derror_reporting=-1 \
+   -ddisplay_errors=On \
+   -S localhost:8001 \
+   -t web/ web/index.php

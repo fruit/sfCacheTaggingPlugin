@@ -10,7 +10,7 @@
   {
     /**
      * Handling call the action Tree
-     * 
+     *
      * @var $request sfWebRequest
      */
     public function executeTree (sfWebRequest $request)
@@ -25,11 +25,11 @@
       $jazz->name = 'Jazz';
 
       $jazz->getNode()->insertAsLastChildOf($music);
-      
+
 //      die;
     }
-    
-    
+
+
     /**
      * Executes index action
      *
@@ -146,5 +146,60 @@
     public function executeActionWithBlocks (sfWebRequest $request)
     {
       $this->posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
+    }
+
+    /**
+     * Handling call the action Welcome
+     *
+     * @var $request sfWebRequest
+   */
+    public function executeWelcome (sfWebRequest $request)
+    {
+      
+    }
+
+    /**
+     * Handling call the action SignIn
+     *
+     * @var $request sfWebRequest
+     */
+    public function executeSignIn (sfWebRequest $request)
+    {
+      $user = $this->getUser();
+      /* @var $user sfBasicSecurityUser */
+
+      if (! $request->isMethod(sfRequest::POST))
+      {
+        return sfView::ERROR;
+      }
+
+      if ('' === trim($request->getPostParameter('password'), '*'))
+      {
+        $user->setAuthenticated(true);
+        $user->setAttribute('username', $request->getPostParameter('username'));
+        $user->setAttribute('user_id', 5919);
+
+        $this->redirect('blog_post/welcome');
+      }
+
+      return sfView::ERROR;
+    }
+
+
+    /**
+     * Handling call the action ActionWithAutoSignIn
+     *
+     * @var $request sfWebRequest
+     */
+    public function executeActionWithAutoSignIn (sfWebRequest $request)
+    {
+      $user = $this->getUser();
+
+      /* @var $user sfBasicSecurityUser */
+
+      $user->setAttribute('username', 'anonymous');
+      $user->setAttribute('user_id',  1998);
+
+      $user->setAuthenticated(true);
     }
   }

@@ -87,7 +87,7 @@
         $rows[$row['key']] = unserialize($row['data']);
       }
 
-      # reorder based on passed keys
+      // reorder based on passed keys
       $results = array();
       foreach ($keys as $key)
       {

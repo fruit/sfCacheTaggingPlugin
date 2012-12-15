@@ -46,13 +46,9 @@
 
       $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
 
-      $this->getEventDispatcher()->notify(
-        new sfEvent($manager, 'sf_cache_tagging_plugin.doctrine_configure')
-      );
-
       $this->getEventDispatcher()->connect(
         'component.method_not_found',
-        array('sfCacheTaggingToolkit', 'listenOnComponentMethodNotFoundEvent')
+        'sfCacheTaggingToolkit::listenOnComponentMethodNotFoundEvent'
       );
     }
   }

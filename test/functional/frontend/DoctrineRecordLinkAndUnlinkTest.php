@@ -47,6 +47,7 @@
   RelSiteCultureTable::getInstance()->createQuery()->useResultCache()->execute();
 
   $con->beginTransaction();
+  $site = RelSiteTable::getInstance()->find(1);
   $site->link('Cultures', $ids = array(3, 4));
   $site->save();
   foreach ($ids as $id)
@@ -91,6 +92,9 @@
   $culture->save();
   foreach ($cultures as $culture)
   {
+    /**
+     * @todo on Connection rollback, remove Invokers from Doctrine_Template_Cachetaggable->deletedObjectRegistry
+     */
     $t->ok(
       $sfTagger->hasTag($culture->obtainTagName()),
       sprintf("Tag `%s` still there", $culture->obtainTagName())

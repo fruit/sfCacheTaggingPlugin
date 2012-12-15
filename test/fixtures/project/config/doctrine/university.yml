@@ -7,6 +7,5 @@ options:
 University:
   options:
     symfony: { form: false, filter: false }
-  tableName: university
   columns:
     name: string(255)

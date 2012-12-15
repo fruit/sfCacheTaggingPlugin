@@ -50,7 +50,7 @@
       $this->tagNamesToDelete = array();
       $this->tagNamesToInvalidate = array();
 
-      # first record (root element) always goes to collection "tagNamesToDelete"
+      // first record (root element) always goes to collection "tagNamesToDelete"
       $this->collect($record, $this->tagNamesToDelete);
     }
 
@@ -89,18 +89,18 @@
         return;
       }
 
-      # delete definitions
+      // delete definitions
       if ($this->tagNamesToDelete === $definitions)
       {
         $definitions[$record->getOid()] = $record->obtainTagName();
 
         $this->cascade($record);
       }
-      else # invalidate definitions
+      else // invalidate definitions
       {
-        # do not call cascade - due to SET NULL only updates columns
+        // do not call cascade - due to SET NULL only updates columns
 
-        # do not add tag, if its already on deletion list
+        // do not add tag, if its already on deletion list
         if (! array_key_exists($record->getOid(), $this->tagNamesToDelete))
         {
           $definitions[$record->getOid()] = $record->obtainTagName();
@@ -122,7 +122,7 @@
       {
         /* @var $relation Doctrine_Relation_LocalKey */
 
-        # build-in Doctrine cascade mechanism do all the work - skip
+        // build-in Doctrine cascade mechanism do all the work - skip
         if ($relation->isCascadeDelete())
         {
           continue;
@@ -130,7 +130,7 @@
 
         $cascade = $relation->offsetGet('cascade');
 
-        # no instructions, no results - skip
+        // no instructions, no results - skip
         if (0 == count($cascade))
         {
           continue;
@@ -139,7 +139,7 @@
         $isCascadeDeleteTags = in_array('deleteTags', $cascade);
         $isCascadeInvalidateTags = in_array('invalidateTags', $cascade);
 
-        # could be only 1 selected, otherwise skip
+        // could be only 1 selected, otherwise skip
         if (! ($isCascadeDeleteTags xor $isCascadeInvalidateTags))
         {
           continue;
@@ -156,11 +156,7 @@
 
         $fieldName = $relation->getAlias();
 
-        if (
-            $relation->getType() != Doctrine_Relation::ONE
-          ||
-            isset($record->$fieldName)
-        )
+        if ( ! ($relation->getType() == Doctrine_Relation::ONE && isset($record->$fieldName)))
         {
           $record->refreshRelated($relation->getAlias());
         }
@@ -175,7 +171,7 @@
             ! isset($definitions[$relatedObjects->getOid()])
         )
         {
-          # invalidate collection version too
+          // invalidate collection version too
           $collectionName = sfCacheTaggingToolkit::obtainCollectionName(
             $relatedObjects->getTable()
           );
@@ -190,6 +186,7 @@
               ->getTable()
               ->getTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME);
 
+            /* @var $template Doctrine_Template_Cachetaggable */
             if ($template->getOption('invalidateCollectionVersionOnUpdate'))
             {
               $this->tagNamesToInvalidate[$collectionName] = $collectionName;
@@ -212,7 +209,7 @@
           continue;
         }
 
-        # invalidate collection version too
+        // invalidate collection version too
         $collectionName = sfCacheTaggingToolkit::obtainCollectionName(
           $relatedObjects->getTable()
         );

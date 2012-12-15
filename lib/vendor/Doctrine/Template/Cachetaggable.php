@@ -46,16 +46,8 @@
     protected $_state = null;
 
     /**
-     * Object unique namespace name to store Doctrine_Record's tags
-     *
-     * @var string
-     */
-    protected $invokerNamespace = null;
-
-    /**
-     * __construct
-     *
-     * @param string $array
+     * @param array $options
+     * @throws sfConfigurationException
      * @return null
      */
     public function __construct (array $options = array())
@@ -64,18 +56,15 @@
         $this->getOptions(), $options
       );
 
-      $this->invokerNamespace = sprintf(
-        '%s/%s', __CLASS__, sfCacheTaggingToolkit::generateVersion()
-      );
-
       $versionColumn = $this->getOption('versionColumn');
 
       if (! is_string($versionColumn) || 0 >= strlen($versionColumn))
       {
         throw new sfConfigurationException(
           sprintf(
-            'sfCacheTaggingPlugin: "%s" behaviors "versionColumn" ' .
+            '%s: "%s" behaviors "versionColumn" ' .
               'should be string and not empty, passed "%s"',
+            sfCacheTaggingToolkit::PLUGIN_NAME,
             sfCacheTaggingToolkit::TEMPLATE_NAME,
             (string) $versionColumn
           )
@@ -147,7 +136,7 @@
         $this->obtainTagName() => $this->obtainObjectVersion(),
       );
 
-      $tagHandler->addContentTags($invokerTags, $this->getInvokerNamespace());
+      $tagHandler->addContentTags($invokerTags, $this->obtainInvokerNamespace());
 
       if ($deep)
       {
@@ -172,7 +161,7 @@
 
           $tagHandler->addContentTags(
             $reference->getCacheTags($deep),
-            $this->getInvokerNamespace()
+            $this->obtainInvokerNamespace()
           );
         }
       }
@@ -181,9 +170,9 @@
        * @todo mistical code (switching added tags with fetch on the fly)
        *       maybe copy & past from toArray()?
        */
-      $tags = $tagHandler->getContentTags($this->getInvokerNamespace());
+      $tags = $tagHandler->getContentTags($this->obtainInvokerNamespace());
 
-      $tagHandler->removeContentTags($this->getInvokerNamespace());
+      $tagHandler->removeContentTags($this->obtainInvokerNamespace());
 
       $this->_state = $stateBeforeLock;
 
@@ -204,7 +193,7 @@
       {
         $this
           ->getContentTagHandler()
-          ->addContentTags($tags, $this->getInvokerNamespace());
+          ->addContentTags($tags, $this->obtainInvokerNamespace());
 
         return true;
       }
@@ -229,7 +218,7 @@
       {
         $this
           ->getContentTagHandler()
-          ->setContentTag($tagName, $tagVersion, $this->getInvokerNamespace());
+          ->setContentTag($tagName, $tagVersion, $this->obtainInvokerNamespace());
 
         return true;
       }
@@ -332,8 +321,6 @@
       return $keyFormat;
     }
 
-
-
     /**
      * Retrieves object unique tag name based on its class
      *
@@ -379,7 +366,7 @@
     /**
      * Updates object version
      *
-     * @return Doctrine_Recotd
+     * @return Doctrine_Record
      */
     public function updateObjectVersion ()
     {
@@ -387,11 +374,14 @@
     }
 
     /**
-     * @return string Object's namespace to store tags
+     * Generates namespace for current invoker
+     *
+     * @since v4.3.0
+     * @return string   Object's namespace to store tags
      */
-    protected function getInvokerNamespace ()
+    protected function obtainInvokerNamespace ()
     {
-      return $this->invokerNamespace;
+      return sprintf('%s/%s', __CLASS__, spl_object_hash($this->getInvoker()));
     }
 
     /**

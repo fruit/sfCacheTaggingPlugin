@@ -53,7 +53,7 @@
   try
   {
     sfCacheTaggingToolkit::getTaggingCache();
-    
+
     $t->fail('No exceptions was thrown');
   }
   catch (sfConfigurationException $e)
@@ -79,35 +79,3 @@
   }
 
   sfConfig::set('sf_cache', $optionSfCache);
-
-
-  # getBaseClassName
-
-  class ClassNameProvider
-  {
-    public static function decorate ($name)
-    {
-      return strtr($name, array('Frontend' => '', 'Backend' => ''));
-    }
-  }
-
-  $optionProvider = sfConfig::get('app_sfCacheTagging_object_class_tag_name_provider');
-
-  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', null);
-  $t->is(
-    sfCacheTaggingToolkit::getBaseClassName('FrontendCompany'),
-    'FrontendCompany'
-  );
-
-  sfConfig::set(
-    'app_sfCacheTagging_object_class_tag_name_provider',
-    array('ClassNameProvider', 'decorate')
-  );
-
-  $t->is(sfCacheTaggingToolkit::getBaseClassName('FrontendCompany'), 'Company');
-
-  # second time from buffer
-  $t->is(sfCacheTaggingToolkit::getBaseClassName('FrontendCompany'), 'Company');
-
-
-  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', $optionProvider);

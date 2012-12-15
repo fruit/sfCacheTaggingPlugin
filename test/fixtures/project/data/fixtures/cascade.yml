@@ -6,38 +6,6 @@ RelCategory:
   RelCategory_3:
     title: Sport
 
-RelSite:
-  RelSite_1:
-    domain: google.com
-    Category: RelCategory_1
-  RelSite_2:
-    domain: vimeo.com
-    Category: RelCategory_1
-  RelSite_3:
-    domain: bbc.com
-    Category: RelCategory_2
-  RelSite_4:
-    domain: ted.com
-    Category: RelCategory_2
-
-RelSiteSetting:
-  RelSiteSetting_1:
-    Site: RelSite_1
-    is_secure: true
-    is_closed: false
-  RelSiteSetting_2:
-    Site: RelSite_2
-    is_secure: false
-    is_closed: false
-  RelSiteSetting_3:
-    Site: RelSite_3
-    is_secure: false
-    is_closed: true
-  RelSiteSetting_4:
-    Site: RelSite_4
-    is_secure: true
-    is_closed: true
-
 RelCulture:
   RelCulture_1:
     lang: en
@@ -63,6 +31,41 @@ RelCulture:
   RelCulture_9:
     Parent: RelCulture_5
     lang: de_LI
+
+RelSite:
+  RelSite_1:
+    domain: google.com
+    Category: RelCategory_1
+    RelCulture: RelCulture_3
+  RelSite_2:
+    domain: vimeo.com
+    RelCulture: RelCulture_4
+  RelSite_3:
+    domain: bbc.com
+    Category: RelCategory_2
+    RelCulture: RelCulture_4
+  RelSite_4:
+    domain: ted.com
+    Category: RelCategory_2
+
+RelSiteSetting:
+  RelSiteSetting_1:
+    Site: RelSite_1
+    is_secure: true
+    is_closed: false
+  RelSiteSetting_2:
+    Site: RelSite_2
+    is_secure: false
+    is_closed: false
+  RelSiteSetting_3:
+    Site: RelSite_3
+    is_secure: false
+    is_closed: true
+  RelSiteSetting_4:
+    Site: RelSite_4
+    is_secure: true
+    is_closed: true
+
 
 RelSiteCulture:
   RelSiteCulture_1_1:

@@ -5,6 +5,10 @@ README
 /test/fixtures/project/cache/*
 /test/fixtures/project/log/*
 /test/fixtures/project/data/sql/*
+/test/fixtures/project/data/sessions/*
 /test/fixtures/project/data/sqlite/*
 /test/fixtures/project/lib/model/*
 !.gitignore
+/test/fixtures/project/web/sf
+/test/fixtures/project/web/sfDoctrinePlugin
+php_errors.log

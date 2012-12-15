@@ -36,7 +36,6 @@ RelCulture:
     rel_culture_id:
       type: integer(4)
       notnull: false
-      default: null
       unsigned: true
     lang: string(20)
   relations:
@@ -61,11 +60,12 @@ RelCulture:
       refClass: RelSiteCulture
       local: rel_culture_id
       foreign: rel_site_id
-    DefaultSites:
+    RelSites:
       class: RelSite
       local: id
       type: many
       foreignType: one
+      foreignAlias: RelCulture
       foreign: rel_culture_id
       cascade: [invalidateTags]
     SiteCultures:
@@ -91,6 +91,10 @@ RelSite:
     rel_category_id:
       type: integer(4)
       notnull: false
+      unsigned: true
+    rel_culture_id:
+      type: integer(4)
+      notnull: false     # can be NULL (FK is "SET NULL")
       unsigned: true
     domain: string(255)
   relations:
@@ -121,6 +125,15 @@ RelSite:
       type: many
       foreignType: one
       cascade: [deleteTags]
+    RelCulture:
+      class: RelCulture
+      local: rel_culture_id
+      type: one
+      foreignType: many
+      foreignAlias: RelSites
+      foreign: id
+      onDelete: SET NULL
+      onUpdate: CASCADE
 
 RelSiteCulture:
   options:

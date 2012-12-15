@@ -10,73 +10,104 @@
 
   include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
-//  define('PLUGIN_DATA_DIR', realpath(dirname(__FILE__) . '/../../data'));
 
-  global $t, $sfTagger, $alltags;
+  global $t, $tagging, $alltags;
   $t = new lime_test();
 
-  $sfTagger = sfContext::getInstance()->getViewCacheManager()->getTaggingCache();
+  $tagging = new sfTaggingCache(array(
+    'logger' => array(
+      'class' => 'sfOutputCacheTagLogger',
+      'param' => array('format' => '%char% %microtime% %key% // %char_explanation%%EOL%')
+    ),
+//    'logger' => array('class' => 'sfNoCacheTagLogger', 'param' => array()),
+//    'storage' => array(
+//      'class' => 'sfMemcacheTaggingCache',
+//      'param' => array('prefix' => 'test', 'storeCacheInfo' => true)
+//    ),
+    'storage' => array(
+      'class' => 'sfFileTaggingCache',
+      'param' => array(
+        'prefix' => 'test',
+        'cache_dir' => sfConfig::get('sf_cache_dir') .'/cascade'
+      )
+    ),
+  ));
 
-//  Doctrine::loadData(PLUGIN_DATA_DIR . '/fixtures/cascade.yml', true);
+  $ctx = sfContext::getInstance();
+  $ctx->set('viewCacheManager', new sfViewCacheTagManager($ctx, $tagging, array()));
 
-  $con = Doctrine_Manager::getInstance()->getConnection('doctrine');
+  /* @var $tagging sfTaggingCache */
 
-  $a = RelSiteTable::getInstance()->findAll()->getCacheTags();
-  $b = RelSiteCultureTable::getInstance()->findAll()->getCacheTags();
-  $c = RelCultureTable::getInstance()->findAll()->getCacheTags();
-  $d = RelSiteSettingTable::getInstance()->findAll()->getCacheTags();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
 
-  $sfTagger->setTags($alltags = array_merge($a, $b, $c, $d));
-
-  function checkTags ($microtime, array $toDelete, array $toInvalidate)
+  function fetch_and_clean_all_tags ()
   {
-    global $t, $sfTagger, $alltags;
+    global $tagging;
 
-    static $number = 1;
+    $tagging->clean();
 
-    $t->diag(sprintf('Test #%d', $number));
+    $s  = RelSiteTable::getInstance()->findAll();
+    $sc = RelSiteCultureTable::getInstance()->findAll();
+    $c  = RelCultureTable::getInstance()->findAll();
+    $ss = RelSiteSettingTable::getInstance()->findAll();
 
-    foreach ($alltags as $tagName => $tagVersion)
+    $tagging->setTags($tags = array_merge(
+      $s->getCacheTags(), $sc->getCacheTags(), $c->getCacheTags(), $ss->getCacheTags()
+    ));
+
+    $s->free();
+    $sc->free();
+    $c->free();
+    $ss->free();
+
+    $s->clear();
+    $sc->clear();
+    $c->clear();
+    $ss->clear();
+
+    return $tags;
+  }
+
+  function check_tags ($microtime, array $toDelete, array $toInvalidate)
+  {
+    global $t, $tagging, $alltags;
+
+    foreach ($alltags as $tagName)
     {
       if (in_array($tagName, $toDelete))
       {
-        $t->ok(! $sfTagger->hasTag($tagName), sprintf('Tag "%s" is removed', $tagName));
+        $t->ok(! $tagging->hasTag($tagName), sprintf('Tag "%s" is removed', $tagName));
       }
-      elseif (in_array ($tagName, $toInvalidate))
+      elseif (in_array($tagName, $toInvalidate))
       {
-        $t->cmp_ok($sfTagger->getTag($tagName), '>', $microtime, sprintf('Tag "%s" is invalidated', $tagName));
+        $t->cmp_ok($tagging->getTag($tagName), '>', $microtime, sprintf('Tag "%s" is invalidated', $tagName));
       }
       else
       {
-        $t->ok($sfTagger->hasTag($tagName), sprintf('Tag "%s" exists', $tagName));
-        $t->cmp_ok($sfTagger->getTag($tagName), '<', $microtime, sprintf('Version of "%s" is not updated', $tagName));
+        $t->ok($tagging->hasTag($tagName), sprintf('Tag "%s" exists', $tagName));
+        $t->cmp_ok($tagging->getTag($tagName), '<', $microtime, sprintf('Version of "%s" is not updated', $tagName));
       }
     }
 
-    $a = RelSiteTable::getInstance()->findAll()->getCacheTags();
-    $b = RelSiteCultureTable::getInstance()->findAll()->getCacheTags();
-    $c = RelCultureTable::getInstance()->findAll()->getCacheTags();
-    $d = RelSiteSettingTable::getInstance()->findAll()->getCacheTags();
-
-    $sfTagger->setTags(array_merge($a, $b, $c, $d));
-
-    $number ++;
+    fetch_and_clean_all_tags();
   }
+
+  $alltags = array_keys(fetch_and_clean_all_tags());
 
   $run = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 
-  $t->diag('RelSite model');
-
-  if (in_array(1, $run))
+  if (in_array(1, $run, true))
   {
+    $t->diag('Test #1');
+
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
     RelSiteTable::getInstance()->find(1)->delete();
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelSite:1',
         'RelSiteSetting:1',
         'RelSiteCulture:1:1',
@@ -84,23 +115,24 @@
         'RelSiteCulture:5:1',
       ),
       array(
-        'RelSite', # marked not by cascade mechanism
-        'RelSiteSetting', # marked not by cascade mechanism
-        'RelSiteCulture', # marked not by cascade mechanism
+        'RelSite',
+        'RelSiteSetting',
+        'RelSiteCulture',
       )
     );
   }
 
-  if (in_array(2, $run))
+  if (in_array(2, $run, true))
   {
+    $t->diag('Test #2');
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
     RelSiteTable::getInstance()->find(4)->delete();
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelSite:4',
         'RelSiteSetting:4',
       ),
@@ -111,16 +143,22 @@
     );
   }
 
-  if (in_array(3, $run))
+  if (in_array(3, $run, true))
   {
+    $t->diag('Test #3');
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
-    RelSiteTable::getInstance()->createQuery()->delete()->andWhereIn('id', array(2, 3))->execute();
+    RelSiteTable::getInstance()
+      ->createQuery()
+      ->delete()
+      ->andWhereIn('id', array(2, 3))
+      ->execute();
+
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelSite:2',
         'RelSiteSetting:2',
         'RelSiteCulture:2:2',
@@ -138,20 +176,17 @@
     );
   }
 
-  return;
-
-  $t->diag('RelCulture model (tree)');
-
-  if (in_array(4, $run))
+  if (in_array(4, $run, true))
   {
+    $t->diag('Test #4');
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
     RelCultureTable::getInstance()->find(1)->delete();
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelCulture:1',
         'RelCulture:3', # child of RelCulture:1
         'RelCulture:4', # child of RelCulture:1
@@ -169,47 +204,46 @@
     );
   }
 
-
-
-
-  if (in_array(5, $run))
+  if (in_array(5, $run, true))
   {
+    $t->diag('Test #5');
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
     RelCultureTable::getInstance()->find(5)->delete();
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelCulture:5',
         'RelCulture:6', # child of RelCulture:5
         'RelCulture:7', # child of RelCulture:5
         'RelCulture:8', # child of RelCulture:5
         'RelCulture:9', # child of RelCulture:5
-        'RelSiteCulture:5:1',
-        'RelSiteCulture:5:2',
+        'RelSiteCulture:5:1', # as reference from RelCulture:5
+        'RelSiteCulture:5:2', # as reference from RelCulture:5
         'RelSiteCulture:7:3', # as reference from RelCulture:7
       ),
       array(
         'RelCulture', # marked not by cascade mechanism
         'RelSiteCulture', # marked not by cascade mechanism
-        'RelSite', #  due to "invalidateCollectionVersionOnUpdate" for RelSite
-        'RelSite:4',
+        //'RelSite', #  due to "invalidateCollectionVersionOnUpdate" for RelSite
+        //'RelSite:4',
       )
     );
   }
 
-  if (in_array(6, $run))
+  if (in_array(6, $run, true))
   {
+    $t->diag('Test #6');
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
     RelCultureTable::getInstance()->find(2)->delete();
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelCulture:2',
         'RelSiteCulture:2:1',
         'RelSiteCulture:2:2',
@@ -221,11 +255,11 @@
     );
   }
 
+  // RelSiteCulture model (M:M)
 
-  $t->diag('RelSiteCulture model (M:M)');
-
-  if (in_array(7, $run))
+  if (in_array(7, $run, true))
   {
+    $t->diag('Test #7');
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
     RelSiteCultureTable::getInstance()
@@ -233,9 +267,9 @@
       ->delete();
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelSiteCulture:1:1',
       ),
       array(
@@ -244,9 +278,9 @@
     );
   }
 
-
-  if (in_array(8, $run))
+  if (in_array(8, $run, true))
   {
+    $t->diag('Test #8');
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
     RelSiteCultureTable::getInstance()
@@ -254,9 +288,9 @@
       ->delete();
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelSiteCulture:1:1',
         'RelSiteCulture:2:1',
         'RelSiteCulture:5:1',
@@ -267,19 +301,19 @@
     );
   }
 
+  // RelSiteSetting model (1:1)
 
-  $t->diag('RelSiteSetting model (1:1)');
-
-  if (in_array(9, $run))
+  if (in_array(9, $run, true))
   {
+    $t->diag('Test #9');
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
     RelSiteSettingTable::getInstance()->find(3)->delete();
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelSiteSetting:3',
       ),
       array(
@@ -288,8 +322,9 @@
     );
   }
 
-  if (in_array(10, $run))
+  if (in_array(10, $run, true))
   {
+    $t->diag('Test #10');
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
     RelSiteSettingTable::getInstance()
@@ -300,9 +335,9 @@
 
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelSiteSetting:1',
         'RelSiteSetting:3',
         'RelSiteSetting:4',
@@ -313,17 +348,26 @@
     );
   }
 
-  if (in_array(11, $run))
+  if (in_array(11, $run, true))
   {
+    $t->diag('Test #11');
+
     # full delete 11
     $version = sfCacheTaggingToolkit::generateVersion();
     $con->beginTransaction();
+
+    # id: 1,2,3,4                   [delete]
+    # rel_category_id: 1,2          [invalidate]
+    # rel_culture_id: 3,4           [invalidate]
+    # M:M rel_culture_id: 1,2,5,7   [delete]
     RelSiteTable::getInstance()
       ->createQuery()
       ->delete()
       ->andWhere('id > 0')
       ->execute();
 
+    # id: 1,2,5   (+ 3,4,6,7,8,9 as child cultures)
+    # M:M rel_site_id: 1,2,3        [delete]
     RelCultureTable::getInstance()
       ->createQuery()
       ->delete()
@@ -332,16 +376,16 @@
 
     $con->rollback();
 
-    checkTags(
+    check_tags(
       $version,
-      array (
+      array(
         'RelSite:1',
-        'RelSiteSetting:1',
         'RelSite:2',
-        'RelSiteSetting:2',
         'RelSite:3',
-        'RelSiteSetting:3',
         'RelSite:4',
+        'RelSiteSetting:1',
+        'RelSiteSetting:2',
+        'RelSiteSetting:3',
         'RelSiteSetting:4',
         'RelCulture:1',
         'RelCulture:2',
@@ -361,7 +405,7 @@
         'RelSiteCulture:7:3',
       ),
       array(
-        'RelSite',        # marked not by cascade mechanis
+        'RelSite',        # marked not by cascade mechanism
         'RelSiteSetting', # marked not by cascade mechanism
         'RelSiteCulture', # marked not by cascade mechanism
         'RelCulture',     # marked not by cascade mechanism

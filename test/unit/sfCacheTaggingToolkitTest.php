@@ -19,7 +19,7 @@
   try
   {
     sfCacheTaggingToolkit::getTaggingCache();
-    $t->fail();
+    $t->fail('Context found');
   }
   catch (sfCacheMissingContextException $e)
   {
@@ -30,14 +30,53 @@
 
   # getModelTagNameSeparator
 
-  $t->is(sfCacheTaggingToolkit::getModelTagNameSeparator(), sfCache::SEPARATOR);
-
+  $t->is(sfCacheTaggingToolkit::getModelTagNameSeparator(), sfCache::SEPARATOR, 'Separator is constant one');
   $option = sfConfig::get('app_sfCacheTagging_model_tag_name_separator');
 
   sfConfig::set('app_sfCacheTagging_model_tag_name_separator', '_');
-
-  $t->is(sfCacheTaggingToolkit::getModelTagNameSeparator(), '_');
+  $t->is(sfCacheTaggingToolkit::getModelTagNameSeparator(), '_', 'set "_" and get it back');
 
   sfConfig::set('app_sfCacheTagging_model_tag_name_separator', $option);
 
 
+  # getBaseClassName
+
+  class TestProvider
+  {
+    public static function publicStatic ($name) { return ucfirst($name); }
+    protected static function protectedStatic ($name) { return strtolower($name); }
+    protected function protectedMethod ($name) { return "new_{$name}"; }
+    public function publicMethod ($name) { return strrev($name); }
+  }
+
+  $optionProvider = sfConfig::get('app_sfCacheTagging_object_class_tag_name_provider');
+
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', array());
+  $t->is(sfCacheTaggingToolkit::getBaseClassName('Cup'), 'Cup', '[]');
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', null);
+  $t->is(sfCacheTaggingToolkit::getBaseClassName('Cup'), 'Cup', 'NULL');
+
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', array('TestProvider', 'publicStatic'));
+  $t->is(sfCacheTaggingToolkit::getBaseClassName('hello_text'), 'Hello_text', '[TestProvider, publicStatic]');
+
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', 'TestProvider::publicStatic');
+  $t->is(sfCacheTaggingToolkit::getBaseClassName('hello_text'), 'Hello_text', 'TestProvider::publicStatic');
+
+
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', array('TestProvider', 'protectedMethod'));
+  $t->is(sfCacheTaggingToolkit::getBaseClassName('My'), 'My', '[TestProvider, protectedMethod]'); // is protected
+
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', 'TestProvider::protectedMethod');
+  $t->is(sfCacheTaggingToolkit::getBaseClassName('My'), 'My', 'TestProvider::protectedMethod'); // is protected
+
+
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', array('TestProvider', 'publicMethod'));
+  $t->is(sfCacheTaggingToolkit::getBaseClassName('abc'), 'cba', '[TestProvider, publicMethod]');
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', 'TestProvider::publicMethod');
+  $t->is(sfCacheTaggingToolkit::getBaseClassName('abc'), 'cba', 'TestProvider::publicMethod');
+
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', 'TestProvider::protectedStatic');
+  $t->is(sfCacheTaggingToolkit::getBaseClassName('CAP'), 'CAP', 'TestProvider::protectedStatic'); // is private
+
+
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', $optionProvider);

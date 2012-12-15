@@ -115,6 +115,8 @@
      * @param string $char  One character
      * @param string $key   Cache name or tag name with version
      *                      (e.g. "CompanyArticle_1(947568127349582")
+     *
+     * @return bool   Whether log was written or not
      */
     abstract protected function doLog ($char, $key);
 
@@ -132,7 +134,7 @@
         return false;
       }
 
-      return (boolean) $this->doLog($char, $key);
+      return (bool) $this->doLog($char, $key);
     }
 
     /**
@@ -145,7 +147,7 @@
     {
       switch ($char)
       {
-        # Data:
+        // Data:
         case 'g': return 'data cache not found or expired';
         case 'G': return 'data cache was found';
         case 'h': return 'cache dot not have data accessed by key';
@@ -159,7 +161,7 @@
         case 'r': return 'data cache with no locks';
         case 'R': return 'data cache with lock';
 
-        # Tags:
+        // Tags:
         case 'v': return 'cache tag version is expired';
         case 'V': return 'cache tag version is up-to-date';
         case 'p': return 'could not write new version of tag';
@@ -175,6 +177,25 @@
           return 'Unregistered char';
           break;
       }
+    }
+
+    /**
+     * Formatts log message
+     *
+     * @param string  $char
+     * @param string  $key
+     * @return string
+     */
+    protected function getFormattedMessage ($char, $key)
+    {
+      return strtr($this->format, array(
+        '%char%'              => $char,
+        '%char_explanation%'  => $this->explainChar($char),
+        '%key%'               => $key,
+        '%time%'              => strftime($this->timeFormat),
+        '%microtime%'         => sprintf("%0.0f", pow(10, 5) * microtime(true)),
+        '%EOL%'               => PHP_EOL,
+      ));
     }
 
     /**

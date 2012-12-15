@@ -65,9 +65,8 @@
 
   foreach ($invalidPatternMethods as $callable)
   {
-    $method = sprintf($callable[0], $namespace);
+    list($method, $arguments) = $callable;
 
-    $arguments = $callable[1];
     try
     {
       $c = new sfCallableArray(array($bridge, $method));

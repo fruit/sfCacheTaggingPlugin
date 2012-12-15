@@ -8,6 +8,8 @@
    * file that was distributed with this source code.
    */
 
+  define('APC_USE_REQUEST_TIME', 'apc.use_request_time');
+
   include_once dirname(__FILE__) . '/../bootstrap/unit.php';
 
   $t = new lime_test();
@@ -173,12 +175,35 @@
   $t->is($c->has('nickname'), true, "cache 'nickname' not expired");
   $c->remove('nickname');
 
-  $c->set('nickname', 'Fruit', 1);
-  sleep(2);
+  # Test both cases, when apc.use_request_time is ON and OFF
+  # difference is, when turned ON, during request spoiled cache values is not removed, because
+  # it checks the TTL only once on request
+  # Often used for perfomance
+
+  # When it is disabled, it checks time() every time, the ->has() is called
+
+  $oldVal = ini_get(APC_USE_REQUEST_TIME);
+
+  # apc.use_request_time is OFF
+  ini_set(APC_USE_REQUEST_TIME, 0);
+  $c->set('nickname', 'Fruit', 1); // hold "nickname" key for 1 sec
+  sleep(2); // sleep 2 seconds, and check whether "nickname" is available
   $t->is($c->getTimeout('nickname'), 0, 'getTimeout is now "0"');
   $t->is($c->has('nickname'), false, "has() cache 'nickname' expired TTL was 1 sec");
   $t->is($c->get('nickname'), null, "get() cache 'nickname' expired TTL was 1 sec");
   $c->remove('nickname');
+
+  # apc.use_request_time is ON
+  ini_set(APC_USE_REQUEST_TIME, 1);
+  $c->set('nickname', 'Fruit', 1); // hold "nickname" key for 1 sec
+  sleep(2);  // sleep 2 seconds, and check whether "nickname" is available
+  $t->is($c->getTimeout('nickname'), 0, 'getTimeout is now "0"');
+  $t->is($c->has('nickname'), true, sprintf("has() return YES, because \"%s\" is set to 1", APC_USE_REQUEST_TIME));
+  $t->is($c->get('nickname'), 'Fruit', sprintf( "get() returns 'Fruit' not expired because \"%s\" is set to 1", APC_USE_REQUEST_TIME));
+  $c->remove('nickname');
+
+
+  ini_set(APC_USE_REQUEST_TIME, $oldVal);
 
   # hasTag
   $c->set('Woodpark', 'Street 12/31 5', 1000, array('A' => 27, 'C' => 59));
@@ -317,3 +342,13 @@
   $c->deleteTag('A_1');
 
   $t->is($c->get('MultiGet'), null, 'Checking via multi get');
+
+  # setLogger is available
+
+  $t->can_ok($c, 'getLogger', 'Method "getLogger" exists (public)');
+  $t->can_ok($c, 'setLogger', 'Method "setLogger" exists (public)');
+
+  $t->isa_ok($c->getLogger(), 'sfFileCacheTagLogger');
+
+  $c->setLogger(new sfNoCacheTagLogger());
+  $t->isa_ok($c->getLogger(), 'sfNoCacheTagLogger');

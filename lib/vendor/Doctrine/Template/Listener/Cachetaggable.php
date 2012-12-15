@@ -107,14 +107,14 @@
      */
     protected function isModifiedIsASoftDeleteColumn ($modified, Doctrine_Table $table)
     {
-      # When SoftDelete behavior saves "deleted" object
-      # do not update object version on when "deleted" object is saving
+      // When SoftDelete behavior saves "deleted" object
+      // do not update object version on when "deleted" object is saving
       if ($table->hasTemplate('SoftDelete'))
       {
         $softDeleteTemplate = $table->getTemplate('SoftDelete');
         $deleteAtField = $softDeleteTemplate->getOption('name');
 
-        # skip if SoftDelete sets deleted_at field
+        // skip if SoftDelete sets deleted_at field
         if (in_array($deleteAtField, $modified))
         {
           return true;
@@ -162,9 +162,8 @@
 
       try
       {
-        $taggingCache = $this->getTaggingCache();
-
         $invoker = $event->getInvoker();
+        /* @var $invoker Doctrine_Record  */
 
         $unitOfWork = new Doctrine_Connection_CachetaggableUnitOfWork(
           $invoker->getTable()->getConnection()
@@ -174,11 +173,6 @@
 
         $this->preDeleteTagNames = $unitOfWork->getDeletions();
         $this->preInvalidateTagNames = $unitOfWork->getInvalidations();
-
-        $taggingCache->setTag(
-          $invoker->obtainCollectionName(),
-          sfCacheTaggingToolkit::generateVersion()
-        );
 
         unset($unitOfWork);
       }
@@ -195,19 +189,17 @@
      */
     public function postDelete (Doctrine_Event $event)
     {
+      $invoker = $event->getInvoker();
+      /* @var $invoker Doctrine_Record  */
+
       try
       {
         $taggingCache = $this->getTaggingCache();
-
-        $invoker = $event->getInvoker();
+        $version      = sfCacheTaggingToolkit::generateVersion();
 
         $taggingCache->deleteTags($this->preDeleteTagNames);
         $taggingCache->invalidateTags($this->preInvalidateTagNames);
-
-        $taggingCache->setTag(
-          $invoker->obtainCollectionName(),
-          sfCacheTaggingToolkit::generateVersion()
-        );
+        $taggingCache->setTag($invoker->obtainCollectionName(), $version);
       }
       catch (sfCacheException $e)
       {
@@ -223,11 +215,11 @@
      */
     public function preSave (Doctrine_Event $event)
     {
-      $this->skipVersionUpdate = true;
-
       $invoker = $event->getInvoker();
+      /* @var $invoker Doctrine_Record  */
 
-      $this->wasObjectNew = $invoker->isNew();
+      $this->skipVersionUpdate  = true;
+      $this->wasObjectNew       = ! $invoker->exists();
 
       if (! $invoker->isModified(true))
       {
@@ -279,11 +271,12 @@
       }
 
       $invoker = $event->getInvoker();
+      /* @var $invoker Doctrine_Record  */
 
       $invokerObjectVersion = $invoker->obtainObjectVersion();
 
       $isToInvalidateCollectionVersion
-        = (boolean) $this->getOption('invalidateCollectionVersionOnUpdate');
+        = (bool) $this->getOption('invalidateCollectionVersionOnUpdate');
 
       if (! $isToInvalidateCollectionVersion)
       {
@@ -301,10 +294,8 @@
        */
       if ($isToInvalidateCollectionVersion || ($invoker->exists() && $this->wasObjectNew))
       {
-        $table = $invoker->getTable();
-
         $formatedClassName = sfCacheTaggingToolkit::getBaseClassName(
-          $table->getClassnameToReturn()
+          $invoker->getTable()->getClassnameToReturn()
         );
 
         $taggingCache->setTag($formatedClassName, $invokerObjectVersion);
@@ -364,6 +355,7 @@
       }
 
       $table = $event->getInvoker()->getTable();
+      /* @var $table Doctrine_Table  */
 
       $collectionVersionName = sfCacheTaggingToolkit::getBaseClassName(
         $table->getClassnameToReturn()
@@ -374,7 +366,14 @@
        */
       if ($this->isModifiedIsASoftDeleteColumn($columnsToModify, $table))
       {
-        # invalidate collection, if soft delete sets deleted_at field
+        /**
+         * @todo
+         *
+         * Doctrine_Transaction::STATE_SLEEP == $connection->getState()
+         * delay updating tags, and create task, to run on $connection->commit()
+         */
+
+        // invalidate collection, if soft delete sets deleted_at field
         $taggingCache->setTag(
           $collectionVersionName,
           sfCacheTaggingToolkit::generateVersion()
@@ -384,12 +383,13 @@
       $updateVersion = sfCacheTaggingToolkit::generateVersion();
       $q->set($this->getOption('versionColumn'), $updateVersion);
 
+      // stand-alone query adds SoftDelete filter in both order cases
       $selectQuery = $table->createQuery();
       $selectQuery->select();
 
       $where = trim(implode(' ', $q->getDqlPart('where')));
 
-      if (! empty ($where))
+      if (! empty($where))
       {
         $selectQuery->addWhere($where);
       }
@@ -412,7 +412,7 @@
       $taggingCache->setTags($tags);
 
       $isToInvalidateCollectionVersion
-        = (boolean) $this->getOption('invalidateCollectionVersionOnUpdate');
+        = (bool) $this->getOption('invalidateCollectionVersionOnUpdate');
 
       if (! $isToInvalidateCollectionVersion)
       {
@@ -450,7 +450,10 @@
         return;
       }
 
-      $table = $event->getInvoker()->getTable();
+      $invoker = $event->getInvoker();
+      /* @var $invoker Doctrine_Record  */
+
+      $table = $invoker->getTable();
 
       /* @var $q Doctrine_Query */
       $q = clone $event->getQuery();
@@ -464,19 +467,45 @@
           $this->getOption('versionColumn'),
           sfCacheTaggingToolkit::generateVersion()
         );
-
-        $q->removeDqlQueryPart('set');
       }
+
+      $q->removeDqlQueryPart('set');
 
       $params = $q->getParams();
       $params['set'] = array();
       $q->setParams($params);
 
+      // when SoftDelete goes after Cachetaggable
+      if ($table->hasTemplate('SoftDelete'))
+      {
+        $softDeleteTemplate = $table->getTemplate('SoftDelete');
+        /* @var $softDeleteTemplate Doctrine_Template_SoftDelete */
+        $eventParams = $event->getParams();
+
+        // If no SoftDelete expression added
+        $alias = "{$eventParams['alias']}.{$softDeleteTemplate->getOption('name')}";
+        if (! $q->contains($alias))
+        {
+          $softDeleteListener = new Doctrine_Template_Listener_SoftDelete(
+            $softDeleteTemplate->getOptions()
+          );
+
+          $softEvent = new Doctrine_Event(
+            $invoker, Doctrine_Event::RECORD_DQL_SELECT, $q, $event->getParams()
+          );
+
+          $softDeleteListener->preDqlSelect($softEvent);
+
+          unset($softDeleteListener, $softEvent);
+        }
+
+        unset($eventParams, $softDeleteTemplate);
+      }
+
       $objects = $q->select()->execute();
 
-      $unitOfWork = new Doctrine_Connection_CachetaggableUnitOfWork(
-        $q->getConnection()
-      );
+      $unitOfWork
+        = new Doctrine_Connection_CachetaggableUnitOfWork($q->getConnection());
 
       foreach ($objects as $object)
       {
@@ -489,9 +518,7 @@
       unset($unitOfWork);
 
       $taggingCache->setTag(
-        sfCacheTaggingToolkit::getBaseClassName(
-          $table->getClassnameToReturn()
-        ),
+        sfCacheTaggingToolkit::getBaseClassName($table->getClassnameToReturn()),
         sfCacheTaggingToolkit::generateVersion()
       );
     }

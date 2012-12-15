@@ -7,7 +7,6 @@ options:
 Book:
   options:
     symfony: { form: false, filter: false }
-  tableName: book
   actAs:
     Cachetaggable:
       uniqueColumn: [lang, slug]

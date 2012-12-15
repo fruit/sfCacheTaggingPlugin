@@ -12,6 +12,9 @@
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
   $t = new lime_test();
 
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+
+  $con->beginTransaction();
   $treeTable = Doctrine::getTable('Tree');
 
 
@@ -32,8 +35,6 @@
     |  7 | ++ comedy      |       6 |   10 |   11 |     1 |
     +----+----------------+---------+------+------+-------+
   */
-
-  $treeObject = $treeTable->getTree();
 
   /**
    * Testing insert methods
@@ -130,3 +131,4 @@
   }
 
 
+  $con->rollback();

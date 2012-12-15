@@ -81,9 +81,10 @@
         $this->parameters[$ns] = array();
       }
 
-      # skip old tag versions
+      // skip old tag versions
       if (
-          ! isset($this->parameters[$ns][$tagName]) ||
+          ! isset($this->parameters[$ns][$tagName])
+        ||
           $tagVersion > $this->parameters[$ns][$tagName]
       )
       {

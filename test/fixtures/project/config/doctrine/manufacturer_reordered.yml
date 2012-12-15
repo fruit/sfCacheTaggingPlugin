@@ -4,32 +4,9 @@ options:
   charset: utf8
   collation: utf8_general_ci
 
-FoodReordered:
+ManufacturerReordered:
   options:
     symfony: { form: false, filter: false }
-  tableName: reordered_food
-  actAs:
-    Cachetaggable: ~
-    SoftDelete: ~
-  columns:
-    title: string(255)
-    manufacturer_id:
-      type: integer(4)
-      notnull: false
-      unsigned: true
-  relations:
-    Manufacturer:
-      class: ReorderedManufacturer
-      foreignAlias: FoodList
-      local: manufacturer_id
-      type: one
-      foreign: id
-      cascade: [deleteTags]
-
-ReorderedManufacturer:
-  options:
-    symfony: { form: false, filter: false }
-  tableName: reordered_manufacturer
   actAs:
     Cachetaggable: ~
     SoftDelete: ~

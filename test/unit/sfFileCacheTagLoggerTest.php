@@ -13,11 +13,11 @@
   define('LOGS_DIR', sfConfig::get('sf_plugins_dir') . '/../../../temp/logs');
   define('LOGS_FILE', LOGS_DIR . '/cache.log');
 
-  function cleanLogDir()
+  function cleanLogDir ()
   {
     if (is_dir(LOGS_DIR))
     {
-      if (file_exists(LOGS_FILE))
+      if (is_file(LOGS_FILE))
       {
         unlink(LOGS_FILE);
       }

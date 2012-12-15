@@ -1,32 +1,33 @@
 # sfCacheTaggingPlugin
 
-The ``sfCacheTaggingPlugin`` is a ``Symfony`` plugin, that helps to store cache with
-associated tags and to keep cache content up-to-date based by incrementing tag
-version when cache objects are edited/removed or new objects are ready to be a
-part of cache content.
+The sfCacheTaggingPlugin is a Symfony plugin that allows you to not think about
+cache obsolescence. The user will see only a fresh data thanks to cache tagging.
+The cache will be linked with a tags versions and will be incremented when the
+cached Doctrine objects were edited/removed or new Doctrine objects are
+ready to be a part of cache content.
 
 # Table of contents
 
  * <a href="#desc">Description</a>
- * <a href="#install">Installation</a>
+ * <a href="#installation">Installation</a>
  * <a href="#quick-setup">Quick setup</a>
  * <a href="#usage">Usage</a>
  * <a href="#advanced-setup">Advanced setup</a>
- * <a href="#misc">Miscellaneous</a>
+ * <a href="#miscellaneous">Miscellaneous</a>
 
 # <a id="desc">Description</a>
 
 Tagging a cache is a concept that was invented in the same time by many developers
-([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/)
+([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/lib/Dklab_Cache/)
 and, perhaps, by somebody else)
 
 This software was developed inspired by Andrey Smirnoff's theoretical work
-["Cache tagging with Memcached (on Russian)"](http://www.smira.ru/tag/memcached/).
+[Cache tagging with Memcached (on Russian)](http://www.smira.ru/tag/memcached/).
 Some ideas are implemented in the real world (e.i. tag versions based on datetime
 and micro time, cache hit/set logging, cache locking) and part of them
 are not (atomic counter).
 
-# <a id="install">Installation</a>
+# <a id="installation">Installation</a>
 
  * As Symfony plugin
 
@@ -39,7 +40,7 @@ are not (atomic counter).
             $ ./symfony cc
             $ ./symfony plugin:upgrade sfCacheTaggingPlugin
 
- * As a git submodule (master or devel branch)
+ * As a git submodule (master branch)
 
   * Installation
 
@@ -78,7 +79,7 @@ Location: ``/config/ProjectConfiguration.class.php``
 
 ## 2. Change default model class
 
-This will switch default model class ``sfDoctineRecord`` with ``sfCachetaggableDoctrineRecord``
+Switch the default model class ``sfDoctineRecord`` with ``sfCachetaggableDoctrineRecord``
 
     [php]
     <?php
@@ -96,7 +97,7 @@ This will switch default model class ``sfDoctineRecord`` with ``sfCachetaggableD
       }
     }
 
-Then rebuild your models:
+After, rebuild the models:
 
     $ ./symfony doctrine:build-model
 
@@ -133,7 +134,7 @@ And don't forget to rebuild models again:
 
     $ ./symfony doctrine:build-model
 
-## 5. Enable cache and declare required helpers in ``/apps/%APP%/config/settings.yml``:
+## 5. Enable the cache and add mandatory helpers to ``standard_helpers`` (file ``/apps/%APP%/config/settings.yml``):
 
     dev:
       .settings:
@@ -298,7 +299,7 @@ And don't forget to rebuild models again:
           with_layout: false
           enabled:     true
 
-## How to cache ``Doctrine_Record``/``Doctrine_Collection``?
+## How to cache Doctrine query results?
 
   * Does not depends on ``cache.yml`` file
 
@@ -330,43 +331,64 @@ _NB. Please read "<a href="#quick-setup">Quick setup</a>" before reading this._
 
 ## How to cache private blocks (actions/pages/partials) for authenticated users
 
-  Symfony's cache mechanism creates the unique key to each block you want to cache based on
-  following arguments:
+  Since version v4.3.0 the classes ``AuthParamFilter`` and ``sfCacheTaggingWebRequest`` are deprecated.
+  This is done because such approach can't handle components and partials (just actions and layouts).
+  So, if you have using ``AuthParamFilter`` (file ``filters.yml``), please disable it.
 
-    - Module name
-    - Action name
-    - $_GET arguments
-
-  In case you would like to cache user's private data you must be very careful.
-  To prevent users of seeing other user private data you need to add
-  additional parameter to distinguish cached blocks among other private blocks.
-
-  The easiest way is to keep user_id/username in URL, but it's awful.
-  I suggest to add custom $_GET parameter on the fly. This will
-  prevent of showing "user_id" in URL.
-
-  What should you do is to register a new filter ``AuthParamFilter`` and switch standard
-  ``sfWebRequest`` with plugin's one ``sfCacheTaggingWebRequest``.
-
-  Place ``AuthParamFilter`` before "caching" filter in ``apps/%application_name%/config/filters.yml``
-
+    [yaml]
     rendering: ~
     security:  ~
 
     auth_params:
       class: AuthParamFilter
+      enabled: false
 
     cache:     ~
     execution: ~
 
-  Switch to sfCacheTaggingWebRequest in ``apps/%application_name%/config/factories.yml``
+  The new implementation is simple and w/o hacks. It works with actions, components and
+  partials. Here is working example of how to add "user_id" and "user_type" to cache key parameters:
 
-    all:
-      request:
-        class: sfCacheTaggingWebRequest
+    [php]
+    <?php
 
-  That's all. Now cache content will be based on additional parameter "user_id" in case
-  user have successfully authenticated.
+    class myUser extends sfBasicSecurityUser
+    {
+      public function initialize (sfEventDispatcher $dispatcher, sfStorage $storage, $options = array())
+      {
+        parent::initialize($dispatcher, $storage, $options);
+
+        $dispatcher->connect('cache.filter_cache_keys', array($this, 'listenOnCacheFilterCacheKeys'));
+      }
+
+      /**
+       * The method is called on condition the user is authenticated.
+       * Also, it's called for each partial/component/action you access on the page.
+       *
+       * Adds 2 custom cache key parameters to any type of cache
+       *
+       * @param $event    sfEvent
+       * @param $params   array
+       * @return array
+       */
+      public function listenOnCacheFilterCacheKeys (sfEvent $event, array $params)
+      {
+        /* @var $user myUser */
+        $user = $event->getSubject();
+
+        /* @var $viewCache sfViewCacheTagManager */
+        $viewCache = $event['view_cache'];
+
+        /* @var $cacheType int */
+        // Type of the cache sfViewCacheTagManager::NAMESPACE_*
+        $cacheType = $event['cache_type'];
+
+        return array_merge($params, array(
+          'user_id'   => $user->getAttribute('user_id'),
+          'user_type' => 'BASIC',
+        ));
+      }
+    }
 
 ## Explaining ``/config/factories.yml``
 
@@ -384,11 +406,9 @@ _NB. Please read "<a href="#quick-setup">Quick setup</a>" before reading this._
           storage:
             class: sfMemcacheTaggingCache
             param:
-              persistent: true
               storeCacheInfo: true
               host: localhost
               port: 11211
-              lifetime: 86400
 
           logger:
             class: sfFileCacheTagLogger   # to disable logger, set class to "sfNoCacheTagLogger"
@@ -404,15 +424,15 @@ _NB. Please read "<a href="#quick-setup">Quick setup</a>" before reading this._
               # There are such available place-holders:
               #   %char%              - Operation char (see char explanation in sfCacheTagLogger::explainChar())
               #   %char_explanation%  - Operation explanation string
-              #   %time%              - Time, when data/tag was accessed
+              #   %time%              - Time, when data/tag has been accessed
               #   %key%               - Cache name or tag name with its version
-              #   %microtime%         - Micro time timestamp when data/tag was accessed
+              #   %microtime%         - Micro time timestamp when data/tag has been accessed
               #   %EOL%               - Whether to append \n in the end of line
               #
               # (Example: "%char% %microtime% %key%%EOL%")
               format:       "%char%"
 
-> **Restrictions**: Backend's class should be inherited from ``sfCache``
+> **Restrictions**: Backend's class should be inherited from the ``sfCache``
   class. Then, it should be implement ``sfTaggingCacheInterface``
   (due to a ``Doctrine`` cache engine compatibility).
   Also, it should support the caching of objects and/or arrays.
@@ -458,34 +478,36 @@ Explained behavior setup, file ``/config/doctrine/schema.yml``:
           # cache tag will be based on 2 columns
           # (e.g. "Article:5:01", "Article:912:00")
           # matches the "uniqueColumn" column order
-          # (default: "")
+          # (default: "", key format is auto-generated)
           uniqueKeyFormat: '%d-%02b'
 
 
-          # Column name, where object version will be stored in table
+          # Column name, where the object version will be stored in a table
           # (default: "object_version")
           versionColumn:    version_microtime
 
 
-          # Option to skip object invalidation by changing listed columns
-          # Useful for sf_guard_user.last_login or updated_at
+          # Skips the object invalidation if the altered column is in this list
+          # Useful for columns like sf_guard_user.last_login, updated_at
           # (default: [])
           skipOnChange:
             - last_accessed
 
 
-          # Invalidates or not object collection tag when any
-          # record was updated (BC with v2.*)
+          # Invalidates or not the object-collection tag when any
+          # record was just updated (BC with v2.*) associated with this collection-tag.
+          # If the new record is added to collection, or removed - the collection-tag
+          # will be updated in any case.
           # Useful, when table contains rarely changed data (e.g. Countries, Currencies)
-          # allowed values: true/false
+          # permitted values: true/false
           # (default: false)
           invalidateCollectionVersionOnUpdate: false
 
 
           # Useful option when model contains columns like "is_visible", "is_active"
           # updates collection tag, if one of columns was updated.
-          # will not work if "invalidateCollectionVersionOnUpdate" is set to "true"
-          # will not work if one of columns are in "skipOnChange" list.
+          # Would not work if "invalidateCollectionVersionOnUpdate" is set to "true"
+          # Would not work if modified column is in the "skipOnChange" list.
           # (default: [])
           invalidateCollectionVersionByChangingColumns:
             - is_visible
@@ -575,8 +597,11 @@ Explained behavior setup, file ``/config/doctrine/schema.yml``:
         # (default: 5)
         microtime_precision: 5
 
-        # Callable array
-        # Example: [ClassName, StaticClassMethod]
+        # Callable array, or string
+        # Examples:
+        #      [ClassName, MethodName]
+        #    OR
+        #      "ClassName::staticMethodName"
         # useful when tag name should contains extra information
         # (e.g. Environment name, or application name)
         # (default: [])
@@ -623,10 +648,10 @@ Component example:
         # adding personal tag
         $this->addContentTag('Portal_EN', sfCacheTaggingToolkit::generateVersion());
 
-        # deleting added before tag
+        # remove "Article:31" from content tags
         $this->removeContentTag('Article:31');
 
-        # printing all set tags, excepting removed one
+        # print all set tags, excepting the removed one
         // var_dump($this->getContentTags());
 
         $this->articles = $articles;
@@ -697,20 +722,13 @@ Set hydration to ``Doctrine_Core::HYDRATE_RECORD`` (NB! using another hydrator, 
     [php]
     <?php
 
-    $q
-      ->setHydrationMode(Doctrine_Core::HYDRATE_RECORD)
-      ->execute();
-
+    $q->setHydrationMode(Doctrine_Core::HYDRATE_RECORD)->execute();
     // or
     $q->execute(array(), Doctrine_Core::HYDRATE_RECORD);
 
 Cached ``DQL`` results will be associated with all linked tags based on query results.
 
-# <a id="misc">Miscellaneous</a>
-
-## New in v4.1.1:
-
-  * [Removed] Removing from package test files - all test environment located in GIT repository
+# <a id="miscellaneous">Miscellaneous</a>
 
 ## Limitations / Specificity
 
@@ -723,23 +741,21 @@ Cached ``DQL`` results will be associated with all linked tags based on query re
 
 ## TDD
 
-  * Environment: PHP 5.3.8
-  * Unit tests: 12
-  * Functional tests: 31
-  * Checks: 1340
-  * Code coverage: 95%
+  * Test environment: PHP 5.4.9, MySQL 5.5.28, Memcached 1.4.10, OS Fedora 17 x64
+  * Number of files: 48
+  * Tests: 1840
+  * Code coverage: 96%
 
 Whether you want to run a plugin tests, you need:
 
   1. Install plugin from GIT repository.
-  2. Install [APC](http://pecl.php.net/package/APC) and [Memcache](http://pecl.php.net/package/Memcache)
+  2. Install [APC](http://pecl.php.net/package/APC), [Memcache](http://pecl.php.net/package/Memcache) and MySQL
   3. Configure ``php.ini`` and restart Apache/php-fpm:
 
         [ini]
         [APC]
           apc.enabled = 1
           apc.enable_cli = 1
-          apc.use_request_time = 0
 
   4. Add CLI variable:
 
@@ -749,7 +765,7 @@ Whether you want to run a plugin tests, you need:
 
     For all further sessions:
 
-        $ echo "export SYMFONY=/path/to/symfony/lib" >> ~/.bashrc
+        $ echo "export SYMFONY=/path/to/symfony/lib" >> ~/.bashrc; source ~/.bashrc
 
   5. Run tests:
 
@@ -758,6 +774,8 @@ Whether you want to run a plugin tests, you need:
 
         # it will create the ``sfcachetaggingplugin_test`` database
         $ ./symfony doctrine:build --all --and-load --env=test
+
+        $ ./symfony cc
 
         # runs unit and functional tests
         $ ./symfony test:all
@@ -777,4 +795,4 @@ Whether you want to run a plugin tests, you need:
 ## Contacts ##
 
   * @: Ilya Sabelnikov `` <fruit dot dev at gmail dot com> ``
-  * skype: ilya_roll
+  * Skype: ilya_roll

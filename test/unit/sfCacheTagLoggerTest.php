@@ -10,7 +10,7 @@
 
   include_once realpath(dirname(__FILE__) . '/../bootstrap/unit.php');
 
-  define('LOGS_DIR', sfConfig::get('sf_plugins_dir') . '/sfCacheTaggingPlugin/test/temp/logs');
+  define('LOGS_DIR', sfConfig::get('sf_plugins_dir') . '/' . sfCacheTaggingToolkit::PLUGIN_NAME . '/test/temp/logs');
   define('LOGS_FILE', LOGS_DIR . '/cache.log');
 
   function cleanLogDir()
@@ -26,7 +26,7 @@
     }
   }
 
-  class sfOutputCacheTagLogger extends sfCacheTagLogger
+  class ExampleCacheTagLogger extends sfCacheTagLogger
   {
     protected function doLog ($char, $key)
     {
@@ -43,7 +43,7 @@
 
   $t = new lime_test();
 
-  $l = new sfOutputCacheTagLogger(array());
+  $l = new ExampleCacheTagLogger(array());
 
   $l->setOption('new_line', true);
 

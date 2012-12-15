@@ -4,12 +4,11 @@ options:
   charset: utf8
   collation: utf8_general_ci
 
-BlogPostComment:
+BlogPostVote:
   options:
     symfony: { form: false, filter: false }
   actAs:
-    Cachetaggable:
-      uniqueColumn: id
+    Cachetaggable: ~
   columns:
     id:
       type: integer
@@ -20,8 +19,11 @@ BlogPostComment:
       type: integer
       unsigned: true
       notnull: false
-    author: string(20)
-    message: string(255)
+    rate:
+      type: int(1)
+      unsigned: true
+      notnull: true
+      default: 0
   relations:
     BlogPost:
       onDelete: CASCADE

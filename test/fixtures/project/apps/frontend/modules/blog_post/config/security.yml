@@ -1,0 +1,5 @@
+welcome:
+  is_secure: true
+
+actionWithAutoSignIn:
+  is_secure: false

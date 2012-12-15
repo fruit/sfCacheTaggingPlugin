@@ -39,8 +39,6 @@
       continue;
     }
 
-    $engine->clean(sfCache::ALL);
-
     $t->is($engine->getCacheKeys(), array(), $engineConfiguration['class']);
 
     foreach ($cacheKeyData as $key => $data)

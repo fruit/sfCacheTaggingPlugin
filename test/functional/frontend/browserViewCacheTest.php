@@ -17,37 +17,41 @@
   $browser
     ->with('view_cache')
     ->begin()
-    ->isUriCached(
-      '@sf_cache_partial?' .
-        'module=blog_post&' .
-        'action=_ten_posts_partial_cached&' .
-        'sf_cache_key=index-page-ten-posts-enabled-partial',
-      true, false
-    )
-    ->isUriCached(
-      '@sf_cache_partial?' .
-        'module=blog_post&' .
-        'action=_ten_posts_partial_not_cached&' .
-        'sf_cache_key=index-page-ten-posts-disabled-partial',
-      false, false
-    )
-    ->isUriCached(
-      '@sf_cache_partial?' .
-        'module=blog_post&' .
-        'action=_tenPostsComponentCached&' .
-        'sf_cache_key=index-page-ten-posts-enabled-component',
-      true, false
-    )
-    ->isUriCached(
-      '@sf_cache_partial?' .
-        'module=blog_post&' .
-        'action=_tenPostsComponentNotCached&' .
-        'sf_cache_key=index-page-ten-posts-disabled-component',
-      false, false
-    )
+      ->isUriCached(
+        '@sf_cache_partial?' .
+          'module=blog_post&' .
+          'action=_ten_posts_partial_cached&' .
+          'sf_cache_key=index-page-ten-posts-enabled-partial',
+        true, false
+      )
+      ->isUriCached(
+        '@sf_cache_partial?' .
+          'module=blog_post&' .
+          'action=_ten_posts_partial_not_cached&' .
+          'sf_cache_key=index-page-ten-posts-disabled-partial',
+        false, false
+      )
+      ->isUriCached(
+        '@sf_cache_partial?' .
+          'module=blog_post&' .
+          'action=_tenPostsComponentCached&' .
+          'sf_cache_key=index-page-ten-posts-enabled-component',
+        true, false
+      )
+      ->isUriCached(
+        '@sf_cache_partial?' .
+          'module=blog_post&' .
+          'action=_tenPostsComponentNotCached&' .
+          'sf_cache_key=index-page-ten-posts-disabled-component',
+        false, false
+      )
     ->end();
 
   $browser->getAndCheck('blog_post', 'actionWithLayout', '/blog_post/actionWithLayout', 200);
+
+  // isCached:
+  //    [1]: Flag for checking the cache
+  //    [2]: If have or not layout
 
   $browser
     ->with('view_cache')

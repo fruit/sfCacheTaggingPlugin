@@ -4,32 +4,9 @@ options:
   charset: utf8
   collation: utf8_general_ci
 
-Food:
-  options:
-    symfony: { form: false, filter: false }
-  tableName: food
-  actAs:
-    SoftDelete: ~
-    Cachetaggable: ~
-  columns:
-    title: string(255)
-    manufacturer_id:
-      type: integer(4)
-      notnull: false
-      unsigned: true
-  relations:
-    Manufacturer:
-      class: Manufacturer
-      foreignAlias: FoodList
-      local: manufacturer_id
-      type: one
-      foreign: id
-      cascade: [deleteTags]
-
 Manufacturer:
   options:
     symfony: { form: false, filter: false }
-  tableName: manufacturer
   actAs:
     SoftDelete: ~
     Cachetaggable: ~

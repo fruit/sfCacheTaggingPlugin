@@ -1,0 +1,26 @@
+detect_relations: true
+options:
+  type: InnoDB
+  charset: utf8
+  collation: utf8_general_ci
+
+FoodReordered:
+  options:
+    symfony: { form: false, filter: false }
+  actAs:
+    Cachetaggable: ~
+    SoftDelete: ~
+  columns:
+    title: string(255)
+    manufacturer_id:
+      type: integer(4)
+      notnull: false
+      unsigned: true
+  relations:
+    Manufacturer:
+      class: ManufacturerReordered
+      foreignAlias: FoodList
+      local: manufacturer_id
+      type: one
+      foreign: id
+      cascade: [deleteTags]

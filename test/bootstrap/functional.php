@@ -19,7 +19,8 @@ function sfCacheTaggingPlugin_cleanup()
   sfToolkit::clearDirectory(dirname(__FILE__).'/../fixtures/project/log');
 }
 sfCacheTaggingPlugin_cleanup();
-register_shutdown_function('sfCacheTaggingPlugin_cleanup');
+// hard to debug, when logs and cache is removed on test complete
+//register_shutdown_function('sfCacheTaggingPlugin_cleanup');
 
 function sfCacheTaggingPlugin_autoload_again($class)
 {

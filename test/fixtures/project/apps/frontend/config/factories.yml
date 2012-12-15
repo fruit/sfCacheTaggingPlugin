@@ -33,6 +33,12 @@ dev:
       delivery_strategy: none
 
 all:
+  user:
+    class: myUser
+
+  request:
+    class: sfCacheTaggingWebRequest
+
   routing:
     class: sfPatternRouting
     param:

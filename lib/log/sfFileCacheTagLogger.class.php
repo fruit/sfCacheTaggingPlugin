@@ -49,14 +49,15 @@
 
       $dir = dirname($file);
 
-      $umask = umask();
-      umask(0000);
+
       if (! is_dir($dir))
       {
+        $umask = umask(0);
         mkdir($dir, $this->getOption('dir_mode'), true);
+        umask($umask);
       }
 
-      $fileExists = file_exists($file);
+      $fileExists = is_file($file);
 
       if (! is_writable($dir) || ($fileExists && ! is_writable($file)))
       {
@@ -67,26 +68,27 @@
 
       $this->fp = fopen($file, 'a');
 
-      if (! $fileExists)
+      if (! $this->fp)
       {
-        chmod($file, $this->getOption('file_mode'));
+        throw new sfFileException(sprintf('Failed to open file "%s" for append', $file));
       }
 
-      umask($umask);
+      if (! $fileExists)
+      {
+        $umask = umask(0);
+        chmod($file, $this->getOption('file_mode'));
+        umask($umask);
+      }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function doLog ($char, $key)
     {
-      if (flock($this->fp, LOCK_EX))
+      if (flock($this->fp, LOCK_EX)) // will wait while lock is present
       {
-        fwrite($this->fp, strtr($this->format, array(
-          '%char%'              => $char,
-          '%char_explanation%'  => $this->explainChar($char),
-          '%key%'               => $key,
-          '%time%'              => strftime($this->timeFormat),
-          '%microtime%'         => sprintf("%0.0f", pow(10, 5) * microtime(true)),
-          '%EOL%'               => PHP_EOL,
-        )));
+        fwrite($this->fp, $this->getFormattedMessage($char, $key));
 
         flock($this->fp, LOCK_UN);
       }

@@ -1,11 +1,9 @@
 <?php
 
-  if ( ! isset($_SERVER['SYMFONY']))
-  {
-    throw new RuntimeException('Could not find symfony core libraries.');
-  }
+  $symfony = isset($_SERVER['SYMFONY']) ? $_SERVER['SYMFONY'] : false !== getenv('SYMFONY') ? getenv('SYMFONY') : null;
+  if (! $symfony) throw new RuntimeException('Could not find symfony core libraries.');
 
-  include_once $_SERVER['SYMFONY'] . '/autoload/sfCoreAutoload.class.php';
+  include_once "{$symfony}/autoload/sfCoreAutoload.class.php";
   sfCoreAutoload::register();
 
   class ProjectConfiguration extends sfProjectConfiguration

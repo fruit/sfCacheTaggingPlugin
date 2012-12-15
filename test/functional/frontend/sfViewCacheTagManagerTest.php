@@ -81,7 +81,7 @@
   $response->setContent('Existing Content');
 
   $event = new sfEvent(
-    $this,
+    'subject',
     'view.cache.filter_content',
     array(
       'response' => $response,

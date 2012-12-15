@@ -4,14 +4,14 @@ prod:
 
 dev:
   .settings:
-    error_reporting:        <?php echo (E_ALL | E_STRICT)."\n" ?>
+    error_reporting:        <?php echo ((E_ALL | E_STRICT) ^ E_USER_DEPRECATED)."\n" ?>
     web_debug:              true
     cache:                  true
     etag:                   false
 
 test:
   .settings:
-    error_reporting:        <?php echo ((E_ALL | E_STRICT) ^ E_NOTICE)."\n" ?>
+    error_reporting:        <?php echo ((E_ALL | E_STRICT | E_NOTICE) ^ E_USER_DEPRECATED)."\n" ?>
     cache:                  true
     web_debug:              false
     no_script_name:         false
@@ -37,3 +37,4 @@ all:
 
     standard_helpers:
       - Partial
+    logging_enabled:        true
