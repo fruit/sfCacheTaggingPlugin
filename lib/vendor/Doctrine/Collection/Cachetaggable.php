@@ -45,11 +45,13 @@
     {
       parent::__construct($table, $keyColumn);
 
+      if (! sfConfig::get('sf_cache')) return;
+
       $this->namespace = sprintf(
         '%s/%s/%s',
-        sfCacheTaggingToolkit::getBaseClassName(get_class($this)),
+        __CLASS__,
         $this->getTable()->getClassnameToReturn(),
-        sfCacheTaggingToolkit::generateVersion()
+        spl_object_hash($this)
       );
     }
 
@@ -70,25 +72,15 @@
     }
 
     /**
-     * Report application.log for thrown exception
-     *
-     * @param Exception $e
-     */
-    protected function notifyApplicationLog (Exception $e)
-    {
-      sfCacheTaggingToolkit::notifyApplicationLog(
-        $this, $e->getMessage(), sfLogger::NOTICE
-      );
-    }
-
-    /**
      * Returns this collection and added tags
      *
      * @param boolean $deep
      * @return array
      */
-    public function getCacheTags ($deep = true)
+    public function getCacheTags ($deep = true, $namespace = null)
     {
+      if (! sfConfig::get('sf_cache')) return array();
+
       $table = $this->getTable();
 
       if (! $table->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
@@ -100,59 +92,29 @@
         ));
       }
 
-      $namespace = $this->getNamespace();
+      $taggingCache = $this->getTaggingCache();
 
-      $tagHandler = null;
+      $tagHandler = new sfContentTagHandler();
 
-      try
+      $currentInstanceTags = $taggingCache
+        ->getContentTagHandler()
+        ->getContentTags($this->getNamespace(true));
+
+      $tagHandler->addContentTags($this->getCollectionTags(), $namespace);
+
+      $namespace = null;
+
+      foreach ($this as $object)
       {
-        $taggingCache = $this->getTaggingCache();
-
-        $tagHandler = $taggingCache->getContentTagHandler();
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        $this->notifyApplicationLog($e);
-
-        return array();
-      }
-
-      if ($this->count())
-      {
-        foreach ($this as $object)
-        {
-          $tags = $object->getCacheTags($deep);
-
-          $tagHandler->addContentTags($tags, $namespace);
-        }
-
-        $tagHandler->addContentTags($this->getCollectionTags(), $namespace);
-      }
-      else
-      {
-        /**
-         * little hack, if collection is empty, emulate collection,
-         * without any tags, but version should be staticaly
-         * fixed (in day range)
-         *
-         * repeating calls with relative microtime always refresh collection tag
-         * so, here is day-fixed value
-         */
-        $tagHandler->setContentTag(
-          sfCacheTaggingToolkit::obtainCollectionName($table),
-          sfCacheTaggingToolkit::generateVersion(strtotime('today')),
-          $namespace
-        );
+        $tagHandler->addContentTags($object->getCacheTags($deep), $namespace);
       }
 
-      $tagHandler->addContentTags(
-        $tagHandler->getContentTags($this->getNamespace(true)),
-        $namespace
-      );
+      $tagHandler->addContentTags($currentInstanceTags, $namespace);
 
       $tags = $tagHandler->getContentTags($namespace);
 
-      $tagHandler->removeContentTags($namespace);
+      $tagHandler->clear();
+      unset($tagHandler);
 
       return $tags;
     }
@@ -164,19 +126,12 @@
      */
     public function getCollectionTags ()
     {
-      try
-      {
-        $name = sfCacheTaggingToolkit::obtainCollectionName($this->getTable());
-        $version = sfCacheTaggingToolkit::obtainCollectionVersion($name);
+      if (! sfConfig::get('sf_cache')) return array();
 
-        return array($name => $version);
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        $this->notifyApplicationLog($e);
-      }
+      $name = sfCacheTaggingToolkit::obtainCollectionName($this->getTable());
+      $version = sfCacheTaggingToolkit::obtainCollectionVersion($name);
 
-      return array();
+      return array($name => $version);
     }
 
     /**
@@ -188,20 +143,13 @@
      */
     public function addCacheTags ($tags)
     {
-      try
-      {
-        $this
-          ->getContentTagHandler()
-          ->addContentTags($tags, $this->getNamespace(true));
+      if (! sfConfig::get('sf_cache')) return false;
 
-        return true;
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        $this->notifyApplicationLog($e);
-      }
+      $this
+        ->getContentTagHandler()
+        ->addContentTags($tags, $this->getNamespace(true));
 
-      return false;
+      return true;
     }
 
     /**
@@ -213,43 +161,29 @@
      */
     public function addCacheTag ($tagName, $tagVersion)
     {
-      try
-      {
-        $this->getContentTagHandler()->setContentTag(
-          $tagName, $tagVersion, $this->getNamespace(true)
-        );
+      if (! sfConfig::get('sf_cache')) return false;
 
-        return true;
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        $this->notifyApplicationLog($e);
-      }
+      $this->getContentTagHandler()->setContentTag(
+        $tagName, $tagVersion, $this->getNamespace(true)
+      );
 
-      return false;
+      return true;
     }
 
     /**
      * Remove all added tags
      *
-     * @return null
+     * @return boolean
      */
     public function removeCacheTags ()
     {
-      try
-      {
-        $this->getContentTagHandler()->removeContentTags(
-          $this->getNamespace(true)
-        );
+      if (! sfConfig::get('sf_cache')) return false;
 
-        return true;
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        $this->notifyApplicationLog($e);
-      }
+      $this->getContentTagHandler()->removeContentTags(
+        $this->getNamespace(true)
+      );
 
-      return false;
+      return true;
     }
 
     /**
@@ -258,8 +192,9 @@
      */
     public function delete (Doctrine_Connection $conn = null, $clearColl = true)
     {
-      $returnValue = parent::delete($conn, $clearColl);
+      if (! sfConfig::get('sf_cache')) parent::delete($conn, $clearColl);
 
+      $returnValue = parent::delete($conn, $clearColl);
       $this->removeCacheTags();
 
       return $returnValue;
@@ -267,6 +202,8 @@
 
     public function free ($deep = false)
     {
+      if (! sfConfig::get('sf_cache')) return parent::free($deep);
+
       $this->removeCacheTags();
 
       return parent::free($deep);

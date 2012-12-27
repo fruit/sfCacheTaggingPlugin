@@ -173,6 +173,11 @@
 
     protected function createSchema ()
     {
+      /**
+       * Sqlite supports transactional DDL
+       *
+       * @link http://goo.gl/3v48S
+       */
       $statement = <<< SCHEMA
 
         BEGIN TRANSACTION;

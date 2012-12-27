@@ -12,9 +12,17 @@
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
   $t = new lime_test();
+  $sfContext = sfContext::getInstance();
+  $cm = $sfContext->getViewCacheManager();
+  /* @var $cm sfViewCacheTagManager */
+  $tagging = $cm->getTaggingCache();
 
-  $connection = DeviceTable::getInstance()->getConnection();
-  $connection->beginTransaction();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; TRUNCATE `device`; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  $con->commit();
+  $tagging->clean();
 
   $obj = new Device();
   $obj->setName('Color Picker');
@@ -40,5 +48,3 @@
   $obj = DeviceTable::getInstance()->findOneByName('Color Picker v3');
 
   $t->cmp_ok($collectionVersion, '<', $obj->obtainCollectionVersion(), 'Collection version updated due to setting "invalidateCollectionVersionOnUpdate: true" (DQL)');
-
-  $connection->rollback();

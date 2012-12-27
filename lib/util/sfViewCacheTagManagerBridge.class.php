@@ -9,7 +9,7 @@
    */
 
   /**
-   * 
+   *
    *
    * @method null     setContentTags    setContentTags (mixed $tags)
    * @method null     addContentTags    addContentTags (mixed $tags)
@@ -54,7 +54,9 @@
       'removeContentTags',
       'setContentTag',
       'hasContentTag',
-      'removeContentTag'
+      'removeContentTag',
+      'doDisableCache',
+      'addDoctrineTags',
     );
 
     /**
@@ -62,8 +64,8 @@
      */
     public function __construct (sfComponent $component)
     {
-      $this->component = $component;
-      $this->context = $component->getContext();
+      $this->component  = $component;
+      $this->context    = $component->getContext();
     }
 
     /**
@@ -117,9 +119,8 @@
      *
      * @param string  $method
      * @param array   $arguments
-     * @throws
-     *    BadMethodCallException    When method is invalid (even cache is off)
-     *    sfCacheDisabledException  When sf_cache is turned off
+     * @throws        BadMethodCallException  When method is invalid
+     *                                        or cache is disabled
      * @return null|array|boolean
      */
     public function __call ($method, $arguments)
@@ -133,7 +134,9 @@
 
       if (! sfConfig::get('sf_cache'))
       {
-        throw new sfCacheDisabledException('Cache "sf_cache" is disabled');
+        throw new sfException(sprintf(
+          'Method "%s" can be used only when cache is enabled', $method
+        ));
       }
 
       $namespace = $this->autoDetectNamespace();
@@ -169,12 +172,9 @@
      * @param string $actionName
      * @return boolean
      */
-    public function disableCache ($moduleName = null, $actionName = null)
+    public function doDisableCache ($moduleName = null, $actionName = null)
     {
-      if (! sfConfig::get('sf_cache'))
-      {
-        return false;
-      }
+      if (! sfConfig::get('sf_cache')) return false;
 
       if (! $moduleName && ! $actionName)
       {

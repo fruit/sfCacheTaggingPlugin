@@ -36,18 +36,7 @@
      */
     protected function _doSave ($id, $data, $ttl = false)
     {
-      try
-      {
-        return $this->getTaggingCache()->set($id, $data, ! $ttl ? null : $ttl);
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        sfCacheTaggingToolkit::notifyApplicationLog(
-          __CLASS__, $e->getMessage(), sfLogger::NOTICE
-        );
-      }
-
-      return false;
+      return $this->getTaggingCache()->set($id, $data, ! $ttl ? null : $ttl);
     }
 
     /**
@@ -56,20 +45,7 @@
      */
     protected function _doSaveWithTags ($id, $data, $ttl, $tags)
     {
-      try
-      {
-        return $this
-          ->getTaggingCache()
-          ->set($id, $data, ! $ttl ? null : $ttl, $tags);
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        sfCacheTaggingToolkit::notifyApplicationLog(
-          __CLASS__, $e->getMessage(), sfLogger::NOTICE
-        );
-      }
-
-      return false;
+       return $this->getTaggingCache()->set($id, $data, ! $ttl ? null : $ttl, $tags);
     }
 
     /**
@@ -77,18 +53,7 @@
      */
     protected function _getCacheKeys ()
     {
-      try
-      {
-        return $this->getTaggingCache()->getCacheKeys();
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        sfCacheTaggingToolkit::notifyApplicationLog(
-          __CLASS__, $e->getMessage(), sfLogger::NOTICE
-        );
-      }
-
-      return;
+      return $this->getTaggingCache()->getCacheKeys();
     }
 
     /**
@@ -97,18 +62,7 @@
      */
     protected function _doDelete ($id)
     {
-      try
-      {
-        return $this->getTaggingCache()->remove($id);
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        sfCacheTaggingToolkit::notifyApplicationLog(
-          __CLASS__, $e->getMessage(), sfLogger::NOTICE
-        );
-      }
-
-      return false;
+      return $this->getTaggingCache()->remove($id);
     }
 
     /**
@@ -117,18 +71,7 @@
      */
     protected function _doContains ($id)
     {
-      try
-      {
-        return $this->getTaggingCache()->has($id);
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        sfCacheTaggingToolkit::notifyApplicationLog(
-          __CLASS__, $e->getMessage(), sfLogger::NOTICE
-        );
-      }
-
-      return false;
+      return $this->getTaggingCache()->has($id);
     }
 
     /**
@@ -137,20 +80,9 @@
      */
     protected function _doFetch ($id, $testCacheValidity = true)
     {
-      try
-      {
-        $value = $this->getTaggingCache()->get($id);
+      $value = $this->getTaggingCache()->get($id);
 
-        return null === $value ? false : $value;
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        sfCacheTaggingToolkit::notifyApplicationLog(
-          __CLASS__, $e->getMessage(), sfLogger::NOTICE
-        );
-      }
-
-      return false;
+      return null === $value ? false : $value;
     }
 
     /**

@@ -26,20 +26,11 @@
     protected $cache = null;
 
     /**
-     * Log file pointer
-     *
-     * @var resource
-     */
-    protected $fileResource = null;
-
-
-    /**
      * Tag content handler with namespace holder (tag setting/adding/removing)
      *
      * @var sfContentTagHandler
      */
     protected $contentTagHandler = null;
-
 
     /**
      * @var sfCacheTagLogger
@@ -398,6 +389,13 @@
      */
     public function getTag ($key)
     {
+      if (! is_string($key))
+      {
+        throw new InvalidArgumentException(sprintf(
+          'Tag key expected to be a string, got "%s"', gettype($key)
+        ));
+      }
+
       $result = $this->getCache()->get($key);
 
       $this->getLogger()->log(
@@ -416,6 +414,13 @@
      */
     public function hasTag ($key)
     {
+      if (! is_string($key))
+      {
+        throw new InvalidArgumentException(sprintf(
+          'Tag key expected to be a string, got "%s"', gettype($key)
+        ));
+      }
+
       $has = $this->getCache()->has($key);
 
       $this->getLogger()->log($has ? 'I' : 'i', $key);
@@ -431,6 +436,14 @@
      */
     public function getTags ($key)
     {
+      if (! is_string($key))
+      {
+        throw new InvalidArgumentException(sprintf(
+          'Tag key expected to be a string, got "%s"', gettype($key)
+        ));
+      }
+
+
       $cacheMetadata = new CacheMetadata($this->getCache()->get($key));
 
       return $cacheMetadata->getTags();
@@ -444,6 +457,13 @@
      */
     public function deleteTag ($key)
     {
+      if (! is_string($key))
+      {
+        throw new InvalidArgumentException(sprintf(
+          'Tag key expected to be a string, got "%s"', gettype($key)
+        ));
+      }
+
       $result = $this->getCache()->remove($key);
 
       $this->getLogger()->log($result ? 'E' : 'e', $key);
@@ -632,7 +652,7 @@
 
       $result = $this->getCache()->remove($key);
 
-      $this->getLogger()->log($result ? 'U' : 'u', $lockName);
+      $this->getLogger()->log($result ? 'U' : 'u', $key);
 
       return $result;
     }

@@ -24,8 +24,8 @@
      */
     public function get ($key, $default = null)
     {
+      clearstatcache();
       $data = parent::get($key, $default);
-
       return null === $data ? $default : unserialize($data);
     }
 
@@ -34,7 +34,17 @@
      */
     public function set ($key, $data, $lifetime = null)
     {
+      clearstatcache();
       return parent::set($key, serialize($data), $lifetime);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function has ($key)
+    {
+      clearstatcache();
+      return parent::has($key);
     }
 
     /**
@@ -42,18 +52,20 @@
      */
     public function getCacheKeys ()
     {
-      $cacheDir = $this->getOption('cache_dir') . DIRECTORY_SEPARATOR;
+      $cacheDir = $this->getOption('cache_dir');
 
       $keys = array();
 
-      foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->getOption('cache_dir'))) as $path)
+      clearstatcache();
+
+      foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($cacheDir)) as $path)
       {
         if (! is_file($path))
         {
           continue;
         }
 
-        $key = str_replace($this->getOption('cache_dir').DIRECTORY_SEPARATOR, '', $path);
+        $key = str_replace($cacheDir . DIRECTORY_SEPARATOR, '', $path);
         $key = str_replace(DIRECTORY_SEPARATOR, self::SEPARATOR, $key);
         $key = substr($key, 0, - strlen(self::EXTENSION));
         $keys[] = $key;

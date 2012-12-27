@@ -6,4 +6,9 @@ class frontendConfiguration extends sfApplicationConfiguration
   {
 
   }
+
+  public static function format ($name)
+  {
+    return "_{$name}_";
+  }
 }

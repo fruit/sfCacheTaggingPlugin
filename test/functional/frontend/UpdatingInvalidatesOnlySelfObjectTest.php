@@ -11,15 +11,21 @@
   include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
-  $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
-
-  $sfContext = sfContext::getInstance();
+$sfContext = sfContext::getInstance();
   $cacheManager = $sfContext->getViewCacheManager();
+  /* @var $cacheManager sfViewCacheTagManager */
+  $tagging = $cacheManager->getTaggingCache();
+
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; TRUNCATE `food`; TRUNCATE `book`; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  $con->commit();
+  $tagging->clean();
+
 
   $t = new lime_test();
 
-  $connection = FoodTable::getInstance()->getConnection();
-  $connection->beginTransaction();
 
   # checking getTags
 
@@ -30,7 +36,10 @@
   $bananaCollectionVersion = $banana->obtainCollectionVersion();
 
   # obtainCollectionName
-  $t->is($banana->obtainCollectionName(), 'Food', 'Call obtainCollectionName() returns Collection name');
+  $t->is(
+    $banana->obtainCollectionName(),
+    sfCacheTaggingToolkit::obtainCollectionName($banana->getTable()),
+    'Call obtainCollectionName() returns Collection name');
 
   # obtainCollectionVersion 1
   $t->cmp_ok($banana->obtainCollectionVersion(), '>', $versionBeforeFoodCreated, 'Food version is higher then it could be before creation');
@@ -116,4 +125,5 @@
 
   $t->cmp_ok($bibleCollectionVersion, '<', $bible->obtainCollectionVersion(), 'By removing Book using DQL, collection version increases');
 
-  $connection->rollback();
+  $con->exec($cleanQuery);
+  $tagging->clean();

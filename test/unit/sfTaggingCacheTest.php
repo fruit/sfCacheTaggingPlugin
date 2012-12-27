@@ -128,7 +128,7 @@
     }
   }
 
-  # getDataCache/getTagsCache
+  # getCache
 
   $cacheEngines = array(
     'storage' => array(

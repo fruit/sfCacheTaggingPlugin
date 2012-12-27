@@ -77,27 +77,7 @@ Location: ``/config/ProjectConfiguration.class.php``
       }
     }
 
-## 2. Change default model class
-
-Switch the default model class ``sfDoctineRecord`` with ``sfCachetaggableDoctrineRecord``
-
-    [php]
-    <?php
-
-    class ProjectConfiguration extends sfProjectConfiguration
-    {
-      # …
-
-      public function configureDoctrine (Doctrine_Manager $manager)
-      {
-        sfConfig::set(
-          'doctrine_model_builder_options',
-          array('baseClassName' => 'sfCachetaggableDoctrineRecord')
-        );
-      }
-    }
-
-After, rebuild the models:
+## 2. Rebuild your the models
 
     $ ./symfony doctrine:build-model
 
@@ -404,7 +384,7 @@ _NB. Please read "<a href="#quick-setup">Quick setup</a>" before reading this._
           # Here you can switch to any other backend
           # (see below "Restrictions" for more info)
           storage:
-            class: sfMemcacheTaggingCache
+            class: sfMemcacheTaggingCache # to disable storage, set class to "sfNoTaggingCache"
             param:
               storeCacheInfo: true
               host: localhost

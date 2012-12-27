@@ -9,9 +9,7 @@
    */
 
   /**
-   * Cache class that stores content in files.
-   * This class differs from parent with set() and get() methods
-   * Added opportunity to store objects via serialization/unserialization
+   * Interface to expand the sfCache functionality
    *
    * @package sfCacheTaggingPlugin
    * @subpackage cache

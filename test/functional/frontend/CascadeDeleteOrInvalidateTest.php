@@ -14,56 +14,60 @@
   global $t, $tagging, $alltags;
   $t = new lime_test();
 
-  $tagging = new sfTaggingCache(array(
-    'logger' => array(
-      'class' => 'sfOutputCacheTagLogger',
-      'param' => array('format' => '%char% %microtime% %key% // %char_explanation%%EOL%')
-    ),
-//    'logger' => array('class' => 'sfNoCacheTagLogger', 'param' => array()),
-//    'storage' => array(
-//      'class' => 'sfMemcacheTaggingCache',
-//      'param' => array('prefix' => 'test', 'storeCacheInfo' => true)
-//    ),
-    'storage' => array(
-      'class' => 'sfFileTaggingCache',
-      'param' => array(
-        'prefix' => 'test',
-        'cache_dir' => sfConfig::get('sf_cache_dir') .'/cascade'
-      )
-    ),
-  ));
+  $sfContext = sfContext::getInstance();
+  $cacheManager = $sfContext->getViewCacheManager();
+  $tagging = $cacheManager->getTaggingCache();
 
-  $ctx = sfContext::getInstance();
-  $ctx->set('viewCacheManager', new sfViewCacheTagManager($ctx, $tagging, array()));
+  sfConfig::set('app_sfCacheTagging_collection_tag_name_format', null);
+  sfConfig::set('app_sfCacheTagging_object_tag_name_format', null);
+  sfConfig::set('app_sfCacheTagging_object_class_tag_name_provider', null);
 
   /* @var $tagging sfTaggingCache */
 
-  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
-
-  function fetch_and_clean_all_tags ()
+  function reset_rel_tables ()
   {
-    global $tagging;
+    static $cleanQuery = null;
 
-    $tagging->clean();
+    $con = Doctrine_Manager::getInstance()->getCurrentConnection();
 
     $s  = RelSiteTable::getInstance()->findAll();
     $sc = RelSiteCultureTable::getInstance()->findAll();
     $c  = RelCultureTable::getInstance()->findAll();
     $ss = RelSiteSettingTable::getInstance()->findAll();
+    $ca = RelCategoryTable::getInstance()->findAll();
+    $s->free(true);$sc->free(true);$c->free(true);$ss->free(true);$ca->free(true);
+    $s->clear();$sc->clear(); $c->clear();$ss->clear();$ss->clear();
 
-    $tagging->setTags($tags = array_merge(
-      $s->getCacheTags(), $sc->getCacheTags(), $c->getCacheTags(), $ss->getCacheTags()
-    ));
+    $con->beginTransaction();
+    if (! $cleanQuery)
+    {
+      $truncateQuery = array_reduce(
+        array('rel_category','rel_culture','rel_site','rel_site_culture','rel_site_setting'),
+        function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+      );
 
-    $s->free();
-    $sc->free();
-    $c->free();
-    $ss->free();
+      $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0;{$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+    }
 
-    $s->clear();
-    $sc->clear();
-    $c->clear();
-    $ss->clear();
+    $con->exec($cleanQuery);
+    Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/cascade.yml');
+    $con->commit();
+  }
+
+  function fetch_and_clean_all_tags ()
+  {
+    return;
+    global $tagging;
+
+    $tagging->clean();
+
+    /**
+     * @todo
+     *
+     * May be culture findAll returns objects that points recursivelly,
+     * and getCacheTags can handle it
+     */
+
 
     return $tags;
   }
@@ -89,10 +93,15 @@
       }
     }
 
-    fetch_and_clean_all_tags();
+    $tagging->clean();
+
+    reset_rel_tables();
   }
 
-  $alltags = array_keys(fetch_and_clean_all_tags());
+  // Initializing
+  $tagging->clean();
+  reset_rel_tables();
+  $alltags = $tagging->getCacheKeys();
 
   $run = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 
@@ -101,9 +110,8 @@
     $t->diag('Test #1');
 
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
+
     RelSiteTable::getInstance()->find(1)->delete();
-    $con->rollback();
 
     check_tags(
       $version,
@@ -121,14 +129,14 @@
       )
     );
   }
+  return;
 
   if (in_array(2, $run, true))
   {
     $t->diag('Test #2');
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
+
     RelSiteTable::getInstance()->find(4)->delete();
-    $con->rollback();
 
     check_tags(
       $version,
@@ -147,14 +155,11 @@
   {
     $t->diag('Test #3');
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
     RelSiteTable::getInstance()
       ->createQuery()
       ->delete()
       ->andWhereIn('id', array(2, 3))
       ->execute();
-
-    $con->rollback();
 
     check_tags(
       $version,
@@ -180,9 +185,7 @@
   {
     $t->diag('Test #4');
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
     RelCultureTable::getInstance()->find(1)->delete();
-    $con->rollback();
 
     check_tags(
       $version,
@@ -208,9 +211,9 @@
   {
     $t->diag('Test #5');
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
+
     RelCultureTable::getInstance()->find(5)->delete();
-    $con->rollback();
+
 
     check_tags(
       $version,
@@ -237,9 +240,9 @@
   {
     $t->diag('Test #6');
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
+
     RelCultureTable::getInstance()->find(2)->delete();
-    $con->rollback();
+
 
     check_tags(
       $version,
@@ -261,11 +264,11 @@
   {
     $t->diag('Test #7');
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
+
     RelSiteCultureTable::getInstance()
       ->findOneByRelCultureIdAndRelSiteId(1, 1)
       ->delete();
-    $con->rollback();
+
 
     check_tags(
       $version,
@@ -282,11 +285,11 @@
   {
     $t->diag('Test #8');
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
+
     RelSiteCultureTable::getInstance()
       ->findByRelSiteId(1)
       ->delete();
-    $con->rollback();
+
 
     check_tags(
       $version,
@@ -307,9 +310,9 @@
   {
     $t->diag('Test #9');
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
+
     RelSiteSettingTable::getInstance()->find(3)->delete();
-    $con->rollback();
+
 
     check_tags(
       $version,
@@ -326,14 +329,14 @@
   {
     $t->diag('Test #10');
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
+
     RelSiteSettingTable::getInstance()
       ->createQuery()
       ->delete()
       ->andWhere('(is_secure OR is_closed)')
       ->execute();
 
-    $con->rollback();
+
 
     check_tags(
       $version,
@@ -354,7 +357,6 @@
 
     # full delete 11
     $version = sfCacheTaggingToolkit::generateVersion();
-    $con->beginTransaction();
 
     # id: 1,2,3,4                   [delete]
     # rel_category_id: 1,2          [invalidate]
@@ -373,8 +375,6 @@
       ->delete()
       ->andWhere('rel_culture_id IS NULL')
       ->execute();
-
-    $con->rollback();
 
     check_tags(
       $version,

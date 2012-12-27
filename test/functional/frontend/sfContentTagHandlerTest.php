@@ -11,15 +11,28 @@
   include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
-
-  $cacheManager = sfContext::getInstance()->getViewCacheManager();
 
   $t = new lime_test();
 
-  $connection = BlogPostTable::getInstance()->getConnection();
-  $connection->beginTransaction();
+  $cacheManager = sfContext::getInstance()->getViewCacheManager();
+  /* @var $cacheManager sfViewCacheTagManager */
+
+  $tagging = $cacheManager->getTaggingCache();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+
+
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+
+  $tagging->clean();
 
   $posts = BlogPostTable::getInstance()->findAll();
 
@@ -27,18 +40,18 @@
 
   $postComments = BlogPostCommentTable::getInstance()->findAll();
   $postComments->delete();
+  $tagging->clean();
 
-  $postTagKey = BlogPostTable::getInstance()->getClassnameToReturn();
-  $postCommentTagKey = BlogPostCommentTable::getInstance()->getClassnameToReturn();
+  $version = sfCacheTaggingToolkit::generateVersion();
 
-  $postCollectionTag = array("{$postTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
-  $postCommentCollectionTag = array("{$postCommentTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
+  $t1 = $posts->getCacheTags();
 
-  $t->is(
-    $posts->getCacheTags(),
-    $postCollectionTag,
-    'Doctrine_Collection returns 1 tag BlogPost as collection listener tag'
-  );
+  $t->is(key($t1), sfCacheTaggingToolkit::obtainCollectionName(BlogPostTable::getInstance()));
+  $t->cmp_ok($version, '<', current($t1));
+  $t2 = $posts->getCacheTags();
+  $t->cmp_ok($version, '<', current($t2));
+  $t->is(key($t2), sfCacheTaggingToolkit::obtainCollectionName(BlogPostTable::getInstance()));
+  $t->cmp_ok(current($t1), '===', current($t2));
 
   try
   {
@@ -58,16 +71,11 @@
   $posts->addCacheTag('SomeTagNew', sfCacheTaggingToolkit::generateVersion());
   $t->is(count($posts->getCacheTags()), 3, 'Adding tag with new tag name "SomeTagNew".');
 
-  $tagsToAdd = array();
-  for ($i = 0; $i < 10; $i ++, usleep(rand(1, 40000)))
-  {
-    $tagsToAdd["{$postTagKey}_{$i}"] = sfCacheTaggingToolkit::generateVersion();
-  }
-
-  $tagsToReturn = array_merge($tagsToAdd, $postCollectionTag);
-
   $posts->removeCacheTags();
-  $t->is($posts->getCacheTags(), $postCollectionTag, 'cleaned added tags');
+  $t->is($posts->getCacheTags(), array(
+    sfCacheTaggingToolkit::obtainCollectionName(BlogPostTable::getInstance()) =>
+    current($t1)
+  ), 'cleaned added tags');
 
   foreach (array('someTag', null, 30, 2.1293, new stdClass(), -2) as $mixed)
   {
@@ -81,7 +89,3 @@
       $t->pass($e->getMessage());
     }
   }
-
-  $connection->rollback();
-
-

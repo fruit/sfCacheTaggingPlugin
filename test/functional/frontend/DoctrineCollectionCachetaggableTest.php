@@ -11,17 +11,25 @@
   include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
-
   $sfContext = sfContext::getInstance();
   $cacheManager = $sfContext->getViewCacheManager();
-
-  $sfTagger = $cacheManager->getTaggingCache();
+  $tagging = $cacheManager->getTaggingCache();
 
   $t = new lime_test();
 
-  $sfTagger->clean();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+
+  $tagging->clean();
 
   # getCacheTags
 
@@ -45,7 +53,7 @@
 
   $firstPost = $posts->getFirst();
 
-  $collectionTagVersion = $tags[$posts->getTable()->getClassNameToReturn()];
+  $collectionTagVersion = $tags[sfCacheTaggingToolkit::obtainCollectionName($posts->getTable())];
 
   $firstPost->setTitle('new title');
   $firstPost->save();
@@ -54,9 +62,9 @@
 
   $t->is(count($tags), count($freshTags));
 
-  $freshCollectionVersion = $freshTags[$posts->getTable()->getClassNameToReturn()];
+  $freshCollectionVersion = $freshTags[sfCacheTaggingToolkit::obtainCollectionName($posts->getTable())];
 
-  $t->ok(isset($freshTags[$posts->getTable()->getClassNameToReturn()]));
+  $t->ok(isset($freshTags[sfCacheTaggingToolkit::obtainCollectionName($posts->getTable())]));
 
   $t->cmp_ok($collectionTagVersion, '=', $freshCollectionVersion);
 
@@ -122,13 +130,8 @@
 
   $t->ok(! $posts->removeCacheTags());
 
-  $connection->rollback();
-
   sfConfig::set('sf_cache', $optionSfCache);
-
-
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
+  $posts->free(true);
 
   $posts = BlogPostTable::getInstance()->findAll();
 
@@ -140,5 +143,3 @@
 
   # delete removes added by hand tags too
   $t->is(count($posts->getCacheTags()), 1); // collection version tag
-
-  $connection->rollback();

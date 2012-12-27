@@ -50,8 +50,7 @@
             && $user->isAuthenticated()
             && ($request instanceof sfCacheTaggingWebRequest)
             && method_exists($user, 'getId') // prevent of triggering __call()
-            && is_callable($callable)        // only public method
-        )
+            && is_callable($callable))        // only public method
         {
           /* @var $request sfCacheTaggingWebRequest */
           $request->addGetParameters(array('user_id' => call_user_func($callable)));

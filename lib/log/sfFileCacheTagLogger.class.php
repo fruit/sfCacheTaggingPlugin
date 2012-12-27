@@ -9,7 +9,7 @@
    */
 
   /**
-   * Cache key and tag logger
+   * Enables tag logging into a file
    *
    * @package sfCacheTaggingPlugin
    * @subpackage log
@@ -18,27 +18,21 @@
   class sfFileCacheTagLogger extends sfCacheTagLogger
   {
     /**
-     * File pointer on log file
+     * Log file resource
      *
      * @var resource
      */
     protected $fp = null;
 
     /**
-     * @see sfCacheLogger::initialize()
-     * @param array $options
+     * {@inheritdoc}
      */
     public function initialize (array $options = array())
     {
-      parent::initialize(
-        array_merge(
-          array(
-            'file_mode' => 0640,
-            'dir_mode' => 0750,
-          ),
-          $options
-        )
-      );
+      parent::initialize(array_merge(
+        array('file_mode' => 0640, 'dir_mode' => 0750),
+        $options
+      ));
 
       if (null === ($file = $this->getOption('file')))
       {
@@ -49,7 +43,6 @@
 
       $dir = dirname($file);
 
-
       if (! is_dir($dir))
       {
         $umask = umask(0);
@@ -59,7 +52,7 @@
 
       $fileExists = is_file($file);
 
-      if (! is_writable($dir) || ($fileExists && ! is_writable($file)))
+      if ($fileExists && ! is_writable($dir))
       {
         throw new sfFileException(sprintf(
           'Unable to open the log file "%s" for writing.', $file
@@ -82,6 +75,8 @@
     }
 
     /**
+     * Locks file before writing text into a file, and then unlocks it
+     *
      * {@inheritdoc}
      */
     protected function doLog ($char, $key)
@@ -98,6 +93,8 @@
 
     /**
      * Executes the shutdown method.
+     *
+     * {@inheritdoc}
      */
     public function shutdown ()
     {

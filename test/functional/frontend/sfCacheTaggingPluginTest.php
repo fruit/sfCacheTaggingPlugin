@@ -23,19 +23,22 @@
   $sfEventDispatcher = $sfContext->getEventDispatcher();
   $cacheManager = $sfContext->getViewCacheManager();
 
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
 
-  $taggingCache = $cacheManager->getTaggingCache();
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
 
-  /* @var $taggingCache sfTaggingCache */
+
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
 
   $cacheSetups = sfYaml::load(PLUGIN_DATA_DIR . '/config/cache_setup.yml');
-  $tagCacheSetups = $cacheSetups;
 
-  $count = count($cacheSetups);
-
-  # $count - cache adapter count (cross chechs for tagger cache adapter and locker cache adapter)
   $t = $browser->test();
 
   try
@@ -49,6 +52,8 @@
   {
     $t->pass('could not call ->obtainTagName() on object with empty PK values');
   }
+  $article->free();
+  unset($article);
 
   try
   {
@@ -57,9 +62,12 @@
 
     $t->is(
       $article->obtainTagName(),
-      'BlogPost:1020',
+      sfCacheTaggingToolkit::obtainTagName($article->getTable()->getTemplate('Cachetaggable'), $article->getData()),
       'called ->obtainTagName() on new object, but with defined `id`'
     );
+
+    $article->free();
+    unset($article);
   }
   catch (InvalidArgumentException $e)
   {
@@ -73,13 +81,14 @@
     $article->obtainTagName();
 
     $t->pass('called ->obtainTagName() on saved object');
+    $article->delete();
   }
   catch (LogicException $e)
   {
     $t->fail('could not call ->obtainTagName() on saved object');
   }
-
-  $connection->rollback();
+  $article->free();
+  unset($article);
 
   try
   {
@@ -94,26 +103,24 @@
     ));
   }
 
+
   sfConfig::set('app_sfCacheTagging_microtime_precision', 5);
 
-  BlogPostTable::getInstance()->findAll()->delete();
-  BlogPostCommentTable::getInstance()->findAll()->delete();
-  BlogPostVoteTable::getInstance()->findAll()->delete();
-
-  Doctrine::loadData(dirname(__FILE__) . '/../../fixtures/project/data/fixtures/fixtures.yml', true);
+  $log = sfConfig::get('sf_log_dir') . '/../../../temp/cache.log';
 
   foreach ($cacheSetups as $cacheSetups)
   {
     try
     {
-      $taggingCache->initialize(array(
+      $tagging = new sfTaggingCache(array(
         'logger'  => array('class' => 'sfFileCacheTagLogger', 'param' => array(
-          'file' => sfConfig::get('sf_log_dir') . '/cache.log',
+          'file' => $log,
           'format' => '%microtime% [%char%] %key% (%char_explanation%)%EOL%',
         )),
         'storage'   => $cacheSetups,
       ));
-      $taggingCache->clean();
+
+      $tagging->clean();
     }
     catch (sfInitializationException $e)
     {
@@ -122,10 +129,10 @@
       continue;
     }
 
-//      $t->info(sprintf('Data/Locker - %s/%s combination', $cacheSetups['class'], $tagsCache['class']));
+    $t->diag(sprintf('Data - %s', $cacheSetups['class']));
 
     $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
-    $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());
+    $cacheManager->initialize($sfContext, $tagging, $cacheManager->getOptions());
     $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
 
     $t->ok(
@@ -139,7 +146,7 @@
 
 
     $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
-    $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());
+    $cacheManager->initialize($sfContext, $tagging, $cacheManager->getOptions());
     $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
 
     $t->ok(
@@ -149,21 +156,32 @@
 
     sfConfig::set('sf_web_debug', $sfWebDebug);
 
-    $connection->beginTransaction();
+    $s  = BlogPostTable::getInstance()->findAll();
+    $sc = BlogPostCommentTable::getInstance()->findAll();
+    $c  = BlogPostCommentTable::getInstance()->findAll();
+    $s->free(true);$sc->free(true);$c->free(true);;
+    $s->clear();$sc->clear(); $c->clear();
 
-    $t->is($taggingCache->get('posts'), false, '"posts" cache is empty');
+
+    $con->beginTransaction();
+    $con->exec($cleanQuery);
+    Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+    $con->commit();
+    $tagging->clean();
+
+//    $connection->beginTransaction();
+
+    $t->is($tagging->get('posts'), false, '"posts" cache is empty');
 
     $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
-    $t->is(
-      $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
-      true,
+    $t->ok(
+      $tagging->set('posts', $posts, null, $posts->getCacheTags()),
       'New Doctrine_Collection is saved to cache with key "posts"'
     );
 
-    $t->is(
-      null !== ($posts = $taggingCache->get('posts')),
-      true,
+    $t->ok(
+      null !== ($posts = $tagging->get('posts')),
       '"posts" are successfully fetched from the cache'
     );
 
@@ -173,7 +191,7 @@
     # $t->comment('Saving post updates');
 
     $t->is(
-      null === ($posts = $taggingCache->get('posts')),
+      null === ($posts = $tagging->get('posts')),
       true,
       'Key expired after editing first post'
     );
@@ -181,36 +199,36 @@
     $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
     $t->is(
-      $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
+      $tagging->set('posts', $posts, null, $posts->getCacheTags()),
       true,
       'new "posts" was written to the cache'
     );
 
     $t->is(
-      null === ($posts = $taggingCache->get('posts')),
+      null === ($posts = $tagging->get('posts')),
       false,
       'Fetching "posts" from cache'
     );
 
-    $t->is($taggingCache->lock('posts'), true, 'Locked key "posts"');
-    $t->is($taggingCache->isLocked('posts'), true, '"posts" is locked');
+    $t->is($tagging->lock('posts'), true, 'Locked key "posts"');
+    $t->is($tagging->isLocked('posts'), true, '"posts" is locked');
 
     $post = $posts->getLast();
     $post->setTitle('Row id = ' . $post->getId())->save();
     $posts = BlogPostTable::getInstance()->getPostsQuery()->execute();
 
     $t->is(
-      $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
+      $tagging->set('posts', $posts, null, $posts->getCacheTags()),
       false,
       'Skipped writing to cache, "posts" is locked'
     );
 
-    $t->is($taggingCache->unlock('posts'), true, 'Unlocked "posts"');
+    $t->is($tagging->unlock('posts'), true, 'Unlocked "posts"');
 
-    $t->is($taggingCache->isLocked('posts'), false, '"posts" is now not locked');
+    $t->is($tagging->isLocked('posts'), false, '"posts" is now not locked');
 
     $t->is(
-      $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
+      $tagging->set('posts', $posts, null, $posts->getCacheTags()),
       true,
       'Writing to cache, "posts" is not locked'
     );
@@ -223,12 +241,12 @@
     }
 
     $t->is(
-      $taggingCache->set('posts+comments', $postsAndComments, null, $postsAndComments->getCacheTags()),
+      $tagging->set('posts+comments', $postsAndComments, null, $postsAndComments->getCacheTags()),
       true,
       'Saving posts with comments'
     );
 
-    $t->is(null !== ($taggingCache->get('posts+comments')), true, '"posts+comments" are stored in cache');
+    $t->is(null !== ($tagging->get('posts+comments')), true, '"posts+comments" are stored in cache');
 
     $table = BlogPostCommentTable::getInstance();
 
@@ -240,7 +258,7 @@
 
     $t->is($wasComments, $nowComments + 1, 'Comments count -1');
 
-    $t->is(null === ($taggingCache->get('posts+comments')), true, '"posts+comments" is expired, 1 comment removed');
+    $t->is(null === ($tagging->get('posts+comments')), true, '"posts+comments" is expired, 1 comment removed');
 
     $postsAndComments = BlogPostTable::getInstance()->getPostsWithCommentQuery()->execute();
 
@@ -250,7 +268,7 @@
     }
 
     $t->is(
-      $taggingCache->set('posts+comments', $postsAndComments, null, $postsAndComments->getCacheTags()),
+      $tagging->set('posts+comments', $postsAndComments, null, $postsAndComments->getCacheTags()),
       true,
       'Saving posts with comments'
     );
@@ -263,7 +281,7 @@
       ? $t->pass('Removed all davids comments')
       : $t->fail("Not removed davids comments {$afterDeleteComments}");
 
-    $t->is(null === ($taggingCache->get('posts+comments')), true, '"posts+comments" is not expired, removed 3 comments');
+    $t->is(null === ($tagging->get('posts+comments')), true, '"posts+comments" is not expired, removed 3 comments');
 
     $postsAndComments = BlogPostTable::getInstance()->getPostsWithCommentQuery()->execute();
 
@@ -273,7 +291,7 @@
     }
 
     $t->is(
-      $taggingCache->set('posts+comments', $postsAndComments, null, $postsAndComments->getCacheTags()),
+      $tagging->set('posts+comments', $postsAndComments, null, $postsAndComments->getCacheTags()),
       true,
       'Saving posts with comments'
     );
@@ -288,13 +306,13 @@
       ? $t->pass('Updated all fruits comments')
       : $t->fail('Not removed fruits');
 
-    $t->is(null === ($taggingCache->get('posts+comments')), true, '"posts+comments" is expired, 3 fruit comment updated');
+    $t->is(null === ($tagging->get('posts+comments')), true, '"posts+comments" is expired, 3 fruit comment updated');
 
     BlogPostTable::getInstance()->createQuery()->delete()->execute();
     $emptyPosts = BlogPostTable::getInstance()->findAll();
 
     $t->is(
-      $taggingCache->set('posts', $emptyPosts, null, $emptyPosts->getCacheTags()),
+      $tagging->set('posts', $emptyPosts, null, $emptyPosts->getCacheTags()),
       true,
       'Saving empty "posts" to cache'
     );
@@ -305,19 +323,19 @@
     $newPost->setContent('Content, content, content, content, content');
     $newPost->save();
 
-    $t->is(null === ($taggingCache->get('posts')), true, '"posts" are expired (first post is saved)');
+    $t->is(null === ($tagging->get('posts')), true, '"posts" are expired (first post is saved)');
 
     $posts = BlogPostTable::getInstance()->findAll();
 
     $t->is(
-      $taggingCache->set('posts', $posts, null, $posts->getCacheTags()),
+      $tagging->set('posts', $posts, null, $posts->getCacheTags()),
       true,
       'Saving empty "posts" to cache'
     );
 
-    $t->is(null === ($taggingCache->get('posts')), false, '"posts" are not expired (no post was saved during previous save)');
+    $t->is(null === ($tagging->get('posts')), false, '"posts" are not expired (no post was saved during previous save)');
 
-    $t->isa_ok($taggingCache->get('posts'), 'Doctrine_Collection_Cachetaggable', 'Saved object in cache is "Doctrine_Collection_Cachetaggable"');
+    $t->isa_ok($tagging->get('posts'), 'Doctrine_Collection_Cachetaggable', 'Saved object in cache is "Doctrine_Collection_Cachetaggable"');
 
     BlogPostTable::getInstance()->createQuery()->delete()->execute();
     BlogPostCommentTable::getInstance()->createQuery()->delete()->execute();
@@ -332,7 +350,7 @@
     $emptyPosts->addCacheTags($emptyPostComments);
 
     $t->is(
-      $taggingCache->set('posts+comments', $emptyPosts, null, $emptyPosts->getCacheTags()),
+      $tagging->set('posts+comments', $emptyPosts, null, $emptyPosts->getCacheTags()),
       true,
       sprintf(
         'Saving empty "posts+comments" to cache (%d posts, %d comments)',
@@ -347,18 +365,18 @@
     $newPost->setContent('Content 2, content 2, content 2, content 2, content 2');
     $newPost->save();
 
-    $t->is(null === ($taggingCache->get('posts+comments')), true, '"posts+comments" are expired (first post is saved)');
+    $t->is(null === ($tagging->get('posts+comments')), true, '"posts+comments" are expired (first post is saved)');
 
     $post = BlogPostTable::getInstance()->find($newPost->getId());
     $post->addCacheTags($post->getBlogPostComment());
 
     $t->is(
-      $taggingCache->set('posts+comments', $post, null, $post->getCacheTags()),
+      $tagging->set('posts+comments', $post, null, $post->getCacheTags()),
       true,
       'Saving empty "posts+comments" to cache'
     );
 
-    $t->is(null === ($taggingCache->get('posts+comments')), false, '"posts+comments" are not expired (no post/comments was saved during previous save)');
+    $t->is(null === ($tagging->get('posts+comments')), false, '"posts+comments" are not expired (no post/comments was saved during previous save)');
 
     $newPostComment = new BlogPostComment();
     $newPostComment->setBlogPost($newPost);
@@ -366,9 +384,7 @@
     $newPostComment->setMessage('My Comment');
     $newPostComment->save();
 
-    $t->is(null === ($taggingCache->get('posts+comments')), true, '"posts+comments" are expired (first associated comment was saved)');
+    $t->is(null === ($tagging->get('posts+comments')), true, '"posts+comments" are expired (first associated comment was saved)');
 
-    $connection->rollback();
-
-    $taggingCache->clean();
+    unset($tagging);
   }

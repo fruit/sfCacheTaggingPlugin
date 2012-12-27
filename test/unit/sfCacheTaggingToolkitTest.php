@@ -18,12 +18,14 @@
 
   try
   {
-    sfCacheTaggingToolkit::getTaggingCache();
-    $t->fail('Context found');
+    $t->isa_ok($c = sfCacheTaggingToolkit::getTaggingCache(), 'sfTaggingCache');
+    $t->isa_ok($c->getCache(), 'sfNoTaggingCache');
+    $t->isa_ok($c->getLogger(), 'sfNoCacheTagLogger');
+    $t->pass('Return blank classes');
   }
-  catch (sfCacheMissingContextException $e)
+  catch (Exception $e)
   {
-    $t->pass($e->getMessage());
+    $t->fail($e->getMessage());
   }
 
   sfConfig::set('sf_cache', $option);

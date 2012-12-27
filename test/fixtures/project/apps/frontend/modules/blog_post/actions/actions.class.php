@@ -17,16 +17,13 @@
     {
       $treeTable = Doctrine::getTable('Tree');
 
+//      $this->music = $treeTable->findOneByName('music');
+      $this->tree = $treeTable->getTree();
 
-      $music = $treeTable->findOneByName('music');
-      $treeObject = $treeTable->getTree();
-
-      $jazz = new Tree();
-      $jazz->name = 'Jazz';
-
-      $jazz->getNode()->insertAsLastChildOf($music);
-
-//      die;
+      $this->callAAAA();
+//      $jazz = new Tree();
+//      $jazz->name = 'Jazz';
+//      $jazz->getNode()->insertAsLastChildOf($music);
     }
 
 
@@ -97,8 +94,6 @@
           break;
       }
 
-      list($action, $module) = explode('/', $returnAction);
-
       $b->save();
 
       $this->redirect($returnAction);
@@ -155,7 +150,7 @@
    */
     public function executeWelcome (sfWebRequest $request)
     {
-      
+
     }
 
     /**

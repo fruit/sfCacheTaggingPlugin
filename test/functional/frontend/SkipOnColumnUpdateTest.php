@@ -13,8 +13,16 @@
 
   $t = new lime_test();
 
-  $connection = SkipOnColumnUpdateTestTable::getInstance()->getConnection();
-  $connection->beginTransaction();
+  $sfContext = sfContext::getInstance();
+  $cm = $sfContext->getViewCacheManager();
+  /* @var $cm sfViewCacheTagManager */
+  $tagging = $cm->getTaggingCache();
+
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; TRUNCATE `skip_on_column_update_test`; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  $tagging->clean();
+
 
   $obj = new SkipOnColumnUpdateTest();
   $obj->setName('Flower shop');
@@ -40,9 +48,8 @@
   $obj->save();
   $t->isnt($obj->obtainObjectVersion(), $v, 'Version changed');
 
-  $connection->rollback();
-
-  $connection->beginTransaction();
+  $con->exec($cleanQuery);
+  $tagging->clean();
 
   $obj1 = new SkipOnColumnUpdateTest();
   $obj1->setAuthor('Dustin Latimer');
@@ -121,4 +128,5 @@
   $t->cmp_ok($objectVersion2, '<', $obj2->obtainObjectVersion(),  "[2] Version is invalidated");
   $t->cmp_ok($objectVersion3, '<', $obj3->obtainObjectVersion(),  "[3] Version is invalidated");
 
-  $connection->rollback();
+  $con->exec($cleanQuery);
+  $tagging->clean();

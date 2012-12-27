@@ -40,7 +40,6 @@
      */
     protected $taggingCache = null;
 
-
     /**
      * sfViewCacheTagManager option holder
      *
@@ -137,11 +136,6 @@
         ));
       }
 
-      if (! sfConfig::get('sf_cache'))
-      {
-        $taggingCache = new sfNoTaggingCache();
-      }
-
       $this->setTaggingCache($taggingCache);
       $this->cache = $this->getTaggingCache()->getCache();
 
@@ -235,16 +229,9 @@
 
       $retval = $this->getTaggingCache()->get($this->generateCacheKey($internalUri));
 
-      if (sfConfig::get('sf_logging_enabled'))
-      {
-        $this->getEventDispatcher()->notify(
-          new sfEvent($this, 'application.log', array(sprintf(
-            'Cache for "%s" %s',
-            $internalUri,
-            $retval !== null ? 'exists' : 'does not exist'
-          )))
-        );
-      }
+      $this->notify(sprintf(
+        'Cache for "%s" %s', $internalUri, $retval !== null ? 'exists' : 'does not exist'
+      ));
 
       return $retval;
     }
@@ -271,14 +258,7 @@
         $tags
       );
 
-      if (sfConfig::get('sf_logging_enabled'))
-      {
-        $this->getEventDispatcher()->notify(
-          new sfEvent($this, 'application.log', array(sprintf(
-            'Save cache for "%s"', $internalUri
-          )))
-        );
-      }
+      $this->notify(sprintf('Save cache for "%s"', $internalUri));
 
       return true;
     }
@@ -333,9 +313,9 @@
       if (sfConfig::get('sf_web_debug'))
       {
         $event = new sfEvent($this, 'view.cache.filter_content', array(
-          'response' => $this->getContext()->getResponse(),
-          'uri' => $uri,
-          'new' => false
+          'response'  => $this->getContext()->getResponse(),
+          'uri'       => $uri,
+          'new'       => false,
         ));
 
         $content = $this
@@ -378,9 +358,9 @@
       if ($saved && sfConfig::get('sf_web_debug'))
       {
         $event = new sfEvent($this, 'view.cache.filter_content', array(
-          'response' => $this->getContext()->getResponse(),
-          'uri' => $uri,
-          'new' => true
+          'response'  => $this->getContext()->getResponse(),
+          'uri'       => $uri,
+          'new'       => true,
         ));
 
         $content = $this
@@ -416,9 +396,9 @@
       if ($saved && sfConfig::get('sf_web_debug'))
       {
         $event = new sfEvent($this, 'view.cache.filter_content', array(
-          'response' => $response,
-          'uri' => $uri,
-          'new' => true
+          'response'  => $response,
+          'uri'       => $uri,
+          'new'       => true,
         ));
 
         $content = $this
@@ -460,8 +440,8 @@
 
       $saved = $this->set(
         array(
-          'content' => $content,
-          'response' => serialize($response),
+          'content'   => $content,
+          'response'  => serialize($response),
         ),
         $uri,
         $contentTags
@@ -470,9 +450,9 @@
       if ($saved && sfConfig::get('sf_web_debug'))
       {
         $event = new sfEvent($this, 'view.cache.filter_content', array(
-          'response' => $response,
-          'uri' => $uri,
-          'new' => true,
+          'response'  => $response,
+          'uri'       => $uri,
+          'new'       => true,
         ));
 
         $content = $this
@@ -609,9 +589,9 @@
         if (sfConfig::get('sf_web_debug'))
         {
           $event = new sfEvent($this, 'view.cache.filter_content', array(
-            'response' => $response,
-            'uri' => $uri,
-            'new' => false,
+            'response'  => $response,
+            'uri'       => $uri,
+            'new'       => false,
           ));
 
           $content = $this
@@ -673,9 +653,9 @@
       if (sfConfig::get('sf_web_debug'))
       {
         $event = new sfEvent($this, 'view.cache.filter_content', array(
-          'response' => $this->getContext()->getResponse(),
-          'uri' => $uri,
-          'new' => false
+          'response'  => $this->getContext()->getResponse(),
+          'uri'       => $uri,
+          'new'       => false,
         ));
 
         $content = $this
@@ -725,14 +705,7 @@
      */
     public function remove ($internalUri, $hostName = '', $vary = '', $contextualPrefix = '**')
     {
-      if (sfConfig::get('sf_logging_enabled'))
-      {
-        $this->getEventDispatcher()->notify(
-          new sfEvent($this, 'application.log', array(sprintf(
-            'Remove cache for "%s"', $internalUri
-          )))
-        );
-      }
+      $this->notify(sprintf('Remove cache for "%s"', $internalUri));
 
       $cacheKey = $this->generateCacheKey(
         $internalUri, $hostName, $vary, $contextualPrefix
@@ -765,25 +738,17 @@
       // sfSecurityUser interface has "isAuthenticated" method
       if (! $user instanceof sfSecurityUser)
       {
-        if (sfConfig::get('sf_logging_enabled'))
-        {
-          $dispatcher->notify(new sfEvent($this, 'application.log', array(
-            sprintf(
-              'User class "%s" does not implements the "sfSecurityUser" interface',
-              get_class($user)
-            ),
-            'priority' => sfLogger::DEBUG
-          )));
-        }
+        $this->notify(
+          sprintf(
+            'User class "%s" does not implements the "sfSecurityUser" interface',
+            get_class($user)
+          ),
+          sfLogger::DEBUG
+        );
       }
       elseif (! $user->isAuthenticated())
       {
-        if (sfConfig::get('sf_logging_enabled'))
-        {
-          $dispatcher->notify(new sfEvent($this, 'application.log', array(
-            'User is not authenticated', 'priority' => sfLogger::DEBUG
-          )));
-        }
+        $this->notify('User is not authenticated', sfLogger::DEBUG);
       }
       else
       {
@@ -824,9 +789,7 @@
 
         if (! is_array($userParams))
         {
-          $dispatcher->notify(new sfEvent($this, 'application.log', array(
-            'Custom cache key param is not an array', 'priority' => sfLogger::ERR
-          )));
+          $this->notify('Custom cache key param is not an array', sfLogger::ERR);
         }
         elseif (0 < count($userParams))
         {
@@ -852,5 +815,23 @@
       }
 
       return parent::generateCacheKey($internalUri, $hostName, $vary, $contextualPrefix);
+    }
+
+    /**
+     * Notifies application.log listener
+     *
+     * @param string  $message
+     * @param int     $priority   sfLogger::*
+     */
+    protected function notify ($message, $priority = sfLogger::INFO)
+    {
+      if (! sfConfig::get('sf_logging_enabled'))
+      {
+        return;
+      }
+
+      $this->getEventDispatcher()->notify(
+        new sfEvent($this, 'application.log', array($message, 'priority' => $priority))
+      );
     }
   }

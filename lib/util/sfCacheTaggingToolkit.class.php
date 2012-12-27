@@ -21,23 +21,23 @@
     const PLUGIN_NAME   = 'sfCacheTaggingPlugin';
 
     /**
-     * @throws sfCacheDisabledException         when "sf_cache" is OFF
-     * @throws sfCacheMissingContextException   if context is not initialized
-     * @throws sfConfigurationException         on plugin configuration issues
      * @return sfTaggingCache
      */
     public static function getTaggingCache ()
     {
-      if (! sfConfig::get('sf_cache'))
-      {
-        throw new sfCacheDisabledException('Cache "sf_cache" is disabled');
-      }
+      static $tagging = null;
 
-      if (! sfContext::hasInstance())
+      if (! sfConfig::get('sf_cache') || ! sfContext::hasInstance())
       {
-        throw new sfCacheMissingContextException(
-          sprintf('Context is not initialized for "%s"', __CLASS__)
-        );
+        if (null === $tagging)
+        {
+          $tagging = new sfTaggingCache(array(
+            'storage' => array('class' => 'sfNoTaggingCache', 'param' => array()),
+            'logger' => array('class' => 'sfNoCacheTagLogger', 'param' => array()),
+          ));
+        }
+
+        return $tagging;
       }
 
       $viewCacheManager = sfContext::getInstance()->getViewCacheManager();
@@ -183,40 +183,6 @@
     }
 
     /**
-     * Triggers on "component.method_not_found" event
-     *
-     * @param sfEvent $event
-     * @return null
-     */
-    public static function listenOnComponentMethodNotFoundEvent (sfEvent $event)
-    {
-      try
-      {
-        $callable = array(
-          new sfViewCacheTagManagerBridge($event->getSubject()),
-          $event['method']
-        );
-
-        $value = call_user_func_array($callable, $event['arguments']);
-        $event->setReturnValue($value);
-
-        $event->setProcessed(true);
-      }
-      catch (BadMethodCallException $e)
-      {
-        $event->setProcessed(false);
-      }
-      catch (sfException $e)
-      {
-        $event->setProcessed(true);
-
-        self::notifyApplicationLog(
-          __CLASS__, $e->getMessage(), sfLogger::NOTICE
-        );
-      }
-    }
-
-    /**
      * If tag name provider is registerd, then it passes object class name
      * to it.
      *
@@ -243,26 +209,25 @@
     }
 
     /**
-     * @param mixed   $object   object or string, or null
-     * @param string  $message
-     * @param int     $priority sfLogger::* see constants
-     */
-    public static function notifyApplicationLog ($object, $message, $priority = null)
-    {
-      ProjectConfiguration::getActive()
-        ->getEventDispatcher()
-        ->notify(new sfEvent($object, 'application.log', array($message)))
-      ;
-    }
-
-    /**
      * Collections tag name
      *
      * @return string
      */
     public static function obtainCollectionName (Doctrine_Table $table)
     {
-      return self::getBaseClassName($table->getClassnameToReturn());
+      $name = self::getBaseClassName($table->getClassnameToReturn());
+
+
+      $format = sfConfig::get('app_sfCacheTagging_collection_tag_name_format');
+      if ($format)
+      {
+        $name = strtr($format, array(
+          '%name%'      => $name,
+          '%separator%' => self::getModelTagNameSeparator(),
+        ));
+      }
+
+      return $name;
     }
 
     /**
@@ -273,8 +238,7 @@
      */
     public static function obtainCollectionVersion ($collectionVersionName)
     {
-      $collectionVersion = self::getTaggingCache()
-        ->getTag($collectionVersionName);
+      $collectionVersion = self::getTaggingCache()->getTag($collectionVersionName);
 
       if (null === $collectionVersion)
       {
@@ -309,12 +273,22 @@
 
       foreach ($uniqueColumns as $columnName)
       {
-        if (! isset($objectArray[$columnName]) || is_object($objectArray[$columnName]))
+        if (! isset($objectArray[$columnName]))
         {
           throw new InvalidArgumentException(
             sprintf(
               '%s: missing values in an array (row from table "%s") - missing key "%s"',
               self::PLUGIN_NAME, get_class($table), $columnName
+            )
+          );
+        }
+
+        if ($objectArray[$columnName] instanceof Doctrine_Null)
+        {
+          throw new InvalidArgumentException(
+            sprintf(
+              '%s: unique column "%s" contains Doctrine_Null object',
+              self::PLUGIN_NAME, $columnName
             )
           );
         }
@@ -349,8 +323,18 @@
        */
       $columnValues = array_merge($columnValues, $values);
 
-      return call_user_func_array(
-        'sprintf', array_merge(array($keyFormat), $columnValues)
-      );
+      $name = call_user_func_array('sprintf', array_merge(array($keyFormat), $columnValues));
+
+      $format = sfConfig::get('app_sfCacheTagging_object_tag_name_format');
+
+      if ($format)
+      {
+        $name = strtr($format, array(
+          '%name%'      => $name,
+          '%separator%' => self::getModelTagNameSeparator(),
+        ));
+      }
+
+      return $name;
     }
   }

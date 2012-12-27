@@ -10,9 +10,29 @@
 
   include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
 
-  BlogPostTable::getInstance()->getConnection()->beginTransaction();
-
   $browser = new sfTestFunctional(new sfBrowser());
+
+  $t = $browser->test();
+
+  $cacheManager = sfContext::getInstance()->getViewCacheManager();
+  /* @var $cacheManager sfViewCacheTagManager */
+
+  $tagging = $cacheManager->getTaggingCache();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+
+  $tagging->clean();
+
 
   $browser->getAndCheck('blog_post', 'actionWithLayout', '/blog_post/actionWithLayout', 200);
 
@@ -56,5 +76,3 @@
     ->isStatusCode(200)
     ->checkElement('.posts a[id*="baz"]', 'BazBaz')
     ->end();
-
-  BlogPostTable::getInstance()->getConnection()->rollback();

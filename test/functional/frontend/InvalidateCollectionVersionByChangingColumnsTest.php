@@ -13,9 +13,17 @@
 
   $t = new lime_test();
 
-  $connection = AirCompanyTable::getInstance()->getConnection();
-  $connection->beginTransaction();
+  $sfContext = sfContext::getInstance();
+  $cm = $sfContext->getViewCacheManager();
+  /* @var $cm sfViewCacheTagManager */
+  $tagging = $cm->getTaggingCache();
 
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; TRUNCATE `air_company`; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  $con->commit();
+  $tagging->clean();
 
   $jetFlight = new AirCompany();
   $jetFlight->setName('Jet Flights');
@@ -82,6 +90,3 @@
 
   $t->cmp_ok($objVersion, '<', $jetFlight->obtainObjectVersion(), 'Object version is updated');
   $t->cmp_ok($colVersion, '<', $jetFlight->obtainCollectionVersion(), 'Collection version is updated');
-
-  $connection->rollback();
-

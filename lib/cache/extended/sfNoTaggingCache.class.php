@@ -9,19 +9,19 @@
    */
 
   /**
-   * Class to disable cache tag logging in factories.yml file
+   * {@inheritdoc}
    *
    * @package sfCacheTaggingPlugin
-   * @subpackage log
+   * @subpackage cache
    * @author Ilya Sabelnikov <fruit.dev@gmail.com>
    */
-  class sfNoCacheTagLogger extends sfCacheTagLogger
+  class sfNoTaggingCache extends sfNoCache implements sfTaggingCacheInterface
   {
     /**
      * {@inheritdoc}
      */
-    protected function doLog ($char, $key)
+    public function getCacheKeys ()
     {
-      return true;
+      return array();
     }
   }

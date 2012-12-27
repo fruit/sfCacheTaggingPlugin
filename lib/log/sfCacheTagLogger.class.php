@@ -160,6 +160,8 @@
         case 'U': return 'cache was unlocked';
         case 'r': return 'data cache with no locks';
         case 'R': return 'data cache with lock';
+        case 'd': return 'data can not be removed';
+        case 'D': return 'data was sucessfully removed';
 
         // Tags:
         case 'v': return 'cache tag version is expired';

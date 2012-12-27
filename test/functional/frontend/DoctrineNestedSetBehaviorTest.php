@@ -13,8 +13,18 @@
   $t = new lime_test();
 
   $con = Doctrine_Manager::getInstance()->getCurrentConnection();
-
   $con->beginTransaction();
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; TRUNCATE `tree`; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/tree.yml');
+  $con->commit();
+
+  $sfContext = sfContext::getInstance();
+  $cacheManager = $sfContext->getViewCacheManager();
+  $tagging = $cacheManager->getTaggingCache();
+  $tagging->clean();
+
   $treeTable = Doctrine::getTable('Tree');
 
 
@@ -129,6 +139,3 @@
   {
     $t->fail(sprintf('Moving to another level evaluates error: %s', $e->getMessage()));
   }
-
-
-  $con->rollback();

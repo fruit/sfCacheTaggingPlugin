@@ -7,26 +7,38 @@
    * For the full copyright and license information, please view the LICENSE
    * file that was distributed with this source code.
    */
-  
+
   include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
   $t = new lime_test();
 
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
   /* @var $cacheManager sfViewCacheTagManager */
+
+  $tagging = $cacheManager->getTaggingCache();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
 
   $q = BlogPostTable::getInstance()->createQuery('p');
   $t->isa_ok($q->getResultCacheDriver(), 'Doctrine_Cache_Proxy', 'instance of Proxy');
 
-  $connection->beginTransaction();
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+
+  $tagging->clean();
 
   $q
     ->useResultCache()
     ->select('*')
-    ->addWhere('id != ?', 4)
+    ->addWhere('id != ?', array(4))
     ->leftJoin('p.BlogPostComment c')
     ->limit(5);
 
@@ -73,74 +85,8 @@
     true
   );
 
-  $connection->rollback();
-
   $q->clearResultCache();
-
+  $tagging->clean();
 
   # with sfCacheDisabledException
-
-  $optionSfCache = sfConfig::get('sf_cache');
-  sfConfig::set('sf_cache', false);
-
-  $q = BlogPostTable::getInstance()->createQuery('p');
-
-  $connection->beginTransaction();
-  $q
-    ->useResultCache()
-    ->select('*')
-    ->addWhere('id != ?', 4)
-    ->leftJoin('p.BlogPostComment c')
-    ->limit(5);
-
-  $q->clearResultCache();
-
-  $hash = $q->getResultCacheHash();
-
-  $t->ok(! $q->getResultCacheDriver()->contains($hash), 'hash is new');
-
-  $posts = $q->execute();
-
-  $t->is($q->getResultCacheDriver()->contains($hash), false);
-
-  $t->is($q->getResultCacheDriver()->fetch($hash), false);
-
-  $post = $posts->getFirst();
-
-  $post->delete();
-
-  $t->is($q->getResultCacheDriver()->contains($hash), false);
-
-  $posts = $q->execute();
-
-  $t->is($q->getResultCacheDriver()->contains($hash), false);
-
-  $t->is($q->getResultCacheDriver()->delete($hash), false);
-
-  $t->is($q->getResultCacheDriver()->contains($hash), false);
-
-  # _ getCacheKeys
-  $posts = $q->execute();
-
-  $hash = $q->getResultCacheHash();
-
-  $t->ok(! $q->getResultCacheDriver()->contains($hash), 'cache not saved');
-
-  $q->getResultCacheDriver()->deleteAll();
-
-  $t->ok(! $q->getResultCacheDriver()->contains($hash), 'cache removed');
-
-  $t->is(
-    $q->getResultCacheDriver()->save(md5('key'), serialize(array(1, 3, 5)), 291),
-    false
-  );
-
-  $connection->rollback();
-
-  sfConfig::set('sf_cache', $optionSfCache);
-
-  $q->clearResultCache();
-
-
-
-
+  // removed, bacause Proxy is not used when sf_cache is disabled

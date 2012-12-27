@@ -9,22 +9,18 @@
    */
 
   include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
+//  include_once realpath(dirname(__FILE__) . '/../../bootstrap/linelime.php');
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
-
-  $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
 
   $sfContext = sfContext::getInstance();
   $cacheManager = $sfContext->getViewCacheManager();
-  $sfTagger = $cacheManager->getTaggingCache();
-  /* @var $sfTagger sfTaggingCache */
+  $tagging = $cacheManager->getTaggingCache();
 
+  /* @var $tagging sfTaggingCache */
   $t = new lime_test();
 
-//  FoodTable::getInstance()->createQuery()->delete()->execute();
-//  FoodReorderedTable::getInstance()->createQuery()->delete()->execute();
-
-  $connection = Doctrine_Manager::getInstance()->getCurrentConnection();
-  $connection->beginTransaction();
+  FoodTable::getInstance()->createQuery()->delete()->execute();
+  FoodReorderedTable::getInstance()->createQuery()->delete()->execute();
 
 /**
  * Testing model with SoftDelete and Cachetagging behavior
@@ -33,6 +29,8 @@
     array('Food', 'Manufacturer'),                    // SoftDelete -> this
     array('FoodReordered', 'ManufacturerReordered')   // this -> SoftDelete
   );
+
+  $tagging->clean();
 
   foreach ($classTests as $classTests)
   {
@@ -48,7 +46,9 @@
       ${$instanceName}->setTitle($instanceName);
       ${$instanceName}->save();
 
-      $removedItemsTags[${$instanceName}->obtainTagName()] = ${$instanceName}->obtainObjectVersion();
+      $removedItemsTags[
+        sfCacheTaggingToolkit::obtainTagName(${$instanceName}->getTable()->getTemplate('Cachetaggable'), ${$instanceName}->toArray(false))
+        ] = ${$instanceName}->obtainObjectVersion();
       ${$instanceName}->delete();
     }
 
@@ -59,11 +59,11 @@
 
     foreach ($removedItemsTags as $tagName => $tagVersion)
     {
-      $t->ok(! $sfTagger->hasTag($tagName), "For delete item {$tagName} version is re-setted");
+      $t->ok(! $tagging->hasTag($tagName), "For delete item {$tagName} version is re-setted");
     }
 
     $t->diag('deleted objects registry');
-
+    $tagging->clean();
     $juice = new $foodClassName();
     $juice->setTitle('Orange juice');
     $juice->save();
@@ -78,8 +78,6 @@
     $drink->setTitle('Energy drink');
     $drink->save();
 
-  //  $t->is($juice->getCacheTags(true), array(), 'Juice is remove, no cache tags');
-  //  $t->is($limo->getCacheTags(true), array(), 'Limo is remove, no cache tags');
     $t->is(count($drink->getCacheTags(true)), 2, 'Energy drink has 2 tags (object+collection)');
 
     $t->diag('postDelete with object relations');
@@ -98,19 +96,19 @@
     $choleCollectionName = $chole->obtainCollectionName();
     $indianHealthFoodCollectionName = $indianHealthFood->obtainCollectionName();
 
-    $t->ok($sfTagger->hasTag($choleTagName), '"Chole" tag name is valid');
-    $t->ok($sfTagger->hasTag($choleCollectionName), '"Chole" collection tag name is valid');
-    $t->ok($sfTagger->hasTag($indianHealthFoodTagName), '"Indian Health Food Ltd" tag name is valid');
-    $t->ok($sfTagger->hasTag($indianHealthFoodCollectionName), '"Indian Health Food Ltd" collection tag name is valid');
+    $t->ok($tagging->hasTag($choleTagName), '"Chole" tag name is valid');
+    $t->ok($tagging->hasTag($choleCollectionName), '"Chole" collection tag name is valid');
+    $t->ok($tagging->hasTag($indianHealthFoodTagName), '"Indian Health Food Ltd" tag name is valid');
+    $t->ok($tagging->hasTag($indianHealthFoodCollectionName), '"Indian Health Food Ltd" collection tag name is valid');
 
-    $choleColVer = $sfTagger->getTag($choleCollectionName);
-    $indianColVer = $sfTagger->getTag($indianHealthFoodCollectionName);
+    $choleColVer = $tagging->getTag($choleCollectionName);
+    $indianColVer = $tagging->getTag($indianHealthFoodCollectionName);
     $chole->delete();
 
-    $t->ok(! $sfTagger->hasTag($choleTagName), '"Chole" record\'s tag is removed');
-    $t->cmp_ok($choleColVer, '<', $sfTagger->getTag($choleCollectionName), '"Chole" record\'s collection tag is regenerated');
-    $t->ok(! $sfTagger->hasTag($indianHealthFoodTagName), '"Indian Health Food Ltd" record\'s tag is removed');
-    $t->cmp_ok($indianColVer, '<', $sfTagger->getTag($indianHealthFoodCollectionName), '"Indian Health Food Ltd" record\'s collection tag is regenerated');
+    $t->ok(! $tagging->hasTag($choleTagName), '"Chole" record\'s tag is removed');
+    $t->cmp_ok($choleColVer, '<', $tagging->getTag($choleCollectionName), '"Chole" record\'s collection tag is regenerated');
+    $t->ok(! $tagging->hasTag($indianHealthFoodTagName), '"Indian Health Food Ltd" record\'s tag is removed');
+    $t->cmp_ok($indianColVer, '<', $tagging->getTag($indianHealthFoodCollectionName), '"Indian Health Food Ltd" record\'s collection tag is regenerated');
 
   //  $t->is($chole->getCacheTags(true), array(), 'Removed object softly/hardly returns an empty array of tags recursively');
   //  $t->is($chole->getCacheTags(false), array(), 'Removed object softly/hardly return an empty array of tags');
@@ -122,31 +120,30 @@
     $bananas->save();
 
     $bananasTagName = $bananas->obtainTagName();
-    $t->ok($sfTagger->hasTag($bananasTagName), 'Bananas (Food object) tag name exists in cache');
+    $t->ok($tagging->hasTag($bananasTagName), 'Bananas (Food object) tag name exists in cache');
 
     $value = $bananas->delete();
 
     $t->ok($value, "Bananas is soft-deleted");
 
-    $t->ok(! $sfTagger->hasTag($bananasTagName), 'Pseudo-removed record does not have a tag');
+    $t->ok(! $tagging->hasTag($bananasTagName), 'Pseudo-removed record does not have a tag');
 
     # preDqlDelete + SoftDelete plugin conflict
 
     $nutsName = 'Indian Nuts';
-    $nuts = new $foodClassName();
+    $nuts = new $foodClassName;
     $nuts->setTitle($nutsName);
     $nuts->save();
 
     $nutVersion = $nuts->getObjectVersion();
 
-    $t->ok($sfTagger->hasTag(sprintf('%s%s%d', $foodClassName, $separator, $nuts->getId())), 'Tag exists');
+    $t->ok($tagging->hasTag(sfCacheTaggingToolkit::obtainTagName($nuts->getTable()->getTemplate('Cachetaggable'), $nuts->toArray(false))), 'Tag exists');
 
     $q = Doctrine::getTable($foodClassName)->createQuery();
     $rows = $q->delete()->where('title = ?', $nutsName)->execute();
 
     $t->is($rows, 1, 'One row deleted');
-
-    $t->ok( ! $sfTagger->hasTag(sprintf('%s%s%d', $foodClassName, $separator, $nuts->getId())), 'Tag is removed');
+    $t->ok( ! $tagging->hasTag(sfCacheTaggingToolkit::obtainTagName($nuts->getTable()->getTemplate('Cachetaggable'), $nuts->toArray(false))), 'Tag is removed');
 
     $c = Doctrine::getTable($foodClassName)->getConnection();
 
@@ -178,13 +175,15 @@
     $key = $apple->obtainTagName();
 
     $t->ok(
-      $sfTagger->hasTag($key),
+      $tagging->hasTag($key),
       sprintf('new tag saved to backend with key "%s"', $key)
     );
 
     $limon = new $foodClassName();
     $limon->setTitle('Limon');
     $limon->save();
+
+    $t->ok($tagging->hasTag(sfCacheTaggingToolkit::obtainTagName($limon->getTable()->getTemplate('Cachetaggable'), $limon->toArray(false))));
 
     $collectionVersion = $limon->obtainCollectionVersion();
 
@@ -194,8 +193,8 @@
       ->addWhere('title = ?', 'Limon')
       ->execute();
 
-    $t->cmp_ok($sfTagger->getTag($foodClassName), '>', $collectionVersion);
-    $t->ok(! $sfTagger->hasTag("{$foodClassName}:{$limon->getId()}"));
+    $t->cmp_ok($tagging->getTag(sfCacheTaggingToolkit::obtainCollectionName(Doctrine::getTable($foodClassName))), '>', $collectionVersion);
+    $t->ok(! $tagging->hasTag(sfCacheTaggingToolkit::obtainTagName($limon->getTable()->getTemplate('Cachetaggable'), $limon->toArray(false))));
 
     $optionSfCache = sfConfig::get('sf_cache');
     sfConfig::set('sf_cache', false);
@@ -210,8 +209,10 @@
     sfConfig::set('sf_cache', $optionSfCache);
 
     $key = $apple->obtainTagName();
-    $t->ok($sfTagger->hasTag($key), sprintf('key still exists "%s"', $key));
+    $t->ok($tagging->hasTag($key), sprintf('key still exists "%s"', $key));
 
+    $tagging->clean();
   }
 
-  $connection->rollback();
+  FoodTable::getInstance()->createQuery()->delete()->execute();
+  FoodReorderedTable::getInstance()->createQuery()->delete()->execute();

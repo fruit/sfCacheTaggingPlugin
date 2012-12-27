@@ -27,24 +27,14 @@
       array('method' => 'callMe', 'arguments' => array(1, 2, 3))
     );
 
-    $v = sfCacheTaggingToolkit::listenOnComponentMethodNotFoundEvent($e);
+    $v = $configuration->getPluginConfiguration('sfCacheTaggingPlugin')->listenOnComponentMethodNotFoundEvent($e);
 
-    $t->ok(null === $v, 'Return null if view manager is default');
+    $t->ok(null === $v);
+    $t->ok(null === $e->getReturnValue());
   }
   catch (Exception $e)
   {
     $t->fail($e->getMessage());
-  }
-
-  try
-  {
-    sfCacheTaggingToolkit::getTaggingCache();
-
-    $t->fail('No exceptions was thrown');
-  }
-  catch (sfCacheDisabledException $e)
-  {
-    $t->pass($e->getMessage());
   }
 
   $optionSfCache = sfConfig::get('sf_cache');
@@ -52,7 +42,9 @@
 
   try
   {
-    sfCacheTaggingToolkit::getTaggingCache();
+    $t->isa_ok($c = sfCacheTaggingToolkit::getTaggingCache(), 'sfTaggingCache');
+    $t->isa_ok($c->getCache(), 'sfNoTaggingCache');
+    $t->isa_ok($c->getLogger(), 'sfNoCacheTagLogger');
 
     $t->fail('No exceptions was thrown');
   }
@@ -69,11 +61,12 @@
       array('method' => 'callMe', 'arguments' => array(1, 2, 3))
     );
 
-    $v = sfCacheTaggingToolkit::listenOnComponentMethodNotFoundEvent($e);
+    $v = $configuration->getPluginConfiguration('sfCacheTaggingPlugin')->listenOnComponentMethodNotFoundEvent($e);
 
-    $t->ok(null === $v, 'Return null if method does not exists');
+    $t->ok(null === $v);
+    $t->ok(null === $e->getReturnValue());
   }
-  catch (BadMethodCallException $e)
+  catch (Exception $e)
   {
     $t->pass($e->getMessage());
   }

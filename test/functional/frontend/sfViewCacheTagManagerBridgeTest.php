@@ -13,11 +13,42 @@
   $browser = new sfTestFunctional(new sfBrowser());
   $t = $browser->test();
 
-
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
-
   $cacheManager = sfContext::getInstance()->getViewCacheManager();
+  /* @var $cacheManager sfViewCacheTagManager */
+
+  $tagging = $cacheManager->getTaggingCache();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+
+  include_once sfConfig::get('sf_apps_dir') . '/frontend/modules/blog_post/actions/actions.class.php';
+
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+
+  $tagging->clean();
+
+  function test_method ($method, array $args = array())
+  {
+    $e = new sfEvent(
+      new blog_postActions(sfContext::getInstance(), 'blog_post', 'run'),
+      'component.method_not_found',
+      array('method' => $method, 'arguments' => $args)
+    );
+
+    sfContext::getInstance()
+      ->getConfiguration()
+      ->getPluginConfiguration('sfCacheTaggingPlugin')
+      ->listenOnComponentMethodNotFoundEvent($e);
+
+    return $e->getReturnValue();
+  }
 
   $action = new blog_postActions(sfContext::getInstance(), 'blog_post', 'index');
   $bridge = new sfViewCacheTagManagerBridge($action);
@@ -86,9 +117,9 @@
   try
   {
     $t->isa_ok(
-      $bridge->addDoctrineTags(
+      test_method('addDoctrineTags', array(
         array('TAG_1' => 12321839123, 'TAG_2' => 12738725), null
-      ),
+      )),
       'sfViewCacheTagManagerBridge'
     );
 
@@ -105,10 +136,10 @@
     $q->addWhere('some_value = ?', rand(1, 100));
 
     $t->isa_ok(
-      $bridge->addDoctrineTags(
+      test_method('addDoctrineTags', array(
         array('TAG_1' => 12321839123, 'TAG_2' => 12738725),
         $q->getResultCacheHash($q->getParams())
-      ),
+      )),
       'sfViewCacheTagManagerBridge',
       'addDoctrineTags() gets valid arguments, with query hash'
     );
@@ -126,11 +157,11 @@
     $q->addWhere('some_value = ?', rand(1, 100));
 
     $t->isa_ok(
-      $bridge->addDoctrineTags(
+      test_method('addDoctrineTags', array(
         array('TAG_1' => 12321839123, 'TAG_2' => 12738725),
         $q,
         $q->getParams()
-      ),
+      )),
       'sfViewCacheTagManagerBridge',
       'addDoctrineTags() gets valid arguments with Doctrine_Query and params'
     );
@@ -144,29 +175,23 @@
 
   # moved from sfViewCacheTagManager (should be fragmented)
 
-  $bridge = new sfViewCacheTagManagerBridge($action);
-
   $posts = BlogPostTable::getInstance()->findAll();
   $posts->delete();
 
   $posts = BlogPostTable::getInstance()->findAll();
-  $bridge->addContentTags($posts);
 
-  $postTagKey = BlogPostTable::getInstance()->getClassnameToReturn();
-  $postCollectionTag = array("{$postTagKey}" => sfCacheTaggingToolkit::generateVersion(strtotime('today')));
+  test_method('addContentTags', array($posts));
 
   $t->is(
-    $bridge->getContentTags(),
-    $postCollectionTag,
+    array_keys($postCollectionTag = test_method('getContentTags')),
+    array(sfCacheTaggingToolkit::obtainCollectionName(BlogPostTable::getInstance())),
     'Tags stored in manager are full/same'
   );
 
-  $bridge->addContentTags(
-    array('SomeTag' => 1234567890)
-  );
+  test_method('addContentTags', array(array('SomeTag' => 1234567890)));
 
   $t->is(
-    $bridge->getContentTags(),
+    test_method('getContentTags'),
     array_merge(
       array('SomeTag' => 1234567890),
       $postCollectionTag
@@ -174,50 +199,34 @@
     'Tags with new tag are successfully saved'
   );
 
-  $bridge->removeContentTags();
+  test_method('removeContentTags');
 
   $t->is(
-    $bridge->getContentTags(),
+    test_method('getContentTags'),
     array(),
     'All tags are cleared'
   );
 
-  $t->is($bridge->disableCache(), true, 'Disabled default controllers module and action');
-  $t->is($bridge->disableCache('blog_post', 'index'), true, 'Disabled blog_post/index to cache');
+  $t->is(test_method('doDisableCache'), true, 'Disabled default controllers module and action');
+  $t->is(test_method('doDisableCache', array('blog_post', 'index')), true, 'Disabled blog_post/index to cache');
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $t->is($bridge->disableCache('blog_post'), false, 'Return false, if cache is disabled');
+  $t->is(test_method('doDisableCache'), false, 'Return false, if cache is disabled');
 
   # existing method, with disabled cache
   try
   {
-    $t->is(null, $bridge->addContentTags(array('Tag:1' => sfCacheTaggingToolkit::generateVersion())));
-    $t->fail('Exception sfCacheDisabledException not thrown');
+    $t->is(null, test_method('addContentTags', array(array('Tag:1' => sfCacheTaggingToolkit::generateVersion()))));
+    $t->pass('Exception sfCacheDisabledException not thrown');
   }
   catch (sfCacheDisabledException $e)
   {
-    $t->pass('Catching sfCacheDisabledException');
+    $t->fail('Catching sfCacheDisabledException');
   }
 
   # unexisting method, with disabled cache
-  try
-  {
-    $t->is(null, $bridge->unknownMethod(array('Tag:1' => sfCacheTaggingToolkit::generateVersion())));
-    $t->fail('Exception BadMethodCallException not thrown');
-  }
-  catch (BadMethodCallException $e)
-  {
-    $t->pass('BadMethodCallException cached when calling unknown method unknownMethod()');
-  }
-  catch (Exception $e)
-  {
-    $t->fail(sprintf(
-      'Cached incorrect exception (%s): %s', get_class($e), $e->getMessage()
-    ));
-  }
+  $t->is(null, test_method('unknownMethod', array(array('Tag:1' => sfCacheTaggingToolkit::generateVersion()))));
 
   sfConfig::set('sf_cache', $optionSfCache);
-
-  $connection->rollback();

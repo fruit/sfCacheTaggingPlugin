@@ -79,11 +79,11 @@
 
   $t->diag('getCacheTags() saved');
   $t->is(gettype($obj->getCacheTags()), 'array', 'Return type is array');
-  $t->is(count($obj->getCacheTags()), 1, 'Return self tag');
+  $t->is(count($obj->getCacheTags()), 2, 'Return self tag');
 
   $t->diag('obtainTagName() saved');
   $t->is(gettype($obj->obtainTagName()), 'string', 'Return type is string');
-  $t->is($obj->obtainTagName(), 'BlogPost:' . $obj->getId(), 'Tag name is "ClassName":"PK"');
+  $t->is($obj->obtainTagName(), sfCacheTaggingToolkit::obtainTagName($obj->getTable()->getTemplate('Cachetaggable'), $obj->toArray(false)), 'Tag name is "ClassName":"PK"');
   BlogPostTable::getInstance()->getConnection()->rollback();
 
   $t->diag('obtainCollectionName() saved');

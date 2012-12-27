@@ -12,22 +12,29 @@
 
   $browser = new sfTestFunctional(new sfBrowser());
 
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
+  $sfContext = sfContext::getInstance();
+  $cacheManager = $sfContext->getViewCacheManager();
+  /* @var $cacheManager sfViewCacheTagManager */
+  $tagging = $cacheManager->getTaggingCache();
+  /* @var $tagging sfTaggingCache */
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+
+  $tagging->clean();
+
 
   define('SF_VIEW_CACHE_MANAGER_EVENT_NAME', 'view.cache.filter_content');
 
-  $sfContext = sfContext::getInstance();
   $sfEventDispatcher = $sfContext->getEventDispatcher();
-
-
-  $cacheManager = $sfContext->getViewCacheManager();
-  /* @var $cacheManager sfViewCacheTagManager */
-
-  $taggingCache = $cacheManager->getTaggingCache();
-  /* @var $taggingCache sfTaggingCache */
-
-  $taggingCache->clean(sfCache::ALL);
 
   $t = $browser->test();
 
@@ -277,7 +284,7 @@
    */
 
   $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
-  $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());
+  $cacheManager->initialize($sfContext, $tagging, $cacheManager->getOptions());
   $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
 
   $t->ok(
@@ -290,7 +297,7 @@
   sfConfig::set('sf_web_debug', true);
 
   $listenersCountBefore = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
-  $cacheManager->initialize($sfContext, $taggingCache, $cacheManager->getOptions());
+  $cacheManager->initialize($sfContext, $tagging, $cacheManager->getOptions());
   $listenersCountAfter = count($sfEventDispatcher->getListeners(SF_VIEW_CACHE_MANAGER_EVENT_NAME));
 
   $t->ok(
@@ -317,10 +324,8 @@
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $cacheManager->initialize($sfContext, $taggingCache, array());
+  $cacheManager->initialize($sfContext, $tagging, array());
 
-  $t->isa_ok($cacheManager->getTaggingCache(), 'sfNoTaggingCache', 'sf_cache = Off, taggingCache is sfNoTaggingCache');
+  $t->isa_ok($cacheManager->getTaggingCache(), 'sfTaggingCache', 'sf_cache = Off, taggingCache is the same');
 
   sfConfig::set('sf_cache', $optionSfCache);
-
-  $connection->rollback();

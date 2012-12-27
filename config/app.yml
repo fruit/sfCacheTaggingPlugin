@@ -15,3 +15,11 @@ all:
     # useful when tag name should contains extra information
     # (e.g. Environment name, or application name)
     object_class_tag_name_provider: []
+
+    # Collection name format
+    # Example: "_COLLECTIONS%separator%%name%"
+    collection_tag_name_format: ~
+
+    # Object name format
+    # Example: "_OBJECTS%separator%%name%"
+    object_tag_name_format: ~

@@ -8,21 +8,17 @@
 
   class ProjectConfiguration extends sfProjectConfiguration
   {
-
     public function setup ()
     {
       sfConfig::set('sf_test_dir', dirname(__FILE__) . '/../../../../test');
 
       $this->setPluginPath('sfCacheTaggingPlugin', dirname(__FILE__) . '/../../../..');
-      $this->enablePlugins(array('sfDoctrinePlugin', 'sfCacheTaggingPlugin'));
-    }
+      $this->enablePlugins('sfDoctrinePlugin');
+      $this->enablePlugins('sfCacheTaggingPlugin');
+  }
 
     public function configureDoctrine (Doctrine_Manager $manager)
     {
-      sfConfig::set(
-        'doctrine_model_builder_options', array('baseClassName' => 'sfCachetaggableDoctrineRecord')
-      );
-
       $doctrineQueryCache = sfConfig::get('app_doctrine_query_cache');
 
       if ($doctrineQueryCache)

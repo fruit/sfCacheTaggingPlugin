@@ -14,9 +14,22 @@
 
   $t = $browser->test();
 
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
+  $sfContext = sfContext::getInstance();
+  $cacheManager = $sfContext->getViewCacheManager();
+  $tagging = $cacheManager->getTaggingCache();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
 
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+
+  $tagging->clean();
 
   $q = new Doctrine_Query_Cachetaggable();
 
@@ -42,7 +55,9 @@
   $t->diag('Proxy cache');
 
   $q = new Doctrine_Query_Cachetaggable();
-  $q->from('BlogPost p')->useResultCache(new Doctrine_Cache_Proxy());
+  $q->from('BlogPost p')->useResultCache(new Doctrine_Cache_Proxy(array(
+    'cache' => $tagging,
+  )));
 
   $posts = $q->execute(array(), Doctrine::HYDRATE_RECORD);
 
@@ -73,11 +88,3 @@
   $posts = $q->execute(array(), Doctrine::HYDRATE_ARRAY); // fetch from cache
 
   $q->clearResultCache();
-
-
-
-
-
-
-
-  $connection->rollback();

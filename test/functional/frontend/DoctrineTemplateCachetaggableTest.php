@@ -11,10 +11,23 @@
   include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
-  $separator = sfCacheTaggingToolkit::getModelTagNameSeparator();
-
   $sfContext = sfContext::getInstance();
   $cacheManager = $sfContext->getViewCacheManager();
+  /* @var $cacheManager sfViewCacheTagManager */
+  $tagging = $cacheManager->getTaggingCache();
+
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('book','blog_post','blog_post_comment', 'post_vote', 'blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+  $tagging->clean();
 
   $t = new lime_test();
 
@@ -57,29 +70,31 @@
     }
   }
 
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
+  $book = new Book();
+  $book->setLang('fr');
+  $book->setSlug('foobarbaz');
+  $book->save();
 
-  $article = new Book();
-  $article->setLang('fr');
-  $article->setSlug('foobarbaz');
-  $article->save();
+  $t->isa_ok($book->assignObjectVersion(213213213213), 'Book', 'assignObjectVersion() returns self object');
 
-  $t->isa_ok($article->assignObjectVersion(213213213213), 'Book', 'assignObjectVersion() returns self object');
-
-  $t->is($article->obtainTagName(), "Book{$separator}fr-foobarbaz", 'Multy unique column tables are compatible with tag names');
-
-  $connection->rollback();
+  $t->is(
+    $book->obtainTagName(),
+    sfCacheTaggingToolkit::obtainTagName($book->getTable()->getTemplate('Cachetaggable'), $book->toArray()),
+    'Multy unique column tables are compatible with tag names'
+  );
+  $book->delete();
+  $book->free(true);
 
   # disabled sf_cache test
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 
-  $article = new Book();
-  $t->is($article->getCacheTags(), array());
-  $t->is($article->getCacheTags(true), array());
-  $t->is($article->addCacheTag('key', 123912), false);
-  $t->is($article->addCacheTags(array('key' => 123912)), false);
+  $book = new Book();
+  $t->is($book->getCacheTags(), array());
+  $t->is($book->getCacheTags(true), array());
+  $t->is($book->addCacheTag('key', 123912), false);
+  $t->is($book->addCacheTags(array('key' => 123912)), false);
+  unset($book);
 
   sfConfig::set('sf_cache', $optionSfCache);
 
@@ -96,8 +111,10 @@
     ->leftJoin('p.Translation t WITH t.lang = "en"')
   ;
 
-  # getCacheTags
   $comments = $q->execute();
+
+
+  # getCacheTags
 
   $t->is(count($tags = $comments->getCacheTags(false)), 9);
 
@@ -105,11 +122,17 @@
   $postsCnt = BlogPostTable::getInstance()->count();
   $voteCnt = BlogPostVoteTable::getInstance()->count();
 
-  # 2 = BlogPost joined as M:1, no collection tag should be used
-  $t->is(count($tags = $comments->getCacheTags()), $commentsCnt + $postsCnt + $voteCnt + 2);
-  $t->is(count($tags = $comments->getCacheTags(true)), $commentsCnt + $postsCnt + $voteCnt + 2);
+  $t->diag("Comments: {$commentsCnt}  Posts: {$postsCnt}  Votes: {$voteCnt}");
 
+  # 3 kind of collection is used
+  $t->is(count($tagsA = $comments->getCacheTags()), $commentsCnt + $postsCnt + $voteCnt + 3);
   $comments->free(true);
+
+  $comments = $q->execute();
+  $t->is(count($tagsB = $comments->getCacheTags(true)), $commentsCnt + $postsCnt + $voteCnt + 3);
+  $comments->free(true);
+
+  $t->cmp_ok($tagsB, '===', $tagsA);
 
   # addCacheTags
 
@@ -138,9 +161,10 @@
 
   $post = $q->fetchOne();
 
-  $t->is(count($post->getCacheTags()), 5); # by default is true
-  $t->is(count($post->getCacheTags(true)), 5);
-  $t->is(count($post->getCacheTags(false)), 1);
+  $values = $post->getCacheTags();
+  $t->is(count($values), 6);
+  $t->is(count($post->getCacheTags(true)), 6);
+  $t->is(count($post->getCacheTags(false)), 2);
 
   $post->free(true);
 
@@ -154,9 +178,9 @@
 
   $post = $q->fetchOne();
 
-  $t->is(count($post->getCacheTags()), 1, 'getCacheTags deeply count shoud be 2');
-  $t->is(count($post->getCacheTags(true)), 1, 'getCacheTags deeply count shoud be 2');
-  $t->is(count($post->getCacheTags(false)), 1, 'getCacheTags count shoud be 2');
+  $t->is(count($post->getCacheTags()), 2, 'getCacheTags deeply count shoud be 2');
+  $t->is(count($post->getCacheTags(true)), 2, 'getCacheTags deeply count shoud be 2');
+  $t->is(count($post->getCacheTags(false)), 2, 'getCacheTags count shoud be 2');
 
   $post->free(true);
 
@@ -174,8 +198,6 @@
   }
 
 
-  $connection->beginTransaction();
-
   $post = new BlogPost();
   $post->setTitle('How to search in WEB?');
   $post->save();
@@ -184,18 +206,15 @@
   $vote->setBlogPost($post);
   $vote->save();
 
-  $t->is($vote->obtainTagName(), "BlogPostVote{$separator}{$vote->getId()}");
+  $t->is($vote->obtainTagName(), sfCacheTaggingToolkit::obtainTagName($vote->getTable()->getTemplate('Cachetaggable'), $vote->toArray()));
 
   $votepost = new PostVote();
   $votepost->setBlogPost($post);
   $votepost->setBlogPostVote($vote);
   $votepost->save();
-  $t->is($votepost->obtainTagName(), "PostVote{$separator}{$vote->getId()}{$separator}{$post->getId()}");
-
-  $connection->rollback();
+  $t->is($votepost->obtainTagName(), sfCacheTaggingToolkit::obtainTagName($votepost->getTable()->getTemplate('Cachetaggable'), $votepost->toArray()));
 
   # assignObjectVersion
-
 
   $v = sfCacheTaggingToolkit::generateVersion();
   $post = new BlogPost();
@@ -212,12 +231,10 @@
 
   # getCollectionTags
 
-  $connection->beginTransaction();
 
-  $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
-  $taggingCache->clean();
+  $tagging->clean();
 
-  $t->is($taggingCache->getTag('BlogPost'), null);
+  $t->is($tagging->getTag('BlogPost'), null);
 
   $t->can_ok('BlogPost', array(
     'getCollectionTags',
@@ -231,31 +248,24 @@
   $post->save();
 
   $name = $post->obtainCollectionName();
-  $t->is($name, 'BlogPost');
+  $t->is($name, sfCacheTaggingToolkit::obtainCollectionName($post->getTable()));
 
   $version = $post->obtainCollectionVersion();
 
   $t->cmp_ok($version, '>', $preVersion);
   $t->cmp_ok($version, '<', sfCacheTaggingToolkit::generateVersion());
 
-  $t->is(
-    $post->getCollectionTags(),
-    array($name => $version)
-  );
+  $t->is($post->getCollectionTags(), array($name => $version));
 
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
-
 
   # obtainCollectionName
 
   # obtainCollectionVersion
 
-  $t->is($post->getCollectionTags(), array('BlogPost' => '1'));
+  $t->is($post->getCollectionTags(), array(sfCacheTaggingToolkit::obtainCollectionName($post->getTable()) => '1'));
   $t->is($post->obtainCollectionName(), $name);
   $t->is($post->obtainCollectionVersion(), '1');
 
   sfConfig::set('sf_cache', $optionSfCache);
-
-
-  $connection->rollback();

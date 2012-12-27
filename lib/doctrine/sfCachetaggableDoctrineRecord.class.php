@@ -16,6 +16,16 @@
   abstract class sfCachetaggableDoctrineRecord extends sfDoctrineRecord
   {
     /**
+     * Passed through the save/replace/delete user current method
+     * connection instance.
+     *
+     * Used to detect transaction state while writing tags into cache backend.
+     *
+     * @var Doctrine_Connection
+     */
+    protected $userConnection = null;
+
+    /**
      * @var string $templateName Template (behavior) name
      * @return Doctrine_Template
      */
@@ -187,14 +197,9 @@
     {
       $self = parent::link($alias, $ids, $now);
 
-      try
-      {
-        $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
-      }
-      catch (sfException $e)
-      {
-        return $self;
-      }
+      if (! sfConfig::get('sf_cache')) return $self;
+
+      $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
 
       $tagNames = $this->getTagNamesByAlias($alias, $ids);
 
@@ -214,14 +219,9 @@
     {
       $self = parent::unlink($alias, $ids, $now);
 
-      try
-      {
-        $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
-      }
-      catch (sfException $e)
-      {
-        return $self;
-      }
+      if (! sfConfig::get('sf_cache')) return $self;
+
+      $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
 
       $tagNames = $this->getTagNamesByAlias($alias, $ids);
 
@@ -231,5 +231,56 @@
       }
 
       return $self;
+    }
+
+    protected function setUserConnection (Doctrine_Connection $conn = null)
+    {
+      $this->userConnection = $conn;
+    }
+
+    /**
+     * Returns real connection, when user run one of the actions:
+     *    - save
+     *    - delete
+     *    - replace
+     *
+     * Used in Doctrine_Template_Listener_Cachetaggable to have right connection
+     * for checking Doctrine transaction state.
+     *
+     * @return Doctrine_Connection
+     */
+    public function getCurrentConnection ()
+    {
+      return $this->userConnection
+        ? $this->userConnection
+        : $this->getTable()->getConnection();
+    }
+
+    public function save (Doctrine_Connection $conn = null)
+    {
+      $this->setUserConnection($conn);
+
+      return parent::save($conn);
+    }
+
+    public function delete (Doctrine_Connection $conn = null)
+    {
+      $this->setUserConnection($conn);
+
+      return parent::delete($conn);
+    }
+
+    public function replace (Doctrine_Connection $conn = null)
+    {
+      $this->setUserConnection($conn);
+
+      return parent::replace($conn);
+    }
+
+    public function free ($deep = false)
+    {
+      unset($this->userConnection);
+
+      return parent::free($deep);
     }
   }

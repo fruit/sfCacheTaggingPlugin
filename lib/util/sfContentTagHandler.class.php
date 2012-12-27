@@ -128,4 +128,12 @@
     {
       return $this->getHolder()->has($tagName, $namespace);
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear ()
+    {
+      return $this->getHolder()->clear();
+    }
   }

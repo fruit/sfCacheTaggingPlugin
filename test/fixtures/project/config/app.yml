@@ -1,11 +1,8 @@
 all:
-  sfcachetaggingplugin:
-#    template_lock: "lock:%s"
-#    template_tag: "tag:%s"
-#    microtime_precision: 5
-#    tag_lifetime: 86400
-#    lock_lifetime: 1
-#    log_format_extended: 1
+  sfCacheTagging:
+    collection_tag_name_format:     "tagging%separator%_COLLECTIONS%separator%%name%"
+    object_tag_name_format:         "tagging%separator%_OBJECTS%separator%%name%"
+    object_class_tag_name_provider: [frontendConfiguration, format]
 
   doctrine:
     query_cache:

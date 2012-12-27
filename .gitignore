@@ -12,3 +12,4 @@ README
 /test/fixtures/project/web/sf
 /test/fixtures/project/web/sfDoctrinePlugin
 php_errors.log
+test/fixtures/project/plugins/

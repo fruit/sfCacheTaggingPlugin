@@ -58,7 +58,7 @@
 
       $versionColumn = $this->getOption('versionColumn');
 
-      if (! is_string($versionColumn) || 0 >= strlen($versionColumn))
+      if (! is_string($versionColumn) || 0 == strlen($versionColumn))
       {
         throw new sfConfigurationException(
           sprintf(
@@ -90,9 +90,13 @@
         )
       );
 
-      $this->addListener(
-        new Doctrine_Template_Listener_Cachetaggable($this->getOptions())
-      );
+      // do not set listener, if no context avaiable or cache is turned off
+      if (sfContext::hasInstance() && sfConfig::get('sf_cache'))
+      {
+        $this->addListener(
+          new Doctrine_Template_Listener_Cachetaggable($this->getOptions())
+        );
+      }
     }
 
     /**
@@ -102,41 +106,29 @@
      * @param boolean   $deep
      * @return array    object tags (self and external from ->addCacheTags())
      */
-    public function getCacheTags ($deep = true)
+    public function getCacheTags ($deep = true, $namespace = null)
     {
-      if (
-          $this->_state == Doctrine_Record::STATE_LOCKED
-        ||
-          $this->_state == Doctrine_Record::STATE_TLOCKED
-      )
-      {
-        return array();
-      }
+      if (! sfConfig::get('sf_cache')) return array();
 
-      $tagHandler = null;
+      if ($this->_state == Doctrine_Record::STATE_LOCKED
+          || $this->_state == Doctrine_Record::STATE_TLOCKED) return array();
 
-      try
-      {
-        $tagHandler = $this->getContentTagHandler();
-      }
-      catch (sfCacheDisabledException $e)
-      {
-        return array();
-      }
+      $tagHandler       = new sfContentTagHandler();
+      $invoker          = $this->getInvoker();
+      $namespace        = null;
 
-      $stateBeforeLock = $this->_state;
-
-      $invoker = $this->getInvoker();
-
-      $this->_state = $invoker->exists()
+      $stateBeforeLock  = $this->_state;
+      $this->_state     = $invoker->exists()
         ? Doctrine_Record::STATE_LOCKED
         : Doctrine_Record::STATE_TLOCKED;
 
-      $invokerTags = array(
-        $this->obtainTagName() => $this->obtainObjectVersion(),
-      );
+      $currentInstanceTags = $this
+        ->getContentTagHandler()
+        ->getContentTags($this->obtainInvokerNamespace());
 
-      $tagHandler->addContentTags($invokerTags, $this->obtainInvokerNamespace());
+      $tagHandler->addContentTags($currentInstanceTags, $namespace);
+      $tagHandler->addContentTags($this->getInvokerTags(), $namespace);
+      $tagHandler->addContentTags($this->getCollectionTags(), $namespace);
 
       if ($deep)
       {
@@ -159,10 +151,7 @@
             continue;
           }
 
-          $tagHandler->addContentTags(
-            $reference->getCacheTags($deep),
-            $this->obtainInvokerNamespace()
-          );
+          $tagHandler->addContentTags($reference->getCacheTags($deep), $namespace);
         }
       }
 
@@ -170,9 +159,8 @@
        * @todo mistical code (switching added tags with fetch on the fly)
        *       maybe copy & past from toArray()?
        */
-      $tags = $tagHandler->getContentTags($this->obtainInvokerNamespace());
-
-      $tagHandler->removeContentTags($this->obtainInvokerNamespace());
+      $tags = $tagHandler->getContentTags($namespace);
+      $tagHandler->clear();
 
       $this->_state = $stateBeforeLock;
 
@@ -189,20 +177,13 @@
      */
     public function addCacheTags ($tags)
     {
-      try
-      {
-        $this
-          ->getContentTagHandler()
-          ->addContentTags($tags, $this->obtainInvokerNamespace());
+      if (! sfConfig::get('sf_cache')) return false;
 
-        return true;
-      }
-      catch (sfCacheDisabledException $e)
-      {
+      $this
+        ->getContentTagHandler()
+        ->addContentTags($tags, $this->obtainInvokerNamespace());
 
-      }
-
-      return false;
+      return true;
     }
 
     /**
@@ -214,20 +195,11 @@
      */
     public function addCacheTag ($tagName, $tagVersion)
     {
-      try
-      {
-        $this
-          ->getContentTagHandler()
-          ->setContentTag($tagName, $tagVersion, $this->obtainInvokerNamespace());
+      if (! sfConfig::get('sf_cache')) return false;
 
-        return true;
-      }
-      catch (sfCacheDisabledException $e)
-      {
-
-      }
-
-      return false;
+      $this
+        ->getContentTagHandler()
+        ->setContentTag($tagName, $tagVersion, $this->obtainInvokerNamespace());
     }
 
     /**
@@ -237,9 +209,17 @@
      */
     public function getCollectionTags ()
     {
-      return array(
-        $this->obtainCollectionName() => $this->obtainCollectionVersion()
-      );
+      return array($this->obtainCollectionName() => $this->obtainCollectionVersion());
+    }
+
+    /**
+     * Return invoker tag name with its version
+     *
+     * @return array
+     */
+    public function getInvokerTags ()
+    {
+      return array($this->obtainTagName() => $this->obtainObjectVersion());
     }
 
     /**
@@ -249,9 +229,9 @@
      */
     public function obtainCollectionName ()
     {
-      $invoker = $this->getInvoker();
-
-      return sfCacheTaggingToolkit::obtainCollectionName($invoker->getTable());
+      return sfCacheTaggingToolkit::obtainCollectionName(
+        $this->getInvoker()->getTable()
+      );
     }
 
     /**
@@ -262,20 +242,11 @@
      */
     public function obtainCollectionVersion ()
     {
-      try
-      {
-        $version = sfCacheTaggingToolkit::obtainCollectionVersion(
-          $this->obtainCollectionName()
-        );
+      if (! sfConfig::get('sf_cache')) return self::UNSAVED_RECORD_DEFAULT_VERSION;
 
-        return $version;
-      }
-      catch (sfCacheDisabledException $e)
-      {
-
-      }
-
-      return self::UNSAVED_RECORD_DEFAULT_VERSION;
+      return sfCacheTaggingToolkit::obtainCollectionVersion(
+        $this->obtainCollectionName()
+      );
     }
 
     /**
@@ -289,9 +260,7 @@
 
       if (0 == count($uniqueColumns))
       {
-        $invoker = $this->getInvoker();
-
-        $uniqueColumns = $invoker->getTable()->getIdentifierColumnNames();
+        $uniqueColumns = $this->getInvoker()->getTable()->getIdentifierColumnNames();
       }
 
       return $uniqueColumns;
@@ -325,7 +294,7 @@
      * Retrieves object unique tag name based on its class
      *
      * @throws InvalidArgumentException
-     * @return string
+     * @return string|false
      */
     public function obtainTagName ()
     {
@@ -337,7 +306,13 @@
        *
        * One difference, getData could returns (objects) inside array
        */
-      $objectArray = $invoker->isNew() ? $invoker->getData() : $invoker->toArray(false);
+      $objectArray = ! $invoker->exists() ? $invoker->getData() : $invoker->toArray(false);
+
+      // false, when existing record is locked
+      if (false === $objectArray)
+      {
+        return null;
+      }
 
       return sfCacheTaggingToolkit::obtainTagName($this, $objectArray);
     }

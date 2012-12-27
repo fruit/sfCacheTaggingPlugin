@@ -11,6 +11,24 @@
   include_once realpath(dirname(__FILE__) . '/../../bootstrap/functional.php');
   include_once sfConfig::get('sf_symfony_lib_dir') . '/vendor/lime/lime.php';
 
+  /* @var $configuration ProjectConfiguration  */
+  $sfContext = sfContext::getInstance();
+  $cacheManager = $sfContext->getViewCacheManager();
+  $tagging = $cacheManager->getTaggingCache();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('university', 'blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  Doctrine::loadData(sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+
+  $tagging->clean();
+
   $optionMicrotimePrecision = sfConfig::get('app_sfCacheTagging_microtime_precision');
 
   class ArrayAsIteratorAggregate implements IteratorAggregate
@@ -27,11 +45,6 @@
       return new ArrayIterator($this->tags);
     }
   }
-
-  $cacheManager = sfContext::getInstance()->getViewCacheManager();
-
-  $connection = Doctrine::getConnectionByTableName('BlogPost');
-  $connection->beginTransaction();
 
   $t = new lime_test();
 
@@ -127,7 +140,7 @@
       array('method' => 'callMe', 'arguments' => array(1, 2, 3))
     );
 
-    $v = sfCacheTaggingToolkit::listenOnComponentMethodNotFoundEvent($e);
+    $v = $configuration->getPluginConfiguration('sfCacheTaggingPlugin')->listenOnComponentMethodNotFoundEvent($e);
 
     $t->ok(null === $v, 'Return null if method does not exists');
   }
@@ -201,5 +214,3 @@
       $t->pass($e->getMessage());
     }
   }
-
-  $connection->rollback();

@@ -17,12 +17,24 @@
   $cacheManager = $sfContext->getViewCacheManager();
   $templateName = sprintf('Doctrine_Template_%s', sfCacheTaggingToolkit::TEMPLATE_NAME);
 
-  $sfTagger = $cacheManager->getTaggingCache();
+  $tagging = $cacheManager->getTaggingCache();
+
+
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $truncateQuery = array_reduce(
+    array('blog_post','blog_post_comment','blog_post_vote','blog_post_translation'),
+    function ($return, $val) { return "{$return} TRUNCATE {$val};"; }, ''
+  );
+
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; {$truncateQuery}; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+//  Doctrine::loadData(1sfConfig::get('sf_data_dir') .'/fixtures/blog_post.yml');
+  $con->commit();
+
+  $tagging->clean();
 
   $t = new lime_test();
-
-  $connection = Doctrine_Manager::getInstance()->getCurrentConnection();
-  $connection->beginTransaction();
 
   BookTable::getInstance()->createQuery()->delete()->execute();
 
@@ -62,41 +74,40 @@
   $captionOneTagName = $post->obtainTagName();
   $captionOneVersion = $post->obtainObjectVersion();
 
-  $t->ok($sfTagger->hasTag($captionOneTagName), 'Object tag exists in cache');
-  $t->ok($sfTagger->hasTag(get_class($post)), 'Object\'s collection tag exists in cache');
-  $t->is($captionOneVersion, $sfTagger->getTag($captionOneTagName), 'Object version matched with version associated with tag name in cache');
+  $t->ok($tagging->hasTag($captionOneTagName), 'Object tag exists in cache');
+  $t->ok($tagging->hasTag(sfCacheTaggingToolkit::obtainCollectionName($post->getTable())), 'Object\'s collection tag exists in cache');
+  $t->is($captionOneVersion, $tagging->getTag($captionOneTagName), 'Object version matched with version associated with tag name in cache');
 
   $post->delete();
 
-  $t->ok(! $sfTagger->hasTag($captionOneTagName), 'Object\'s tag name was removed from the cache');
-  $t->ok($sfTagger->hasTag(get_class($post)), 'Object\'s collection tag still in cache');
-  $t->cmp_ok($captionOneVersion, '<', $sfTagger->getTag(get_class($post)), 'Object\'s collection tag changed (coz deleted $post) and new collection verions is newer');
+  $t->ok(! $tagging->hasTag($captionOneTagName), 'Object\'s tag name was removed from the cache');
+  $t->ok($tagging->hasTag(sfCacheTaggingToolkit::obtainCollectionName($post->getTable())), 'Object\'s collection tag still in cache');
+  $t->cmp_ok($captionOneVersion, '<', $tagging->getTag(sfCacheTaggingToolkit::obtainCollectionName($post->getTable())), 'Object\'s collection tag changed (coz deleted $post) and new collection verions is newer');
 
   $post = new BlogPost();
   $post->fromArray(array('title' => 'Caption_2', 'slug' => 'caption-two'));
   $post->save();
 
-  $collectionTagVersion = $sfTagger->getTag(get_class($post));
+  $collectionTagVersion = $tagging->getTag(sfCacheTaggingToolkit::obtainCollectionName($post->getTable()));
 
   $post->setSlug('caption-two-point-one');
   $post->save();
 
-  $t->is($collectionTagVersion, $sfTagger->getTag(get_class($post)), 'Object\'s collection tag stays unchanged');
+  $t->is($collectionTagVersion, $tagging->getTag(sfCacheTaggingToolkit::obtainCollectionName($post->getTable())), 'Object\'s collection tag stays unchanged');
 
-  $newCollectionTagVersion = $sfTagger->getTag(get_class($post));
+  $newCollectionTagVersion = $tagging->getTag(sfCacheTaggingToolkit::obtainCollectionName($post->getTable()));
 
   $post = new BlogPost();
   $post->fromArray(array('title' => 'Caption_3', 'slug' => 'caption-three'));
   $post->save();
 
-  $t->isnt($newCollectionTagVersion, $sfTagger->getTag(get_class($post)), 'Collection tag is updated');
+  $t->isnt($newCollectionTagVersion, $tagging->getTag(sfCacheTaggingToolkit::obtainCollectionName($post->getTable())), 'Collection tag is updated');
 
   BlogPostTable::getInstance()->createQuery()->delete()->execute();
 
   $posts = new Doctrine_Collection(BlogPostTable::getInstance());
 
   $newPostVersions = range(1, 6);
-
 
   foreach ($newPostVersions as $version)
   {
@@ -117,7 +128,7 @@
     }
   }
 
-  $collectionVersion = $sfTagger->getTag('BlogPost');
+  $collectionVersion = $tagging->getTag('BlogPost');
 
   $t->is(count($newPostVersions), BlogPostTable::getInstance()->count(), 'Added expected new post objects');
 
@@ -127,9 +138,9 @@
     'Updated records count matched with expected'
   );
 
-  $t->is($collectionVersion, $sfTagger->getTag('BlogPost'), 'Collection tag after DQL update not changed');
+  $t->is($collectionVersion, $tagging->getTag('BlogPost'), 'Collection tag after DQL update not changed');
 
-  $collectionVersion = $sfTagger->getTag('BlogPost');
+  $collectionVersion = $tagging->getTag('BlogPost');
 
   $t->is(
     BlogPostTable::getInstance()->createQuery()->delete()->where('id MOD 2 = 1')->execute(),
@@ -137,11 +148,11 @@
     'Deleted records count matched with expected'
   );
 
-  $t->cmp_ok($collectionVersion, '<', $sfTagger->getTag('BlogPost'), 'Collection tag after DQL delete is increased');
+  $t->cmp_ok($collectionVersion, '<', $tagging->getTag(sfCacheTaggingToolkit::obtainCollectionName(BlogPostTable::getInstance())), 'Collection tag after DQL delete is increased');
 
   foreach ($tagNamesToDelete as $removedTagName)
   {
-    $t->is($sfTagger->hasTag($removedTagName), false, sprintf('Tag "%s" is deleted', $removedTagName));
+    $t->is($tagging->hasTag($removedTagName), false, sprintf('Tag "%s" is deleted', $removedTagName));
   }
 
   # postSave
@@ -188,15 +199,15 @@
   );
 
   $t->is(
-    $sfTagger->getTag('Book'),
-    $blackSwanCollectionVersion,
+    $tagging->getTag('Book'),
+    null,
     'Object collection stays unchanged'
   );
 
   sfConfig::set('sf_cache', true);
 
-  $bookCollectionVersion = $sfTagger->getTag(
-    sfCacheTaggingToolkit::getBaseClassName(BookTable::getInstance()->getClassnameToReturn())
+  $bookCollectionVersion = $tagging->getTag(
+    sfCacheTaggingToolkit::obtainCollectionName(BookTable::getInstance())
   );
 
   BookTable::getInstance()
@@ -214,9 +225,7 @@
     'DQL Update updates tags when sf_cache = true'
   );
 
-  $currentBookCollectionVersion = $sfTagger->getTag(
-    sfCacheTaggingToolkit::getBaseClassName(BookTable::getInstance()->getClassnameToReturn())
-  );
+  $currentBookCollectionVersion = $tagging->getTag(sfCacheTaggingToolkit::obtainCollectionName(BookTable::getInstance()));
   $t->is(
     $bookCollectionVersion,
     $currentBookCollectionVersion,
@@ -235,7 +244,7 @@
   sfConfig::set('sf_cache', $optionSfCache);
 
   $t->ok(
-    ! $sfTagger->hasTag(sprintf('BlogPost%s%d', $separator, $post->getId())),
+    ! $tagging->hasTag(sfCacheTaggingToolkit::obtainTagName($post->getTable()->getTemplate('Cachetaggable'), $post->toArray())),
     'When cache is disabled, no tags was saved to backend'
   );
 
@@ -246,7 +255,7 @@
   $post->save();
 
   $t->ok(
-    $sfTagger->hasTag($key = sprintf('BlogPost%s%d', $separator, $post->getId())),
+    ! $tagging->hasTag($key = sprintf('BlogPost%s%d', $separator, $post->getId())),
     sprintf('new tag saved to backend with key "%s"', $key)
   );
 
@@ -262,7 +271,7 @@
   sfConfig::set('sf_cache', $optionSfCache);
 
   $t->ok(
-    $sfTagger->hasTag(sprintf('BlogPost%s%d', $separator, $post->getId())),
+    $tagging->hasTag(sfCacheTaggingToolkit::obtainTagName($post->getTable()->getTemplate('Cachetaggable'), $post->toArray())),
     'tag deletion skipped due the cache was disabled when preDqlDelete was runned'
   );
 
@@ -307,5 +316,3 @@
   $t->is($qwe->obtainInvokerNamespace(), sprintf('%s/%s', $templateName, spl_object_hash($qwe)), 'Namespace based on template name and SPL object hash');
 
   $t->isnt($abc->obtainInvokerNamespace(), $qwe->obtainInvokerNamespace(), 'ABC namespace is not same as QWE');
-
-  $connection->rollback();

@@ -5,6 +5,7 @@ security:  ~
 auth_params:
   class: AuthParamFilter
   enabled: true
+#  enabled: false
 
 cache:     ~
 execution: ~

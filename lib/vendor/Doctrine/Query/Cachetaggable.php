@@ -33,7 +33,7 @@
       $this->_execParams = array();
 
       $result = null;
-      
+
       if (empty($this->_dqlParts['from']) && empty($this->_sqlParts['from']))
       {
         throw new Doctrine_Query_Exception(
@@ -71,10 +71,8 @@
 
           $cached = $this->getCachedForm($result);
 
-          if (
-              $cacheDriver instanceof Doctrine_Cache_Proxy
-            &&
-              $result instanceof Doctrine_Collection_Cachetaggable)
+          if ($cacheDriver instanceof Doctrine_Cache_Proxy
+              && $result instanceof Doctrine_Collection_Cachetaggable)
           {
             $cacheDriver->saveWithTags(
               $hash,

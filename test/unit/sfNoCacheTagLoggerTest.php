@@ -14,19 +14,12 @@
 
   $l = new sfNoCacheTagLogger(array());
 
-  $t->is($l->getOptions(), array());
+  ob_start();
+  $result = $l->log('X', 'X_TAG');
 
-  $l->initialize(array('some_option' => '1111'));
-
-  $t->is($l->getOptions(), array());
-
-  $l->setOption('some_option', 213213213);
-  $t->is($l->getOptions(), array());
-
-  $t->is($l->getOption('some_option'), null);
-  $t->is($l->getOption('some_option', true), true);
-
-  $t->is($l->log('X', 'X_TAG'), true);
+  $output = ob_get_clean();
+  $t->is($output, '');
+  $t->is($result, true);
 
 
 

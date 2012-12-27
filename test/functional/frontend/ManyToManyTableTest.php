@@ -13,10 +13,17 @@
 
   $t = new lime_test();
 
-  sfCacheTaggingToolkit::getTaggingCache()->clean();
+  $sfContext = sfContext::getInstance();
+  $cm = $sfContext->getViewCacheManager();
+  /* @var $cm sfViewCacheTagManager */
+  $tagging = $cm->getTaggingCache();
 
-  $connection = WeaponTable::getInstance()->getConnection();
-  $connection->beginTransaction();
+  $con = Doctrine_Manager::getInstance()->getCurrentConnection();
+  $con->beginTransaction();
+  $cleanQuery = "SET FOREIGN_KEY_CHECKS = 0; TRUNCATE `weapon`; SET FOREIGN_KEY_CHECKS = 1;";
+  $con->exec($cleanQuery);
+  $con->commit();
+  $tagging->clean();
 
   $tanto = new Weapon();
   $tanto->setMaterialId(10);
@@ -40,9 +47,3 @@
   $tanto = WeaponTable::getInstance()->findOneByName('Tanto, 9in, red oaky');
   $t->is($tanto->obtainObjectVersion(), $secordVersion, 'Saved object version match with generated before');
   $t->is($tanto->obtainCollectionVersion(), $firstCollectionVersion, 'Saved collection version match with generated before');
-
-
-
-
-
-  $connection->rollback();
