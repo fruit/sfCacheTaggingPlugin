@@ -135,6 +135,9 @@
         Doctrine_Core::ATTR_COLLECTION_CLASS, 'Doctrine_Collection_Cachetaggable'
       );
 
+      // Enable DQL callbacks because Doctrine model can actAs Cachetagging behavior
+      $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
+
       // Enable Doctrine result query cache only if cache is enabled
       if (sfConfig::get('sf_cache'))
       {
@@ -146,8 +149,5 @@
           Doctrine_Core::ATTR_QUERY_CLASS, 'Doctrine_Query_Cachetaggable'
         );
       }
-
-      // Enable DQL callbacks because Doctrine model can actAs Cachetagging behavior
-      $manager->setAttribute(Doctrine::ATTR_USE_DQL_CALLBACKS, true);
     }
   }

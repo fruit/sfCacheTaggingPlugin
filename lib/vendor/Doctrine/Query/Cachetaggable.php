@@ -22,116 +22,70 @@
   class Doctrine_Query_Cachetaggable extends Doctrine_Query
   {
     /**
-     * @see Doctrine_Query::execute()
-     * @param array $params
-     * @param int   $hydrationMode
-     * @return mixed
+     * Most of parent method is moved here, because no capabilities to handsomely
+     * extend it. Only lines from 64-68 was chanaged, other code is the same.
+     *
+     * {@inheritdoc}
      */
     public function execute ($params = array(), $hydrationMode = null)
     {
-      // Clean any possible processed params
-      $this->_execParams = array();
+        // Clean any possible processed params
+        $this->_execParams = array();
 
-      $result = null;
-
-      if (empty($this->_dqlParts['from']) && empty($this->_sqlParts['from']))
-      {
-        throw new Doctrine_Query_Exception(
-          'You must have at least one component specified in your from.'
-        );
-      }
-
-      $dqlParams = $this->getFlattenedParams($params);
-
-      $this->_preQuery($dqlParams);
-
-      if ($hydrationMode !== null)
-      {
-        $this->_hydrator->setHydrationMode($hydrationMode);
-      }
-
-      $hydrationMode = $this->_hydrator->getHydrationMode();
-
-      if ($this->_resultCache && $this->_type == self::SELECT)
-      {
-        $cacheDriver = $this->getResultCacheDriver();
-        $hash = $this->getResultCacheHash($params);
-        $cached = ($this->_expireResultCache)
-          ? false
-          : $cacheDriver->fetch($hash);
-
-        if ($cached === false)
-        {
-          // cache miss
-          $stmt = $this->_execute($params);
-          $this->_hydrator->setQueryComponents($this->_queryComponents);
-          $result = $this->_hydrator->hydrateResultSet(
-            $stmt, $this->_tableAliasMap
-          );
-
-          $cached = $this->getCachedForm($result);
-
-          if ($cacheDriver instanceof Doctrine_Cache_Proxy
-              && $result instanceof Doctrine_Collection_Cachetaggable)
-          {
-            $cacheDriver->saveWithTags(
-              $hash,
-              $cached,
-              $this->getResultCacheLifeSpan(),
-              $result->getCacheTags()
-            );
-          }
-          else
-          {
-            $cacheDriver->save($hash, $cached, $this->getResultCacheLifeSpan());
-          }
+        if (empty($this->_dqlParts['from']) && empty($this->_sqlParts['from'])) {
+            throw new Doctrine_Query_Exception('You must have at least one component specified in your from.');
         }
-        else
-        {
-          $result = $this->_constructQueryFromCache($cached);
-        }
-      }
-      else
-      {
-        $stmt = $this->_execute($params);
 
-        if (is_integer($stmt))
-        {
-          $result = $stmt;
-        }
-        else
-        {
-          $this->_hydrator->setQueryComponents($this->_queryComponents);
-          if (
-              $this->_type == self::SELECT
-            &&
-              $hydrationMode == Doctrine_Core::HYDRATE_ON_DEMAND
-          )
-          {
-            $hydrationDriver = $this->_hydrator->getHydratorDriver(
-              $hydrationMode, $this->_tableAliasMap
-            );
-            $result = new Doctrine_Collection_OnDemand(
-              $stmt, $hydrationDriver, $this->_tableAliasMap
-            );
-          }
-          else
-          {
-            $result = $this->_hydrator->hydrateResultSet(
-              $stmt, $this->_tableAliasMap
-            );
-          }
-        }
-      }
+        $dqlParams = $this->getFlattenedParams($params);
 
-      if ($this->getConnection()->getAttribute(
-        Doctrine_Core::ATTR_AUTO_FREE_QUERY_OBJECTS
-      ))
-      {
-        $this->free();
-      }
+        $this->_preQuery($dqlParams);
 
-      return $result;
+        if ($hydrationMode !== null) {
+            $this->_hydrator->setHydrationMode($hydrationMode);
+        }
+
+        $hydrationMode = $this->_hydrator->getHydrationMode();
+
+        if ($this->_resultCache && $this->_type == self::SELECT) {
+            $cacheDriver = $this->getResultCacheDriver();
+            $hash = $this->getResultCacheHash($params);
+            $cached = ($this->_expireResultCache) ? false : $cacheDriver->fetch($hash);
+
+            if ($cached === false) {
+                // cache miss
+                $stmt = $this->_execute($params);
+                $this->_hydrator->setQueryComponents($this->_queryComponents);
+                $result = $this->_hydrator->hydrateResultSet($stmt, $this->_tableAliasMap);
+
+                $cached = $this->getCachedForm($result);
+                if ($cacheDriver instanceof Doctrine_Cache_Proxy && $result instanceof Doctrine_Collection_Cachetaggable) {
+                  $cacheDriver->saveWithTags($hash, $cached, $this->getResultCacheLifeSpan(), $result->getCacheTags());
+                } else {
+                  $cacheDriver->save($hash, $cached, $this->getResultCacheLifeSpan());
+                }
+            } else {
+                $result = $this->_constructQueryFromCache($cached);
+            }
+        } else {
+            $stmt = $this->_execute($params);
+
+            if (is_integer($stmt)) {
+                $result = $stmt;
+            } else {
+                $this->_hydrator->setQueryComponents($this->_queryComponents);
+                if ($this->_type == self::SELECT && $hydrationMode == Doctrine_Core::HYDRATE_ON_DEMAND) {
+                    $hydrationDriver = $this->_hydrator->getHydratorDriver($hydrationMode, $this->_tableAliasMap);
+                    $result = new Doctrine_Collection_OnDemand($stmt, $hydrationDriver, $this->_tableAliasMap);
+                } else {
+                    $result = $this->_hydrator->hydrateResultSet($stmt, $this->_tableAliasMap);
+                }
+            }
+        }
+        if ($this->getConnection()->getAttribute(Doctrine_Core::ATTR_AUTO_FREE_QUERY_OBJECTS)) {
+            $this->free();
+        }
+
+        return $result;
     }
   }
 

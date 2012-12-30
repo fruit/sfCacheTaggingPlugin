@@ -214,3 +214,27 @@
       $t->pass($e->getMessage());
     }
   }
+
+  $template = new Doctrine_Template_Cachetaggable();
+  $template->setInvoker(new BlogPost());
+  $template->setTable(BlogPostTable::getInstance());
+
+  try
+  {
+    sfCacheTaggingToolkit::obtainTagName($template, array('state_id' => 10));
+    $t->fail('Exception InvalidArgumentException not thrown');
+  }
+  catch (InvalidArgumentException $e)
+  {
+    $t->pass($e->getMessage());
+  }
+
+  try
+  {
+    sfCacheTaggingToolkit::obtainTagName($template, array('id' => 10));
+    $t->pass('Exception InvalidArgumentException not thrown');
+  }
+  catch (InvalidArgumentException $e)
+  {
+    $t->fail($e->getMessage());
+  }

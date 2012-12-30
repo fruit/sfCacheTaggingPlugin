@@ -87,6 +87,3 @@
 
   $q->clearResultCache();
   $tagging->clean();
-
-  # with sfCacheDisabledException
-  // removed, bacause Proxy is not used when sf_cache is disabled

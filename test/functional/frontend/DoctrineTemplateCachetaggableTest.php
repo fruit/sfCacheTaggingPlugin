@@ -257,6 +257,21 @@
 
   $t->is($post->getCollectionTags(), array($name => $version));
 
+  # addCacheTag
+  $x = new BlogPost();
+  $x->setTitle('Batman returns to pay taxes');
+  $x->save();
+  $t->is(count($x->getCacheTags()), 2, 'Batman post has 2 tags');
+  $t->is($x->addCacheTag('Batman', '818231'), true, 'Add more one tag');
+  $t->is(count($tags = $x->getCacheTags()), 3, 'It is really added');
+  $t->ok(array_key_exists('Batman', $tags), 'And tag "Batman" is right there');
+  $t->is($tags['Batman'], '818231', 'And tag version matches');
+
+  # obtainTagName
+  $x = new BlogPost();
+  $x->state(Doctrine_Record::STATE_LOCKED);
+  $t->is($x->obtainTagName(), false, 'Locked state return false');
+
   $optionSfCache = sfConfig::get('sf_cache');
   sfConfig::set('sf_cache', false);
 

@@ -26,38 +26,58 @@
     protected $commands = array();
 
     /**
+     * Delays the method call to time when database transaction end with COMMIT
      *
-     * @param object $invoker
-     * @param string $method
-     * @param array $args
+     * @param string  $method
+     * @param array   $arguments
      * @return Doctrine_EventListener_Cachetaggable
      */
-    public function postpone ($invoker, $method, array $args)
+    public function __call ($method, $arguments)
     {
-      $this->commands[] = array(array($invoker, $method), $args);
+      $this->commands[] = array($method, $arguments);
 
       return $this;
     }
 
+    /**
+     * Before transaction begin clears list of commands
+     *
+     * @param Doctrine_Event $event
+     * @return null
+     */
     public function preTransactionBegin (Doctrine_Event $event)
     {
-      $this->commands = array(); // clear commands list
+      $this->commands = array();
     }
 
+    /**
+     * If rollback occuress, clears list of commands
+     *
+     * @param Doctrine_Event $event
+     * @return null
+     */
     public function postTransactionRollback (Doctrine_Event $event)
     {
       $this->commands = array(); // clear commands list
     }
 
+    /**
+     * Triggers deferred method calls if such exists
+     *
+     * @param Doctrine_Event $event
+     * @return null
+     */
     public function postTransactionCommit (Doctrine_Event $event)
     {
       if (0 == count($this->commands)) return;
 
+      $tagging = sfCacheTaggingToolkit::getTaggingCache();
+
       // invoke callbacks in which the order it was added
       reset($this->commands);
-      while (list(/*$key*/, list($callable, $args)) = each($this->commands))
+      while (list(/*$key*/, list($method, $args)) = each($this->commands))
       {
-        call_user_func_array($callable, $args);
+        call_user_func_array(array($tagging, $method), $args);
       }
 
       $this->commands = array(); // free used memory

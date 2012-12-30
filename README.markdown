@@ -19,7 +19,7 @@ ready to be a part of cache content.
 
 Tagging a cache is a concept that was invented in the same time by many developers
 ([Andrey Smirnoff](http://www.smira.ru), [Dmitryj Koteroff](http://dklab.ru/lib/Dklab_Cache/)
-and, perhaps, by somebody else)
+and, perhaps, by somebody else).
 
 This software was developed inspired by Andrey Smirnoff's theoretical work
 [Cache tagging with Memcached (on Russian)](http://www.smira.ru/tag/memcached/).
@@ -61,9 +61,9 @@ are not (atomic counter).
 
   _After quick setup you may be interested in "<a href="#advanced-setup">Advanced setup</a>"_
 
-## 1. Check plugin is enabled.
+## 1. Check plugin is enabled
 
-Location: ``/config/ProjectConfiguration.class.php``
+File: ``/config/ProjectConfiguration.class.php``
 
     [php]
     <?php
@@ -77,12 +77,15 @@ Location: ``/config/ProjectConfiguration.class.php``
       }
     }
 
-## 2. Rebuild your the models
+## 2. Rebuild your models
 
     $ ./symfony doctrine:build-model
 
-## 3. Configure "_view_cache_" and "_view_cache_manager_" in ``/config/factories.yml``
+## 3. Configure "_view_cache_" and "_view_cache_manager_"
 
+File: ``/config/factories.yml``
+
+    [yaml]
     all:
       view_cache_manager:
         class: sfViewCacheTagManager
@@ -101,8 +104,6 @@ Location: ``/config/ProjectConfiguration.class.php``
               file: %SF_LOG_DIR%/cache_%SF_ENVIRONMENT%.log
               format: "%char% %microtime% %key%%EOL%"
 
-
-
 ## 4. Add "_Cachetaggable_" behavior to the each model you want to cache
 
     Article:
@@ -114,8 +115,13 @@ And don't forget to rebuild models again:
 
     $ ./symfony doctrine:build-model
 
-## 5. Enable the cache and add mandatory helpers to ``standard_helpers`` (file ``/apps/%APP%/config/settings.yml``):
+## 5. Enable cache and configure standard helpers option
 
+Add "Partial" and "Cache" helpers to the ``standard_helpers`` option.
+
+File: ``/apps/%APP%/config/settings.yml``
+
+    [yaml]
     dev:
       .settings:
         cache: true
@@ -123,6 +129,7 @@ And don't forget to rebuild models again:
     all:
       .settings:
         standard_helpers:
+          # ...
           - Partial
           - Cache
 
@@ -193,7 +200,7 @@ And don't forget to rebuild models again:
 
         class articlesComponents extends sfComponents
         {
-          public function executeListOfArticlesAndComments($request)
+          public function executeListOfArticlesAndComments ($request)
           {
             $articles = Doctrine::getTable('Article')
               ->createQuery('a')
@@ -433,7 +440,7 @@ And bonus one:
 
 ## Adding "Cachetaggable" behavior to the models
 
-Two major setups to pay attention:
+Two major setups to pay attention on:
 
   * **Model setup**
     * When object tag will be invalidated
@@ -561,36 +568,14 @@ Explained behavior setup, file ``/config/doctrine/schema.yml``:
           onDelete: CASCADE
           onUpdate: CASCADE
 
-## Explained ``sfCacheTaggingPlugin`` options (file ``/config/app.yml``):
+## sfCacheTaggingPlugin settings
 
-    all:
-      sfCacheTagging:
-
-        # Tag name delimiter
-        # (default: ":")
-        model_tag_name_separator: ":"
-
-        # Version of precision
-        # 0: without micro time, version length 10 digits
-        # 5: with micro time part, version length 15 digits
-        # allowed decimal numbers in range [0, 6]
-        # (default: 5)
-        microtime_precision: 5
-
-        # Callable array, or string
-        # Examples:
-        #      [ClassName, MethodName]
-        #    OR
-        #      "ClassName::staticMethodName"
-        # useful when tag name should contains extra information
-        # (e.g. Environment name, or application name)
-        # (default: [])
-        object_class_tag_name_provider: []
-
+  Full list of available plugin options and its descriptions you can find
+  within file ``plugin/sfCacheTaggingPlugin/config/app.yml``.
 
 ## Tag manipulations
 
-Here is a list of available methods you can call inside ``sfComponent`` & ``sfAction`` to manage tags:
+Here is a list of available methods you can use inside ``sfComponent`` & ``sfAction`` to manage tags:
 
  - ``setContentTags (mixed $tags)``
  - ``addContentTags (mixed $tags)``
@@ -601,8 +586,6 @@ Here is a list of available methods you can call inside ``sfComponent`` & ``sfAc
  - ``removeContentTag (string $tagName)``
  - ``disableCache (string $moduleName = null, string $actionName = null)``
  - ``addDoctrineTags (mixed $tags, Doctrine_Query $q, array $params = array())``
-
-More about is you could find in ``sfViewCacheTagManagerBridge.class.php``
 
 Component example:
 
@@ -671,17 +654,11 @@ And plug in query cache:
         if ($doctrineQueryCache)
         {
           list($class, $param) = array_values($doctrineQueryCache);
-          $manager->setAttribute(
-            Doctrine_Core::ATTR_QUERY_CACHE,
-            new $class($param)
-          );
+          $manager->setAttribute(Doctrine_Core::ATTR_QUERY_CACHE, new $class($param));
 
           if (isset($param['lifetime']))
           {
-            $manager->setAttribute(
-              Doctrine_Core::ATTR_QUERY_CACHE_LIFESPAN,
-              (int) $param['lifetime']
-            );
+            $manager->setAttribute(Doctrine_Core::ATTR_QUERY_CACHE_LIFESPAN, (int) $param['lifetime']);
           }
         }
       }
@@ -691,7 +668,8 @@ And plug in query cache:
 
 Plugin contains universal proxy class ``Doctrine_Cache_Proxy`` to connect Doctrine
 cache mechanisms with Symfony's one. This mean, when you setup "storage" cache back-end to
-file cache, [Doctrine`s result cache](http://www.doctrine-project.org/projects/orm/1.2/docs/manual/caching/en#query-cache-result-cache:result-cache) will use it to store cached ``DQL`` results.
+file cache, [Doctrine`s result cache](http://docs.doctrine-project.org/projects/doctrine1/en/latest/en/manual/caching.html#query-cache-result-cache)
+will use it to store cached ``DQL`` results.
 
 To enable result cache use:
 
@@ -722,15 +700,15 @@ Cached ``DQL`` results will be associated with all linked tags based on query re
 ## TDD
 
   * Test environment: PHP 5.4.9, MySQL 5.5.28, Memcached 1.4.10, OS Fedora 17 x64
-  * Number of files: 48
-  * Tests: 1840
+  * Number of files: 49
+  * Tests: 1981
   * Code coverage: 96%
 
 Whether you want to run a plugin tests, you need:
 
   1. Install plugin from GIT repository.
   2. Install [APC](http://pecl.php.net/package/APC), [Memcache](http://pecl.php.net/package/Memcache) and MySQL
-  3. Configure ``php.ini`` and restart Apache/php-fpm:
+  3. Configure ``php.ini``:
 
         [ini]
         [APC]
@@ -754,16 +732,13 @@ Whether you want to run a plugin tests, you need:
 
         # it will create the ``sfcachetaggingplugin_test`` database
         $ ./symfony doctrine:build --all --and-load --env=test
-
         $ ./symfony cc
-
-        # runs unit and functional tests
         $ ./symfony test:all
 
-        # runs all unit tests
+        # run only unit tests
         $ ./symfony test:unit
 
-        # runs all functional tests
+        # run only functional tests
         $ ./symfony test:functional
 
 
@@ -772,7 +747,7 @@ Whether you want to run a plugin tests, you need:
 * [Repository (GitHub)](http://github.com/fruit/sfCacheTaggingPlugin "Repository (GitHub)")
 * [Issues (GitHub)](http://github.com/fruit/sfCacheTaggingPlugin/issues "Issues")
 
-## Contacts ##
+## Contacts
 
   * @: Ilya Sabelnikov `` <fruit dot dev at gmail dot com> ``
   * Skype: ilya_roll

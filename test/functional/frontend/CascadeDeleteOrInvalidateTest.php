@@ -54,24 +54,6 @@
     $con->commit();
   }
 
-  function fetch_and_clean_all_tags ()
-  {
-    return;
-    global $tagging;
-
-    $tagging->clean();
-
-    /**
-     * @todo
-     *
-     * May be culture findAll returns objects that points recursivelly,
-     * and getCacheTags can handle it
-     */
-
-
-    return $tags;
-  }
-
   function check_tags ($microtime, array $toDelete, array $toInvalidate)
   {
     global $t, $tagging, $alltags;
@@ -129,7 +111,6 @@
       )
     );
   }
-  return;
 
   if (in_array(2, $run, true))
   {

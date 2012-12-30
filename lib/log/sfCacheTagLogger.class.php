@@ -86,7 +86,7 @@
     /**
      * Returns the options for the logger instance.
      */
-    public function getOptions()
+    public function getOptions ()
     {
       return $this->options;
     }

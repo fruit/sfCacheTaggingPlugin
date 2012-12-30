@@ -42,8 +42,6 @@
 
     /**
      * List of allowed methods to call.
-     * Its made so, due to is_callable(array('sfContentTagHandler', $method))
-     * throws sfCacheDisabledException
      *
      * @var array
      */
@@ -96,10 +94,8 @@
       if ($component instanceof sfAction)
       {
         $viewManager = $context->getViewCacheManager();
-
-        $uri = $viewManager->getCurrentCacheKey();
-
-        if ($viewManager->withLayout($uri))
+        
+        if ($viewManager->withLayout($viewManager->getCurrentCacheKey()))
         {
           return sfViewCacheTagManager::NAMESPACE_PAGE;
         }

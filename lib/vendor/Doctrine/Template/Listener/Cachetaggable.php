@@ -60,7 +60,7 @@
      *
      * @param array $options
      */
-    public function __construct(array $options)
+    public function __construct (array $options)
     {
       $this->_options = $options;
     }
@@ -182,25 +182,17 @@
       $invoker = $event->getInvoker();
       /* @var $invoker Doctrine_Record  */
 
-      $taggingCache = $this->getTaggingCache();
       $version      = sfCacheTaggingToolkit::generateVersion();
-
       $eventTagging = $this->getTransactionEvent($invoker->getCurrentConnection());
+      $tagging      = $eventTagging ? $eventTagging : $this->getTaggingCache();
 
-      if ($eventTagging)
-      {
-        $eventTagging
-          ->postpone($taggingCache, 'deleteTags', array($this->preDeleteTagNames))
-          ->postpone($taggingCache, 'invalidateTags', array($this->preInvalidateTagNames))
-          ->postpone($taggingCache, 'setTag', array($invoker->obtainCollectionName(), $version))
-        ;
-      }
-      else
-      {
-        $taggingCache->deleteTags($this->preDeleteTagNames);
-        $taggingCache->invalidateTags($this->preInvalidateTagNames);
-        $taggingCache->setTag($invoker->obtainCollectionName(), $version);
-      }
+      $tagging->deleteTags($this->preDeleteTagNames);
+      $tagging->invalidateTags($this->preInvalidateTagNames);
+      $tagging->setTag($invoker->obtainCollectionName(), $version);
+
+      // free used memory
+      $this->preDeleteTagNames      = array();
+      $this->preInvalidateTagNames  = array();
     }
 
     /**
@@ -259,8 +251,6 @@
         return;
       }
 
-      $taggingCache = $this->getTaggingCache();
-
       $invoker = $event->getInvoker();
       /* @var $invoker sfCachetaggableDoctrineRecord  */
 
@@ -280,6 +270,7 @@
       }
 
       $eventTagging = $this->getTransactionEvent($invoker->getCurrentConnection());
+      $tagging      = $eventTagging ? $eventTagging : $this->getTaggingCache();
 
       /**
        * ->exists() returns false if it was ->replace()
@@ -289,30 +280,12 @@
       {
         $collectionName = sfCacheTaggingToolkit::obtainCollectionName($invoker->getTable());
 
-        if ($eventTagging)
-        {
-          $eventTagging->postpone($taggingCache, 'setTag', array(
-            $collectionName, $invokerObjectVersion
-          ));
-        }
-        else
-        {
-          $taggingCache->setTag($collectionName, $invokerObjectVersion);
-        }
+        $tagging->setTag($collectionName, $invokerObjectVersion);
       }
 
-      $invokerTagName = $invoker->obtainTagName(); /** @todo */
+      $invokerTagName = $invoker->obtainTagName();
 
-      if ($eventTagging)
-      {
-        $eventTagging->postpone($taggingCache, 'setTag', array(
-          $invokerTagName, $invokerObjectVersion
-        ));
-      }
-      else
-      {
-        $taggingCache->setTag($invokerTagName, $invokerObjectVersion);
-      }
+      $tagging->setTag($invokerTagName, $invokerObjectVersion);
     }
 
     /**
@@ -324,8 +297,6 @@
     public function preDqlUpdate (Doctrine_Event $event)
     {
       if (! sfConfig::get('sf_cache')) return;
-
-      $taggingCache = $this->getTaggingCache();
 
       /* @var $q Doctrine_Query */
       $q = $event->getQuery();
@@ -358,26 +329,16 @@
       $collectionName = sfCacheTaggingToolkit::obtainCollectionName($table);
 
       $eventTagging = $this->getTransactionEvent($q->getConnection());
+      $tagging      = $eventTagging ? $eventTagging : $this->getTaggingCache();
 
       /**
        * @todo test, not coveraged (SoftDelete everywhere is after Cachetaggable
        */
       if ($this->isModifiedIsASoftDeleteColumn($columnsToModify, $table))
       {
-        if ($eventTagging)
-        {
-          $eventTagging->postpone($taggingCache, 'setTag', array(
-            $collectionName, sfCacheTaggingToolkit::generateVersion()
-          ));
-        }
-        else
-        {
-          // invalidate collection, if soft delete sets deleted_at field
-          $taggingCache->setTag(
-            $collectionName,
-            sfCacheTaggingToolkit::generateVersion()
-          );
-        }
+        $version = sfCacheTaggingToolkit::generateVersion();
+        // invalidate collection, if soft delete sets deleted_at field
+        $tagging->setTag($collectionName, $version);
       }
 
       $updateVersion = sfCacheTaggingToolkit::generateVersion();
@@ -409,41 +370,21 @@
         $tags[$tagName] = $updateVersion;
       }
 
-      if ($eventTagging)
-      {
-        $eventTagging->postpone($taggingCache, 'setTags', array($tags));
-      }
-      else
-      {
-        $taggingCache->setTags($tags);
-      }
+      $tagging->setTags($tags);
 
       $isToInvalidateCollectionVersion
         = (bool) $this->getOption('invalidateCollectionVersionOnUpdate');
 
-      if (! $isToInvalidateCollectionVersion)
+      if (! $isToInvalidateCollectionVersion
+          && $this->isModifiedAffectsCollectionVersion($columnsToModify))
       {
-        if ($this->isModifiedAffectsCollectionVersion($columnsToModify))
-        {
-          $isToInvalidateCollectionVersion = true;
-        }
+        $isToInvalidateCollectionVersion = true;
       }
 
       if ($isToInvalidateCollectionVersion)
       {
-        if ($eventTagging)
-        {
-          $eventTagging->postpone($taggingCache, 'setTag', array(
-            $collectionName, sfCacheTaggingToolkit::generateVersion()
-          ));
-        }
-        else
-        {
-          $taggingCache->setTag(
-            $collectionName,
-            sfCacheTaggingToolkit::generateVersion()
-          );
-        }
+        $version = sfCacheTaggingToolkit::generateVersion();
+        $tagging->setTag($collectionName, $version);
       }
     }
 
@@ -456,8 +397,6 @@
     public function preDqlDelete (Doctrine_Event $event)
     {
       if (! sfConfig::get('sf_cache')) return;
-
-      $taggingCache = $this->getTaggingCache();
 
       $invoker = $event->getInvoker();
       /* @var $invoker Doctrine_Record  */
@@ -517,6 +456,7 @@
         = new Doctrine_Connection_CachetaggableUnitOfWork($q->getConnection());
 
       $eventTagging = $this->getTransactionEvent($q->getConnection());
+      $tagging      = $eventTagging ? $eventTagging : $this->getTaggingCache();
 
       foreach ($objects as $object)
       {
@@ -525,38 +465,18 @@
         $deletions      = $unitOfWork->getDeletions();
         $invalidations  = $unitOfWork->getInvalidations();
 
-        if ($eventTagging)
-        {
-          $eventTagging
-            ->postpone($taggingCache, 'deleteTags', array($deletions))
-            ->postpone($taggingCache, 'invalidateTags', array($invalidations))
-          ;
-        }
-        else
-        {
-          $taggingCache->deleteTags($deletions);
-          $taggingCache->invalidateTags($invalidations);
-        }
+        $tagging->deleteTags($deletions);
+        $tagging->invalidateTags($invalidations);
 
         unset($deletions, $invalidations);
       }
 
       unset($unitOfWork);
 
-      if ($eventTagging)
-      {
-        $eventTagging->postpone($taggingCache, 'setTag', array(
-          sfCacheTaggingToolkit::obtainCollectionName($table),
-          sfCacheTaggingToolkit::generateVersion()
-        ));
-      }
-      else
-      {
-        $taggingCache->setTag(
-          sfCacheTaggingToolkit::obtainCollectionName($table),
-          sfCacheTaggingToolkit::generateVersion()
-        );
-      }
+      $tagging->setTag(
+        sfCacheTaggingToolkit::obtainCollectionName($table),
+        sfCacheTaggingToolkit::generateVersion()
+      );
     }
 
     /**

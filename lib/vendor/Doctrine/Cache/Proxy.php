@@ -22,7 +22,6 @@
     /**
      * Short method to retrieve sfTaggingCache for internal use
      *
-     * @throws sfCacheDisabledException when some mandatory objects are missing
      * @return sfTaggingCache
      */
     protected function getTaggingCache ()

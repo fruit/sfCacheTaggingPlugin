@@ -22,7 +22,7 @@
      */
     protected $holder = null;
 
-    public function __construct()
+    public function __construct ()
     {
       $this->holder = new sfTagNamespacedParameterHolder();
     }

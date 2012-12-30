@@ -155,12 +155,9 @@
         }
       }
 
-      /**
-       * @todo mistical code (switching added tags with fetch on the fly)
-       *       maybe copy & past from toArray()?
-       */
       $tags = $tagHandler->getContentTags($namespace);
       $tagHandler->clear();
+      unset($tagHandler);
 
       $this->_state = $stateBeforeLock;
 
@@ -200,6 +197,8 @@
       $this
         ->getContentTagHandler()
         ->setContentTag($tagName, $tagVersion, $this->obtainInvokerNamespace());
+
+      return true;
     }
 
     /**

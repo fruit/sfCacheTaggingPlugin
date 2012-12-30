@@ -219,11 +219,11 @@
   try
   {
     $t->is(null, test_method('addContentTags', array(array('Tag:1' => sfCacheTaggingToolkit::generateVersion()))));
-    $t->pass('Exception sfCacheDisabledException not thrown');
+    $t->pass('Exception Exception not thrown');
   }
-  catch (sfCacheDisabledException $e)
+  catch (Exception $e)
   {
-    $t->fail('Catching sfCacheDisabledException');
+    $t->fail('Catching Exception');
   }
 
   # unexisting method, with disabled cache

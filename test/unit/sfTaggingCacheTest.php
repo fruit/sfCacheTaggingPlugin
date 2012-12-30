@@ -206,6 +206,11 @@
   ini_set(APC_USE_REQUEST_TIME, $oldVal);
 
   # hasTag
+  try {
+    $t->fail($c->hasTag(array()));
+  } catch (InvalidArgumentException $e) {
+    $t->pass($e->getMessage());
+  }
   $c->set('Woodpark', 'Street 12/31 5', 1000, array('A' => 27, 'C' => 59));
   $t->is($c->hasTag('A'), true);
   $t->is($c->hasTag('C'), true);
@@ -213,6 +218,11 @@
   $c->remove('Woodpark');
 
   # getTags
+  try {
+    $t->fail($c->getTags(array()));
+  } catch (InvalidArgumentException $e) {
+    $t->pass($e->getMessage());
+  }
   $c->set('MyAnimals', 'Cat & Crocodile', null, array('A' => 91, 'C' => 26));
   $t->is($c->getTags('MyAnimals'), array('A' => 91, 'C' => 26));
   $t->is($c->getTags('MyBirds'), array());
@@ -223,6 +233,35 @@
   $c->set('CityB', 'City B');
   $c->removePattern('City*');
 
+  # deleteTag
+  try {
+    $t->fail($c->deleteTag(array()));
+  } catch (InvalidArgumentException $e) {
+    $t->pass($e->getMessage());
+  }
+  $c->setTag('u8', 1991);
+  $t->ok($c->hasTag('u8'));
+  $t->ok(! $c->hasTag('unknown_tag'));
+  $t->ok(! $c->deleteTag('unknown_tag'));
+  $t->ok($c->deleteTag('u8'));
+  $t->ok(! $c->hasTag('u8'));
+  $t->ok(! $c->hasTag('unknown_tag'));
+
+  # getTag
+  try {
+    $t->fail($c->deleteTag(array()));
+  } catch (InvalidArgumentException $e) {
+    $t->pass($e->getMessage());
+  }
+  $t->is($c->getTag('u8'), null);
+  $c->setTag('u8', 1251);
+  $t->is($c->getTag('u8'), 1251);
+
+  # deleteTags
+  $t->is($c->deleteTags(array('X' => null, 'Y' => null, 'Z' => null)), array('X' => 0, 'Y' => 0, 'Z' => 0));
+  $c->set('Dreams', 'Play guitar, Black belt Sensei, Live outside town', null, array('X' => 5, 'Y' => 2, 'Z' => 9));
+  $t->is($c->deleteTags(array('X' => null, 'G' => null)), array('X' => 1, 'G' => 0));
+  $t->is($c->deleteTags(array('X' => null, 'Y' => null, 'Z' => null,)), array('X' => 0, 'Y' => 1, 'Z' => 1));
 
   # getLastModified
   $now = time() - 5;

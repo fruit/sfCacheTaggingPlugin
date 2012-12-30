@@ -129,20 +129,15 @@
      *
      * @param string    $alias
      * @param array     $ids
-     * @return boolean
+     * @return array
      */
-    protected function getTagNamesByAlias ($alias, $ids)
+    protected function getTagNamesByAlias ($alias, array $ids)
     {
-      if (0 == count($ids))
-      {
-        return;
-      }
-
       $relation = $this->getTable()->getRelation($alias);
 
       if (! $relation instanceof Doctrine_Relation_Association)
       {
-        return;
+        return array();
       }
 
       /* @var $refTable Doctrine_Table */
@@ -150,7 +145,7 @@
 
       if (! $refTable->hasTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME))
       {
-        return;
+        return array();
       }
 
       $template = $refTable->getTemplate(sfCacheTaggingToolkit::TEMPLATE_NAME);
@@ -190,56 +185,54 @@
     }
 
     /**
-     * @see Doctrine_Record::link()
-     * @return sfCachetaggableDoctrineRecord
+     * After linking ID's, invalidates object tags
+     *
+     * {@inheritdoc}
      */
     public function link ($alias, $ids, $now = false)
     {
       $self = parent::link($alias, $ids, $now);
+      $ids  = (array) $ids;
 
-      if (! sfConfig::get('sf_cache')) return $self;
+      if (! sfConfig::get('sf_cache') || ! count($ids)) return $self;
 
       $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
-
-      $tagNames = $this->getTagNamesByAlias($alias, $ids);
-
-      if (is_array($tagNames))
-      {
-        $taggingCache->invalidateTags($tagNames);
-      }
+      $taggingCache->invalidateTags($this->getTagNamesByAlias($alias, $ids));
 
       return $self;
     }
 
     /**
-     * @see Doctrine_Record::unlink()
-     * @return sfCachetaggableDoctrineRecord
+     * After unlinking ID's, invalidates object tags
+     *
+     * {@inheritdoc}
      */
     public function unlink ($alias, $ids = array(), $now = false)
     {
       $self = parent::unlink($alias, $ids, $now);
+      $ids  = (array) $ids;
 
-      if (! sfConfig::get('sf_cache')) return $self;
+      if (! sfConfig::get('sf_cache') || ! count($ids)) return $self;
 
       $taggingCache = sfCacheTaggingToolkit::getTaggingCache();
-
-      $tagNames = $this->getTagNamesByAlias($alias, $ids);
-
-      if (is_array($tagNames))
-      {
-        $taggingCache->deleteTags($tagNames);
-      }
+      $taggingCache->deleteTags($this->getTagNamesByAlias($alias, $ids));
 
       return $self;
     }
 
+    /**
+     * Saves user custom connection instance, to correctly detect Doctrine
+     * transaction state in Doctrine_Template_Listener_Cachetaggable.
+     *
+     * @param Doctrine_Connection $conn
+     */
     protected function setUserConnection (Doctrine_Connection $conn = null)
     {
       $this->userConnection = $conn;
     }
 
     /**
-     * Returns real connection, when user run one of the actions:
+     * Returns real connection, when user executes one of the actions:
      *    - save
      *    - delete
      *    - replace
@@ -256,6 +249,9 @@
         : $this->getTable()->getConnection();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function save (Doctrine_Connection $conn = null)
     {
       $this->setUserConnection($conn);
@@ -263,6 +259,9 @@
       return parent::save($conn);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function delete (Doctrine_Connection $conn = null)
     {
       $this->setUserConnection($conn);
@@ -270,6 +269,9 @@
       return parent::delete($conn);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function replace (Doctrine_Connection $conn = null)
     {
       $this->setUserConnection($conn);
@@ -277,6 +279,9 @@
       return parent::replace($conn);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function free ($deep = false)
     {
       unset($this->userConnection);
